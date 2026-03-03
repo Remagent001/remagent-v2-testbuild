@@ -1,78 +1,79 @@
-import Image from "next/image";
 import Link from "next/link";
-import { CiPlay1 } from "react-icons/ci";
 import style from "./Section1.module.css";
-import { FaArrowRight } from "react-icons/fa";
+
 export default function Section1() {
   return (
-    <>
-      <section className={style["slider-area"]}>
-        <div className={"container-fluid px-5"}>
-          <div className="d-flex justify-content-center  flex-column flex-lg-row">
-            <div className="">
-              <div className={style["slider-content"]}>
-                <h1> Find Work that Fits Your Skill Set and Your Schedule</h1>
-                <p className="m-0">
-                  Register your company to browse profiles and select your best
-                  candidates. Search by skills, experience, location,
-                  availability, and more. The hiring process has never been
-                  easier—find qualified specialists in minutes and start
-                  interviewing right away.
-                </p>
-              </div>
-              <div className={style.userOptions}>
-                <Link
-                  href={process.env.REMAGENT_URL + "/signup"}
-                  className={style["custom-button"]}
-                >
-                  Build My Professional Profile And Let Businesses Search For Me
-                  <span className={style["button-icon"]}>
-                    <CiPlay1 />
-                  </span>
-                </Link>
-              </div>
-              <div>
-                <Link
-                  href={process.env.SITE_URL + "/business"}
-                  className={style["icon-text-section"]}
-                >
-                  <div className={style["icon-circle"]}>
-                    <FaArrowRight />{" "}
-                  </div>
-                  <div className="fs-5">
-                    I meant to click the Business button to build a profile and
-                    search for candidates.
-                  </div>
-                </Link>
-              </div>
+    <section className={style.hero}>
+      <div className={style.heroInner}>
 
-              <div className={"py-4 " + style["banner-buttons"]}>
-                <div className={style["slider-button"]}>Customer Service</div>
-                <div className={style["slider-button"]}>Flexible Staffing</div>
-                <div className={style["slider-button"]}>
-                  White Glove Specialist
-                </div>
-                <div className={style["slider-button"]}>
-                  Your Rate, Your Schedule
-                </div>
-              </div>
+        {/* LEFT: Copy */}
+        <div className={style.heroContent}>
+          <div className={style.eyebrow}>
+            <span className={style.badge}>For Contact Center Professionals</span>
+          </div>
+
+          <h1 className={style.title}>
+            Let Employers<br />
+            <span className={style.highlight}>Come to You.</span>
+          </h1>
+
+          <p className={style.desc}>
+            Build your profile once. Companies search, filter, and invite you
+            directly based on your skills, platforms, availability, and pay
+            expectations — no applying, no waiting, no resume black holes.
+          </p>
+
+          <div className={style.ctas}>
+            <Link href="#" className={style.btnPrimary}>
+              Build My Profile →
+            </Link>
+            <Link href="#how" className={style.btnSecondary}>
+              See How It Works
+            </Link>
+          </div>
+
+          <div className={style.stats}>
+            <div className={style.stat}>
+              <span className={style.statNum}>20 min</span>
+              <span className={style.statLabel}>to build your profile</span>
             </div>
-            <div className="d-lg-block d-none">
-              <div className={style["slider-thumb"]}>
-                <Image
-                  src={"/assets/images/professionals/how-it-work/1.webp"}
-                  quality={100}
-                  alt="main_image"
-                  priority
-                  width={600}
-                  height={700}
-                  className="h-auto"
-                />
-              </div>
+            <div className={style.statDivider} />
+            <div className={style.stat}>
+              <span className={style.statNum}>100%</span>
+              <span className={style.statLabel}>Remote positions</span>
+            </div>
+            <div className={style.statDivider} />
+            <div className={style.stat}>
+              <span className={style.statNum}>You set</span>
+              <span className={style.statLabel}>your rate & schedule</span>
             </div>
           </div>
         </div>
-      </section>
-    </>
+
+        {/* RIGHT: Image */}
+        <div className={style.heroImageWrap}>
+          <img
+            src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=900&q=85"
+            alt="Professional working remotely from home"
+            className={style.heroImage}
+          />
+          <div className={style.floatCard1}>
+            <span className={style.floatIcon}>💼</span>
+            <div>
+              <div className={style.floatVal}>Employers Find You</div>
+              <div className={style.floatSub}>No job hunting needed</div>
+            </div>
+          </div>
+          <div className={style.floatCard2}>
+            <span className={style.floatIcon}>⏰</span>
+            <div>
+              <div className={style.floatVal}>Your Schedule</div>
+              <div className={style.floatSub}>You set your availability</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
   );
 }

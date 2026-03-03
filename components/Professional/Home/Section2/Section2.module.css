@@ -1,169 +1,97 @@
-.reviews-area {
-  background-color: #E9F1F9;
-}
+/* ── Section 2: Why Remagent (Professionals) ── */
+.section { background: #ffffff; padding: 96px 24px; }
+.inner { max-width: 1160px; margin: 0 auto; }
+.header { text-align: center; margin-bottom: 56px; }
 
-.section-title span {
-  color: #1f86ef;
+.label {
   display: inline-block;
-  margin-bottom: 10px;
-  font-weight: 500
+  background: rgba(15,212,176,0.12);
+  border: 1px solid rgba(15,212,176,0.3);
+  color: #0ab398;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 100px;
+  margin-bottom: 16px;
 }
 
-.section-title h2 {
-  font-size: 46px;
-  margin-bottom: 10px;
-  position: relative;
-  border-radius: 10px;
-  margin-top: -10px
+.title {
+  font-size: clamp(1.75rem, 3.5vw, 2.75rem);
+  font-weight: 900;
+  color: #0b1f3a;
+  line-height: 1.2;
+  margin-bottom: 16px;
 }
 
-.section-title h2 .overlay {
-  position: absolute;
-  left: 0;
-  top: 0;
-  background: #1f86ef;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-  border-radius: 10px
-}
+.accent { color: #0ab398; }
 
-.section-title.white-title span {
-  color: #1f86ef
-}
-
-.section-title.white-title h2 {
-  color: #fff
-}
-
-.card-container {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-  margin-top: 2rem;
-}
-
-.custom-card {
-  border-radius: 15px;
-  padding: 2rem;
-  text-align: center;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  position: relative;
-  width: 100%;
-  max-width: 250px;
+.subtitle {
+  font-size: 1rem;
+  color: #5a7080;
+  max-width: 620px;
   margin: 0 auto;
+  line-height: 1.7;
 }
 
-/* Tab style at the top left */
-.custom-card::before {
-  content: "";
-  position: absolute;
-  top: -28px;
-  left: 0px;
-  width: 60px;
-  height: 40px;
-  border-radius: 10px 10px 0 0;
+/* Benefits grid */
+.benefits {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 48px;
 }
 
-/* Circular white dot with a hole inside */
-.custom-card::after {
-  content: "";
-  position: absolute;
-  top: -15px;
-  left: 20px;
-  width: 15px;
-  height: 15px;
-  background-color: #ffffff;
-  border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.benefitCard {
+  background: #f5f7fa;
+  border-radius: 16px;
+  padding: 32px;
+  border: 1px solid #e8ecf1;
+}
+
+.benefitIcon { font-size: 2rem; margin-bottom: 16px; }
+.benefitTitle { font-size: 1rem; font-weight: 700; color: #0b1f3a; margin-bottom: 10px; }
+.benefitDesc { font-size: 0.9rem; color: #5a7080; line-height: 1.7; margin: 0; }
+
+/* Attribute chips */
+.attrWrap {
+  background: #0b1f3a;
+  border-radius: 20px;
+  padding: 48px;
+}
+
+.attrTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.attrGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.attrChip {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 0.88rem;
+  color: rgba(255,255,255,0.85);
+  font-weight: 500;
 }
 
-.custom-card::after::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  background-color: inherit;
-  /* Match card background color to create a "hole" */
-  border-radius: 50%;
-}
+.attrCheck { color: #0fd4b0; font-weight: 700; flex-shrink: 0; }
 
-.icon img {
-  width: 120px;
-  margin-bottom: 1rem;
-}
-
-.card-title {
-  font-size: 1.25rem;
-  font-weight: bold;
-  color: #333;
-}
-
-.card-text {
-  font-size: 0.9rem;
-  color: #666;
-}
-
-/* Specific card background colors */
-.blue-card {
-  background-color: rgba(224, 243, 255, 1);
-}
-
-.blue-card::before {
-  background-color: rgba(224, 243, 255, 1);
-}
-
-.light-blue-card {
-  background-color: rgba(156, 221, 241, 1);
-}
-
-.light-blue-card::before {
-  background-color: rgba(156, 221, 241, 1);
-}
-
-.purple-card {
-  background-color: rgba(231, 202, 255, 1);
-}
-
-.purple-card::before {
-  background-color: rgba(231, 202, 255, 1);
-}
-
-.green-card {
-  background-color: rgba(167, 238, 212, 1);
-}
-
-.green-card::before {
-  background-color: rgba(167, 238, 212, 1);
-}
-@media screen and (min-width: 1024px) and (max-width: 1336px) {
-
-  .card-container {
-    gap: 5rem !important;
-  }
-}
-
-@media screen and (min-width: 768px) and (max-width: 1024px) {
-
-  .card-container {
-    gap: 3rem !important;
-  }
-}
-
-.ptb-100 {
-  padding-top: 100px;
-  padding-bottom: 50px;
-}
-
-@media only screen and (max-width: 767px) {
-  .section-title h2 {
-    font-size: 30px;
-  }
-
-  .card-container {
-    gap: 3rem !important;
-}
+@media (max-width: 900px) {
+  .benefits { grid-template-columns: 1fr; }
+  .attrGrid { grid-template-columns: 1fr; }
+  .attrWrap { padding: 32px 24px; }
 }

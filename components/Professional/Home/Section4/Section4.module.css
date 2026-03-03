@@ -1,201 +1,139 @@
-.reviews-area{
-    background-color: #E9F1F9;
-}
-.swiper-nav-container {
-    position: relative;
-    width: 100%;
-    bottom: 150px;
-}
-  
-.custom-next,
-.custom-prev {
-    background: rgba(91, 188, 129, 1);
-    border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, .1);
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 1
+/* ── Section 4: Testimonials + CTA (Professionals) ── */
+.section { background: #f5f7fa; padding: 96px 24px; }
+.inner { max-width: 1160px; margin: 0 auto; }
+.header { text-align: center; margin-bottom: 56px; }
+
+.label {
+  display: inline-block;
+  background: rgba(15,212,176,0.12);
+  border: 1px solid rgba(15,212,176,0.3);
+  color: #0ab398;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 100px;
+  margin-bottom: 16px;
 }
 
-.custom-prev {
-    left: -35px
+.title {
+  font-size: clamp(1.75rem, 3.5vw, 2.75rem);
+  font-weight: 900;
+  color: #0b1f3a;
+  line-height: 1.2;
 }
 
-.custom-next {
-    right: -35px
+.accent { color: #0ab398; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 64px;
 }
 
-.custom-next:hover,
-.custom-prev:hover {
-    background: rgba(91, 188, 129, 1)
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 2px 12px rgba(11,31,58,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  border: 1px solid #e8ecf1;
 }
 
-.custom-next svg,
-.custom-prev svg {
-    color: #fff;
-    font-size: 24px
-}
-  .section-title {
-    max-width: 680px;
-    margin: auto auto 40px;
-    text-align: center
+.quote {
+  font-size: 0.95rem;
+  color: #2d3f50;
+  line-height: 1.75;
+  flex: 1;
+  margin: 0;
+  font-style: italic;
 }
 
-.section-title span {
-    color: #1f86ef;
-    display: inline-block;
-    margin-bottom: 10px;
-    font-weight: 500
+.author { display: flex; align-items: center; gap: 14px; }
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
-.section-title h2 {
-    font-size: 36px;
-    margin-bottom: 10px;
-    position: relative;
-    border-radius: 10px;
-    margin-top: -10px
+.name { font-size: 0.9rem; font-weight: 700; color: #0b1f3a; }
+.role { font-size: 0.78rem; color: #5a7080; margin-top: 2px; }
+
+/* CTA Banner */
+.cta {
+  background: linear-gradient(135deg, #0b1f3a 0%, #132d50 100%);
+  border-radius: 20px;
+  padding: 56px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  flex-wrap: wrap;
 }
 
-.section-title h2 .overlay {
-    position: absolute;
-    left: 0;
-    top: 0;
-    background: #1f86ef;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
-    border-radius: 10px
+.ctaText h3 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 8px;
 }
 
-.section-title.white-title span {
-    color: #1f86ef
+.ctaText p {
+  font-size: 1rem;
+  color: rgba(255,255,255,0.6);
+  margin: 0;
 }
 
-.section-title.white-title h2 {
-    color: #fff
+.ctaBtns { display: flex; gap: 14px; flex-wrap: wrap; }
+
+.btnPrimary {
+  display: inline-block;
+  background: #0fd4b0;
+  color: #0b1f3a;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 14px 28px;
+  border-radius: 10px;
+  transition: all 0.22s ease;
+  white-space: nowrap;
 }
 
-.single-reviews-card {
-    background-color: #fff;
-    border-radius: 15px;
-    padding: 15px;
-    position: relative;
-    margin-bottom: 30px;
-    box-shadow: 0 6px 30px 5px #2122260d;
-    height: 315px !important;
-    -webkit-border-radius: 15px;
-    -moz-border-radius: 15px;
-    -ms-border-radius: 15px;
-    -o-border-radius: 15px;
+.btnPrimary:hover {
+  background: #0ab398;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(15,212,176,0.35);
+  color: #0b1f3a;
 }
 
-.single-reviews-card .ratings {
-    margin-bottom: 20px
+.btnSecondary {
+  display: inline-block;
+  background: transparent;
+  color: rgba(255,255,255,0.85);
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 14px 28px;
+  border-radius: 10px;
+  border: 2px solid rgba(255,255,255,0.3);
+  transition: all 0.22s ease;
+  white-space: nowrap;
 }
 
-.single-reviews-card .ratings svg {
-    color: #ffc107;
-    margin-right: 5px;
-    font-size: 14px
+.btnSecondary:hover {
+  border-color: rgba(255,255,255,0.7);
+  background: rgba(255,255,255,0.08);
+  color: #ffffff;
+  transform: translateY(-2px);
 }
 
-.single-reviews-card .ratings i:last-child {
-    margin-right: 0
-}
-
-.single-reviews-card p {
-    margin-top: 30px
-}
-
-.single-reviews-card .clien-info h3 {
-    font-size: 18px;
-    margin-bottom: 8px
-}
-
-.single-reviews-card .quote {
-    font-size: 55px;
-    line-height: 1;
-    position: absolute;
-    color: rgba(228, 82, 85, 0.618);
-    right: 30px;
-    top: 0px; /* Changed from bottom to top */
-    transition: all ease .5s;
-}
-
-
-
-.single-reviews-card.bu {
-    box-shadow: unset
-}
-
-.single-reviews-card:hover .quote {
-    color: rgba(228, 82, 85, 1)
-}
-
-.single-reviews-card-image{
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    -webkit-border-radius: 50%;
-    -moz-border-radius: 50%;
-    -ms-border-radius: 50%;
-    -o-border-radius: 50%;
-}
-
-
-
-@media (max-width: 768px) {
-
-    .custom-next,
-    .custom-prev {
-        width: 30px;
-        height: 30px;
-    }
-
-    .custom-prev {
-        left: -15px;
-        top: -90;
-    }
-
-    .custom-next {
-        right: -15px;
-        top: -90;
-    }
-
-    .custom-next svg,
-    .custom-prev svg {
-        font-size: 20px;
-    }
-}
-
-@media (max-width: 576px) {
-
-    .custom-next,
-    .custom-prev {
-        width: 25px;
-        height: 25px;
-    }
-
-    .custom-prev {
-        left: -10px;
-        top: -85;
-    }
-
-    .custom-next {
-        right: -10px;
-        top: -85;
-    }
-
-    .custom-next svg,
-    .custom-prev svg {
-        font-size: 18px;
-    }
+@media (max-width: 900px) {
+  .grid { grid-template-columns: 1fr; }
+  .cta { flex-direction: column; text-align: center; padding: 40px 28px; }
+  .ctaBtns { justify-content: center; }
 }

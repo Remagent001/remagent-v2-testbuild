@@ -1,47 +1,73 @@
-import dynamic from "next/dynamic";
+import Link from "next/link";
 import style from "./Section4.module.css";
-const Section4Swiper = dynamic(() => import("./Section4Swiper"), {
-  ssr: false,
-});
-const data = [
+
+const testimonials = [
   {
-    id: 1,
-    description:
-      "I have worked in call centers through University and Grad School.  While waiting for the perfect opportunity to present itself I posted my profile on Remagent.  A company asked me to assist with client services part time during the holiday and I have been working for them ever since.",
-    name: "Kenton Fletcher",
-    position: "Digital Marketer",
-    img: "/assets/images/professionals/pro1.png",
+    quote:
+      "I worked in call centers through university and grad school. While waiting for the right opportunity, I posted my profile on Remagent. A company invited me to help with client services part-time during the holidays — and I've been with them ever since.",
+    name: "Kenton F.",
+    title: "Customer Service Specialist",
+    img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&q=80",
   },
   {
-    id: 2,
-    description:
-      "Remagent enables me to work for companies that are searching for someone with my specific skills and on my schedule.   I have provided call center services for 3 different companies and love that they work within my complex schedule.",
-    name: "Jessica Bowman",
-    position: "IT Specialist",
-    img: "/assets/images/professionals/pro2.png",
+    quote:
+      "Remagent lets me work for companies that are specifically looking for someone with my skills and my schedule. I've supported three different businesses and I love that they work within my availability.",
+    name: "Jessica B.",
+    title: "Contact Center Agent",
+    img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&q=80",
   },
   {
-    id: 3,
-    description:
-      "I'm a stay at home dad with a Master's Degree and I speak 3 languages.  Within a week of signing up, I began training and taking calls for the French queue of an upscale retail store.  Now, I drop my kids off at school in the morning and take calls for 4 hours a day before I need to pick them up.",
-    name: "Benjamin Jackson",
-    position: "President Of Sale",
-    img: "/assets/images/professionals/pro3.png",
+    quote:
+      "I'm a stay-at-home dad with a Master's degree and I speak three languages. Within a week of signing up, I was training and taking calls for the French queue of an upscale retail brand. I drop my kids off at school and work four hours before pickup.",
+    name: "Benjamin J.",
+    title: "Bilingual Support Agent",
+    img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&q=80",
   },
 ];
+
 export default function Section4() {
   return (
-    <>
-      <div className={" bg-f0f5f7  " + style["reviews-area"]}>
-        <div className="container">
-          <div className={style["section-title"]}>
-            <h2>Hear from Remagent Professionals</h2>
+    <section className={style.section}>
+      <div className={style.inner}>
+
+        <div className={style.header}>
+          <span className={style.label}>Real People. Real Stories.</span>
+          <h2 className={style.title}>
+            Hear from <span className={style.accent}>Remagent Professionals</span>
+          </h2>
+        </div>
+
+        <div className={style.grid}>
+          {testimonials.map((t, i) => (
+            <div key={i} className={style.card}>
+              <p className={style.quote}>"{t.quote}"</p>
+              <div className={style.author}>
+                <img src={t.img} alt={t.name} className={style.avatar} />
+                <div>
+                  <div className={style.name}>{t.name}</div>
+                  <div className={style.role}>{t.title}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className={style.cta}>
+          <div className={style.ctaText}>
+            <h3>Ready to let the right company find you?</h3>
+            <p>Build your profile in about 20 minutes. It's free.</p>
           </div>
-          <div className="reviews-slider owl-carousel owl-theme">
-            <Section4Swiper data={data} />
+          <div className={style.ctaBtns}>
+            <Link href="#" className={style.btnPrimary}>
+              Build My Profile →
+            </Link>
+            <Link href="/business" className={style.btnSecondary}>
+              I'm Hiring Instead →
+            </Link>
           </div>
         </div>
+
       </div>
-    </>
+    </section>
   );
 }

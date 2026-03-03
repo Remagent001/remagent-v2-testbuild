@@ -1,50 +1,65 @@
-import React from "react";
 import style from "./Section3.module.css";
-import { CiPlay1 } from "react-icons/ci";
+
+const steps = [
+  {
+    num: "1",
+    title: "Build Your Profile",
+    desc: "Tell us about your contact center experience, the platforms you know, your availability, and what pay you're looking for. Takes about 20 minutes.",
+  },
+  {
+    num: "2",
+    title: "Get Discovered",
+    desc: "Your profile becomes searchable by businesses actively hiring. You don't apply — employers come to you based on your specific skills and availability.",
+  },
+  {
+    num: "3",
+    title: "Respond to Invitations",
+    desc: "When a business invites you to apply, you review the opportunity and decide if it's the right fit. You stay in control of every step.",
+  },
+  {
+    num: "4",
+    title: "Work Remotely, On Your Terms",
+    desc: "Set your own schedule and rate. Work from home for legitimate companies that need exactly your skill set — without the commute or the office politics.",
+  },
+];
+
 export default function Section3() {
   return (
-    <>
-    <section className={"pb-1 pt-50 "+style['reviews-area']}>
-    <div className="container my-5">
-        <div className="row align-items-center">
-          {/* Left Column with Image */}
-          <div className="col-lg-6 mb-4 mb-lg-0">
+    <section className={style.section} id="how">
+      <div className={style.inner}>
+
+        <div className={style.header}>
+          <span className={style.label}>Simple Process</span>
+          <h2 className={style.title}>
+            How It Works for <span className={style.accent}>Professionals</span>
+          </h2>
+          <p className={style.subtitle}>
+            Four steps from profile to paycheck — and you're in control of every one.
+          </p>
+        </div>
+
+        <div className={style.panel}>
+          <div className={style.steps}>
+            {steps.map((s) => (
+              <div key={s.num} className={style.step}>
+                <div className={style.stepNum}>{s.num}</div>
+                <div className={style.stepBody}>
+                  <div className={style.stepTitle}>{s.title}</div>
+                  <p className={style.stepDesc}>{s.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className={style.imageWrap}>
             <img
-              src="/assets/images/professionals/image.png"
-              alt="Professional Image"
-              className="img-fluid rounded"
+              src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=700&q=80"
+              alt="Professional working from home"
+              className={style.image}
             />
           </div>
-          {/* Right Column with Text Content */}
-          <div className="col-lg-6">
-            <div className={style["content-wrapper"]}>
-              <div className={style["section-header"]}>
-                <div className={style.icon}>
-                  <CiPlay1 />
-                </div>
-                <h2 className={style["section-title"]}>Applying Made Easy</h2>
-              </div>
-              <p>
-                At Remagent, we make it simple for professionals with call
-                center experience to connect with the right employers. Our
-                platform turns the recruiting cycle upside down to match you
-                with opportunities that align with your skills and career goals,
-                cutting down the time and hassle of job hunting. Whether you're
-                looking for full-time, part-time, or remote positions, we
-                publish your profile (not resume) to dozens of companies.
-              </p>
-              <p>
-                Actively hiring and allowing them to filter attributes of the
-                candidates they are looking for to find you. You can build a
-                profile in about 20 minutes, and be found by a role that's
-                perfect for you.
-              </p>
-            </div>
-          </div>
         </div>
+
       </div>
     </section>
-     
-    </>
   );
 }
