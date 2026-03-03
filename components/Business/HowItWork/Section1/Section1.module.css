@@ -1,0 +1,34 @@
+.partner-section {
+    position: relative;
+    padding: 160px 0;
+    color: white;
+    overflow: hidden;
+}
+
+.background-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -1;
+}
+
+.partner-section .container {
+    position: relative;
+    z-index: 1;
+}
+
+.heading {
+    color: #fff;
+    font-size: 48px;
+}
+
+.partner-image {
+    position: absolute;
+    right: 15%;
+    bottom: -45px;
+    max-width: 390px;
+    height: auto;
+}

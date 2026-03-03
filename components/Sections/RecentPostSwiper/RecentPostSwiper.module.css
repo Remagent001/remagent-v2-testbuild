@@ -1,0 +1,242 @@
+.custom-pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.custom-bullet {
+    background-color: transparent;
+    border: 1px solid #000000;
+    opacity: 1;
+    width: 16px;
+    height: 16px;
+    margin: 0 8px;
+    border-radius: 50%;
+    transition: background-color 0.3s ease, width 0.3s, height 0.3s;
+    cursor: pointer;
+}
+
+.custom-bullet-active {
+    background-color: #1f86ef;
+    border: 1px solid #1f86ef;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+
+}
+
+.section-title {
+    max-width: 680px;
+    margin: auto auto 40px;
+    text-align: center
+}
+
+.section-title span {
+    color: #1f86ef;
+    display: inline-block;
+    margin-bottom: 10px;
+    font-weight: 500
+}
+
+.section-title h2 {
+    font-size: 36px;
+    margin-bottom: 10px;
+    position: relative;
+    border-radius: 10px;
+    margin-top: -10px
+}
+
+.section-title h2 .overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: #1f86ef;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    border-radius: 10px
+}
+
+.section-title.white-title span {
+    color: #1f86ef
+}
+
+.section-title.white-title h2 {
+    color: #fff
+}
+
+.section-title.style2 {
+    text-align: start;
+    margin-left: 0;
+    margin-right: auto
+}
+
+.title .browse-btn {
+    text-align: end;
+    margin-bottom: 40px
+}
+
+.default-btn {
+    background-color: #1f86ef;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 12px 30px;
+    border-radius: 5px;
+    position: relative;
+    text-align: center;
+    transition: all ease .5s;
+    display: inline-block;
+    border: unset;
+    z-index: 1;
+    overflow: hidden
+}
+
+.default-btn i {
+    position: relative;
+    top: 1px;
+    padding-left: 6px
+}
+
+.default-btn::before {
+    position: absolute;
+    content: "";
+    background-color: #202124;
+    height: 100%;
+    width: 0%;
+    border-radius: 0 5px 5px 0;
+    -webkit-clip-path: polygon(25% 0%, 100% 0%, 100% 100%, 0% 100%);
+    clip-path: polygon(25% 0%, 100% 0%, 100% 100%, 0% 100%);
+    bottom: 0;
+    right: 0;
+    transition: all ease .5s;
+    z-index: -1
+}
+
+.default-btn::after {
+    position: absolute;
+    content: "";
+    background-color: #1f86ef;
+    height: 100%;
+    width: 0%;
+    border-radius: 5px 0 0 5px;
+    -webkit-clip-path: polygon(0 0, 100% 0%, 75% 100%, 0% 100%);
+    clip-path: polygon(0 0, 100% 0%, 75% 100%, 0% 100%);
+    top: 0;
+    left: 0;
+    transition: all ease .5s;
+    z-index: -1
+}
+
+.default-btn:hover {
+    color: #fff;
+    border-color: #1f86ef
+}
+
+.default-btn:hover::before {
+    width: 60%;
+    height: 100%
+}
+
+.default-btn:hover::after {
+    width: 60%;
+    height: 100%
+}
+
+.recent-job-box {
+    padding: 30px;
+    box-shadow: 0 6px 30px 5px rgba(33, 34, 38, .05);
+    border-radius: 5px;
+    padding-left: 120px;
+    position: relative;
+    margin: 7px;
+    margin-bottom: 30px
+}
+
+.recent-job-box .info ul {
+    padding-left: 0;
+    margin-bottom: 0
+}
+
+.recent-job-box .info ul li {
+    display: inline-block;
+    position: relative;
+    padding-left: 22px;
+    margin-right: 15px
+}
+
+.recent-job-box .info ul li svg {
+    position: absolute;
+    left: 0;
+    top: 2px;
+    color: #1f86ef
+}
+
+.recent-job-box .info ul li:last-child {
+    margin-right: 0
+}
+
+.recent-job-box .logo {
+    height: 70px;
+    width: 70px;
+    background-color: #f0f5f7;
+    border-radius: 100%;
+    text-align: center;
+    position: absolute;
+    left: 30px;
+    top: 30px
+}
+
+.recent-job-box .logo img {
+    width: auto;
+    padding-top: 13px
+}
+
+.recent-job-box .bookmark {
+    height: 35px;
+    width: 35px;
+    line-height: 38px;
+    text-align: center;
+    background-color: #e5e5e5;
+    border-radius: 100%;
+    position: absolute;
+    right: 30px;
+    top: 30px;
+    color: #666;
+    transition: all ease .5s
+}
+
+.recent-job-box .bookmark:hover {
+    color: #fff;
+    background-color: #1f86ef
+}
+
+.recent-job-box .time {
+    background-color: rgba(25, 103, 210, .1);
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin-bottom: 17px;
+    display: inline-block;
+    color: #1f86ef;
+    font-weight: 500;
+    transition: all ease .5s
+}
+
+.recent-job-box .time:hover {
+    background-color: #1f86ef;
+    color: #fff
+}
+
+.recent-job-box h3 {
+    font-size: 18px;
+    margin-bottom: 15px
+}
+
+.recent-job-box h3 a {
+    color: #202124;
+    transition: all ease .5s
+}
+
+.recent-job-box h3 a:hover {
+    color: #1f86ef
+}

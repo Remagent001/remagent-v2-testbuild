@@ -1,0 +1,76 @@
+.coming-soon-bg {
+    /* background: radial-gradient(circle, rgba(10, 101, 194, 1) 39%, rgba(5, 48, 92, 1) 100%), ; */
+    background: url('/assets/images/home/main.webp');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+
+}
+
+.coming-soon-container {
+    text-align: center;
+}
+
+.coming-soon-title {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #fff;
+}
+
+
+@media (max-width: 768px) {
+    .coming-soon-title {
+        font-size: 2.5rem;
+    }
+
+}
+
+@media (max-width: 576px) {
+    .coming-soon-title {
+        font-size: 2rem;
+    }
+
+
+}
+
+
+
+.header-button button {
+    padding: 12px 20px;
+    color: #fff;
+    background: #f6881f;
+    border-radius: 30px;
+    display: inline-block;
+    position: relative;
+    z-index: 1;
+    transition: .5s;
+    border: 1px solid #f6881f;
+    font-size: 16px;
+}
+
+.header-button button:hover {
+    color: #fff;
+}
+
+.header-button button:before {
+    position: absolute;
+    content: "";
+    z-index: -1;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 30px;
+    background: #10102E;
+    transform: scale(0);
+    transition: .5s;
+}
+
+.header-button button:hover:before {
+    transform: scale(1);
+}

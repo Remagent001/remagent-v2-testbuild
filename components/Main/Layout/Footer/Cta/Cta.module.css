@@ -1,0 +1,70 @@
+.contact-area {
+    padding-top: 70px;
+    padding-bottom: 70px
+}
+.contact-left-content h2 {
+    font-size: 36px
+}
+.contact-btn {
+    text-align: end
+}
+.default-btn {
+    background-color: #1f86ef;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 12px 30px;
+    border-radius: 5px;
+    position: relative;
+    text-align: center;
+    transition: all ease .5s;
+    display: inline-block;
+    border: unset;
+    z-index: 1;
+    overflow: hidden
+}
+
+.default-btn::before {
+    position: absolute;
+    content: "";
+    background-color: #202124;
+    height: 100%;
+    width: 0%;
+    border-radius: 0 5px 5px 0;
+    -webkit-clip-path: polygon(25% 0%, 100% 0%, 100% 100%, 0% 100%);
+    clip-path: polygon(25% 0%, 100% 0%, 100% 100%, 0% 100%);
+    bottom: 0;
+    right: 0;
+    transition: all ease .5s;
+    z-index: -1
+}
+
+.default-btn::after {
+    position: absolute;
+    content: "";
+    background-color: #1f86ef;
+    height: 100%;
+    width: 0%;
+    border-radius: 5px 0 0 5px;
+    -webkit-clip-path: polygon(0 0, 100% 0%, 75% 100%, 0% 100%);
+    clip-path: polygon(0 0, 100% 0%, 75% 100%, 0% 100%);
+    top: 0;
+    left: 0;
+    transition: all ease .5s;
+    z-index: -1
+}
+
+.default-btn:hover {
+    color: #fff;
+    border-color: #1f86ef
+}
+
+.default-btn:hover::before {
+    width: 60%;
+    height: 100%
+}
+
+.default-btn:hover::after {
+    width: 60%;
+    height: 100%
+}

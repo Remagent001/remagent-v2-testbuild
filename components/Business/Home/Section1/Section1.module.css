@@ -1,0 +1,592 @@
+.slider-section {
+    position: relative;
+    overflow: hidden;
+    z-index: 0;
+}
+
+.runok-slider {
+    position: relative;
+    z-index: 2
+}
+
+.slider-item {
+    position: relative;
+    overflow: hidden;
+    z-index: 2;
+    background: url('/assets/images/home/main.webp');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.slider-item .slide-img-wrap {
+    height: 960px;
+    padding: 0px 10px;
+}
+
+.slider-item .slide-img-wrap img {
+    width: 100%;
+    object-fit: contain;
+    height: 100%;
+    filter: brightness(0.5);
+}
+
+.slider-item .slider-content-wrap {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    max-width: 100%;
+    width: 100%;
+    z-index: 10
+}
+
+.slider-item .slider-content-wrap .hero-content-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.slider-item .slider-content-wrap .hero-content-wrap .hero-content {
+    padding: 0;
+    margin-left: 0;
+    bottom: -55px;
+    max-width: 700px;
+}
+
+.hero-content {
+    padding: 300px 0 150px 0;
+    width: 100%;
+    margin: 0 auto;
+    padding-left: 55px;
+    position: relative;
+    z-index: 2
+}
+
+.hero-content .sub-title {
+    font-size: 5rem;
+    font-weight: 700;
+    bottom: -160px;
+    color: #fff !important;
+    right: -570px;
+}
+
+.hero-content .main-title {
+    font-size: 80px;
+    font-weight: 800;
+    line-height: 1;
+    display: inline-block;
+    position: relative;
+    z-index: 1;
+    color: #fff !important
+}
+
+.hero-content .bottom-title {
+    font-size: 48px;
+    font-weight: 700;
+    color: #fff !important
+}
+
+.custom-paragraph {
+    font-size: 1.5rem;
+    color: #fff !important;
+    margin-top: 20px;
+    max-width: 580px;
+}
+
+.custom-h1 {
+    position: absolute;
+    bottom: 10px;
+}
+
+.banner-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 20px;
+    padding: 70px 0 20px 0;
+    bottom: 0px;
+    position: absolute;
+}
+
+.slider-button {
+    padding: 10px 12px 10px 12px;
+    font-weight: 500;
+    color: #fff;
+    background: rgba(148, 191, 240, 0.5);
+    display: inline-block;
+    border-radius: 30px;
+    border: 1px solid rgba(148, 191, 240, 0.5);
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.slider-button:before {
+    position: absolute;
+    content: "";
+    z-index: -1;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 0;
+    background: rgba(67, 185, 127, 1);
+
+    border-radius: 30px;
+    transition: .5s;
+}
+
+.slider-button:hover {
+    color: #fff;
+    cursor: pointer;
+    border: 1px solid rgba(67, 185, 127, 1) !important;
+}
+
+.slider-button:hover:before {
+    width: 100%;
+    left: 0;
+}
+
+.candidate-btn {
+    position: relative;
+    bottom: -200px;
+    right: 95px;
+}
+
+.businessBtn {
+    background: rgba(181, 209, 238, 1);
+    color: rgba(45, 61, 79, 1);
+    padding: 10px 20px;
+    border-radius: 15px;
+    border: none;
+    font-size: 17px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    position: relative;
+    border: 2px dashed rgba(255, 255, 255, 1);
+}
+
+.businessBtn:hover {
+    background: rgb(171, 190, 210);
+}
+
+.btn-name {
+    font-size: 20px;
+    max-width: 300px;
+}
+
+.btn-arrow {
+    font-size: 40px;
+  
+}
+
+/* Large screens (desktops, 1024px and up) */
+@media (min-width: 1720px) {
+    .candidate-btn {
+        bottom: -255px;
+        right: 200px;
+    }
+}
+
+@media only screen and (max-width:767px) {
+    .slider-item .slider-content-wrap .hero-content-wrap {
+        flex-wrap: wrap;
+        row-gap: 25px;
+        margin-bottom: 0
+    }
+
+    .slider-item .slide-img-wrap img {
+        width: 100%;
+        object-fit: cover;
+        height: 100%;
+        filter: brightness(0.5);
+    }
+
+    .slider-item .slider-content-wrap .hero-content-wrap .slider-btn-wrap .slider-btn {
+        height: 75px;
+        width: 75px;
+        font-size: 30px
+    }
+
+    .hero-content {
+        padding-left: 0;
+        padding-top: 0px !important;
+        bottom: 0 !important;
+    }
+
+    .hero-content .bottom-title {
+        font-size: 45px !important;
+        justify-content: center !important;
+        display: flex !important;
+        font-weight: 400 !important
+    }
+
+    .hero-content .main-title {
+        font-size: 48px !important;
+        display: flex !important;
+        justify-content: center !important;
+        font-weight: 400 !important
+    }
+
+    .custom-paragraph {
+        font-size: 16px !important;
+        line-height: 1.4;
+        margin-top: 50px;
+        display: flex;
+        justify-content: center
+    }
+
+    .businessBtn {
+        padding: 10px 20px;
+        position: relative;
+        right: 25px;
+
+    }
+
+    .btn-name {
+        font-size: 15px;
+    }
+
+    .candidate-btn {
+        bottom: -90px !important;
+        right: -25px !important;
+    }
+
+    .banner-buttons {
+        position: relative !important;
+        justify-content: center;
+        top: 20px;
+    }
+
+    .slider-item .slide-img-wrap {
+        padding: 0px !important;
+    }
+}
+
+@media only screen and (max-width:992px) {
+
+    .hero-content {
+        padding: 100px 0 100px 40px;
+    }
+
+    .hero-content .bottom-title {
+        font-size: 45px;
+    }
+
+    .hero-content .main-title {
+        font-size: 48px !important;
+        display: flex !important;
+        justify-content: center !important;
+        font-weight: 400 !important
+    }
+
+    .hero-content .sub-title {
+        font-size: 33px;
+        right: 15px !important;
+        bottom: -45px;
+    }
+
+    .slider-item .slide-img-wrap {
+        padding: 0px !important;
+    }
+
+    .slider-item .slide-img-wrap img {
+        width: 100%;
+        object-fit: cover;
+        height: 100%;
+        filter: brightness(0.5);
+    }
+
+    .banner-buttons {
+        bottom: -110px;
+    }
+
+    .candidate-btn {
+        bottom: -100px !important;
+        right: -25px !important;
+    }
+
+    .btn-name {
+        font-size: 15px;
+        max-width: 220px;
+    }
+}
+
+@media (max-width:1170px) {
+    .hero-content {
+        padding-left: 0;
+    }
+}
+
+@media only screen and (max-width:375.5px) {
+    .slider-item .slider-content-wrap .hero-content-wrap {
+        flex-wrap: wrap;
+        row-gap: 25px;
+        margin-bottom: 0
+    }
+
+    .slider-item .slide-img-wrap img {
+        width: 100%;
+        object-fit: cover;
+        height: 100%;
+        filter: brightness(0.5);
+    }
+
+    .hero-content {
+        padding-left: 0;
+        padding-top: 0px !important;
+        bottom: 0 !important;
+    }
+
+    .hero-content .bottom-title {
+        font-size: 45px !important;
+        justify-content: center !important;
+        display: flex !important;
+        font-weight: 400 !important
+    }
+
+    .hero-content .main-title {
+        font-size: 45px !important;
+        display: flex !important;
+        justify-content: center !important;
+        font-weight: 400 !important
+    }
+
+    .custom-paragraph {
+        font-size: 16px !important;
+        line-height: 1.4;
+        margin-top: 50px;
+        display: flex;
+        justify-content: center
+    }
+
+    .banner-buttons {
+        position: relative !important;
+        justify-content: center;
+        top: 20px;
+    }
+
+    .candidate-btn {
+        bottom: -90px !important;
+        right: -25px !important;
+    }
+
+    .slider-item .slider-content-wrap {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        max-width: 100%;
+        width: 100%;
+        z-index: 10;
+    }
+
+    .hero-content .sub-title {
+        font-size: 29px;
+        right: 25px !important;
+        bottom: -45px;
+    }
+
+    .businessBtn {
+        padding: 10px 20px;
+        position: relative;
+        right: 25px;
+
+    }
+
+    .btn-name {
+        font-size: 15px;
+    }
+
+    .slider-item .slide-img-wrap {
+        padding: 0px !important;
+    }
+}
+
+@media (min-width: 1024px) and (max-width: 1101px) {
+    .slider-item .slide-img-wrap {
+        height: auto !important;
+        padding: 0px 0px;
+    }
+
+    .slider-item .slider-content-wrap {
+        top: 50% !important;
+    }
+
+    .hero-content .main-title {
+        font-size: 70px !important;
+        display: flex !important;
+        justify-content: center !important;
+        font-weight: 400 !important;
+        bottom: 55px;
+    }
+
+    .hero-content .sub-title {
+        font-size: 45px;
+        bottom: 0px;
+        right: 55px !important;
+        font-weight: 100;
+    }
+
+    .banner-buttons {
+        bottom: -55px;
+    }
+
+    .custom-h1 {
+        bottom: 55px;
+    }
+
+    .custom-paragraph {
+        font-size: 20px !important;
+    }
+
+    .btn-name {
+        font-size: 15px;
+        max-width: 170px;
+    }
+
+    .candidate-btn {
+        bottom: -90px !important;
+        right: 25px !important;
+    }
+}
+
+@media (min-width: 1101.5px) and (max-width: 1399.5px) {
+    .slider-item .slider-content-wrap {
+        top: 50% !important;
+    }
+
+    .candidate-btn {
+        top: 135px !important;
+        right: 45px !important;
+    }
+
+    .banner-buttons {
+        flex-wrap: wrap;
+        right: 40px !important;
+        max-width: 500px;
+        bottom: -45px;
+    }
+
+    .btn-name {
+        font-size: 15px;
+        max-width: 170px;
+    }
+
+    .hero-content .sub-title {
+        font-size: 4rem;
+        right: -400px;
+        top: 295px;
+    }
+}
+
+@media (min-width: 1400px) and (max-width: 1478.5px) {
+    .slider-item .slider-content-wrap {
+        top: 50% !important;
+    }
+
+    .candidate-btn {
+        top: 135px !important;
+        right: 45px !important;
+    }
+
+    .banner-buttons {
+        flex-wrap: wrap;
+        right: 40px !important;
+    }
+
+    .btn-name {
+        font-size: 15px;
+        max-width: 170px;
+    }
+
+    .hero-content .sub-title {
+        font-size: 4rem;
+        right: -400px;
+        top: 295px;
+    }
+}
+
+.userOptions {
+    margin-bottom: 1.5rem;
+    border-radius: 15px;
+    padding: 10px;
+}
+
+.custom-button {
+    background: linear-gradient(90deg, #30A251 0%, #43B97F 100%);
+    color: white;
+    font-weight: bold;
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 30px;
+    display: inline-flex;
+    align-items: center;
+    position: relative;
+    font-size: 1rem;
+    overflow: hidden;
+    -webkit-border-radius: 30px;
+    -moz-border-radius: 30px;
+    -ms-border-radius: 30px;
+    -o-border-radius: 30px;
+    width: 30%;
+}
+
+.custom-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 30px;
+    border: 2px solid rgba(91, 198, 122, 1);
+    padding: 2px;
+    box-sizing: border-box;
+    -webkit-border-radius: 30px;
+    -moz-border-radius: 30px;
+    -ms-border-radius: 30px;
+    -o-border-radius: 30px;
+}
+
+.button-icon {
+    background-color: #ffa726;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 1rem;
+    width: 3.5rem;
+    height: 2.5rem;
+    font-size: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .custom-button {
+        font-size: 0.9rem;
+        padding: 0.5rem 1.5rem;
+        width: 50%;
+    }
+
+    .button-icon {
+        width: 3rem;
+        height: 2rem;
+        font-size: 1.2rem;
+        margin-left: 0.5rem;
+    }
+}
+
+/* Media query for mobile phones */
+@media (max-width: 480px) {
+    .custom-button {
+        font-size: 0.8rem;
+        padding: 0.5rem 1rem;
+        width: 70%;
+    }
+
+    .button-icon {
+        width: 2.5rem;
+        height: 1.8rem;
+        font-size: 1rem;
+        margin-left: 0.5rem;
+    }
+}

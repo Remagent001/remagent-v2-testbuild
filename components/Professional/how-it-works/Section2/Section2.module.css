@@ -1,0 +1,35 @@
+.job-categories-area {
+    background-color: #E9F1F9;
+    margin-top: -2rem;
+}
+
+
+.profile-card {
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    text-align: center;
+    padding: 2rem;
+    background-color: rgba(255, 255, 255, 1);
+    height: 560px;
+}
+
+.profile-card:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.profile-image {
+    width: 150px;
+}
+
+.profile-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.profile-description {
+    font-size: 1rem;
+    color: #666;
+}
+

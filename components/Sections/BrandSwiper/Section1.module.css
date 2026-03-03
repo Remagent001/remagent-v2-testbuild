@@ -1,0 +1,8 @@
+.parner-logo img {
+    opacity: .3;
+    transition: all ease .5s
+}
+
+.parner-logo img:hover {
+    opacity: 1
+}

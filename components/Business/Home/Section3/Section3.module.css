@@ -1,0 +1,161 @@
+.job-categories-area {
+    background-color: rgba(10, 103, 198, 1);
+    border-top-left-radius: 220px;
+}
+
+@media (max-width: 768px) {
+    .job-categories-area {
+        border-top-left-radius: 0 !important;
+        /* Remove border radius on mobile screens */
+    }
+}
+
+.section-title {
+    /* max-width: 680px; */
+    margin: auto auto 40px;
+    text-align: center
+}
+
+.section-title h2 {
+    font-size: 36px;
+    margin-bottom: 10px;
+    position: relative;
+    border-radius: 10px;
+    margin-top: -10px;
+    color: #fff;
+}
+
+.section-title p {
+
+    color: #fff;
+}
+
+.single-category-card {
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 5px;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 30px
+}
+
+.swiper-title {
+    font-size: 17px;
+    color: rgba(45, 61, 79, 1)
+}
+
+.location-title {
+    font-size: 23px;
+    font-weight: 600;
+    color: rgba(45, 61, 79, 1)
+}
+
+.job-post {
+    font-size: 22px;
+    font-weight: 500;
+    color: rgba(45, 61, 79, 1)
+}
+
+
+.swiper-image {
+    width: 50px;
+    height: 50px;
+    border: 1px solid;
+    border-radius: 50%;
+}
+
+.custom-height {
+    height: 270px !important;
+}
+
+.description {
+    font-size: 12px;
+    text-align: justify;
+}
+
+.custom-button {
+    background-color: rgba(9, 93, 179, 0.22);
+    color: #000;
+    border-bottom-left-radius: 32px;
+    /* Adds bottom-left border radius */
+    border-bottom-right-radius: 32px;
+    /* Adds bottom-right border radius */
+}
+
+.custom-button:hover {
+    background: rgba(9, 93, 179, 1);
+    color: rgba(255, 255, 255, 1);
+    border-bottom-left-radius: 32px;
+    /* Maintain bottom-left radius on hover */
+    border-bottom-right-radius: 32px;
+    /* Maintain bottom-right radius on hover */
+}
+
+.custom-card-footer {
+    border-bottom-left-radius: 32px !important;
+    /* Adds bottom-left border radius */
+    border-bottom-right-radius: 32px !important;
+    /* Adds bottom-right border radius */
+}
+
+.skills-container {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.skill-bubble {
+    border-radius: 15px;
+    padding: 5px 10px;
+    font-size: 14px;
+    color: #333;
+    border: 1px solid;
+}
+
+.skill-bubble:last-child {
+    background-color: rgba(67, 185, 127, 1);
+    /* For the +7 style */
+    color: white;
+}
+
+/* Pagination bullets */
+.custom-pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+/* Pagination bullet default style */
+.custom-bullet {
+    background-color: transparent;
+    /* No background color */
+    border: 2px solid rgba(255, 255, 255, 1);
+    /* Border color */
+    opacity: 1;
+    /* Make bullets fully visible */
+    width: 16px;
+    /* Slightly increased width */
+    height: 16px;
+    /* Slightly increased height */
+    margin: 0 8px;
+    /* Adjust space between bullets */
+    border-radius: 50%;
+    /* Circular shape */
+    transition: background-color 0.3s ease, width 0.3s, height 0.3s;
+    /* Smooth transition */
+    cursor: pointer;
+}
+
+/* Active pagination bullet */
+.custom-bullet-active {
+    background-color: rgba(255, 255, 255, 1);
+    /* Active bullet color */
+    border: 2px solid rgba(255, 255, 255, 1);
+    /* Border color */
+    width: 18px;
+    /* Slightly larger width for active bullet */
+    height: 18px;
+    /* Slightly larger height for active bullet */
+    cursor: pointer;
+
+}

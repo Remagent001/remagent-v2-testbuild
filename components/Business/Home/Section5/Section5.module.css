@@ -1,0 +1,74 @@
+.section-5-bg{
+    background-color: #E9F1F9;
+}
+.section-title {
+    /* max-width: 680px; */
+    margin: auto auto 40px;
+    /* text-align: center */
+}
+
+.section-title h2 {
+    font-size: 42px;
+    color: rgba(68, 79, 88, 1);
+}
+
+.section-title p {
+    color: rgba(68, 79, 88, 1);
+}
+
+.dreamit-icon-list ul li {
+    list-style: none;
+    padding: 5px 5px;
+    position: relative;
+    display: block;
+    cursor: pointer;
+}
+
+.dreamit-icon-list ul li span {
+    font-size: 18px;
+}
+
+
+.dreamit-icon-list ul li svg {
+    line-height: 20px;
+    text-align: center;
+    display: inline-block;
+    color: rgba(228, 82, 85, 1);
+    font-size: 11px;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+.dreamit-icon-list ul li .description {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 1s linear;
+    color: #000000;
+    padding-left: 35px;
+    margin-bottom: 0px !important;
+}
+
+.dreamit-icon-list ul li:hover .description {
+    max-height: 200px;
+    padding-left: 35px;
+}
+
+.dreamit-icon-list ul li span {
+    color: #000000;
+    cursor: pointer;
+    display: inline-block;
+}
+.dreamit-icon-list ul li:hover {
+    background-color: rgba(255, 255, 255, 1);
+    border-radius: 10px;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    -ms-border-radius: 10px;
+    -o-border-radius: 10px;
+}
+
+@media (max-width: 1024px) { 
+    .dreamit-icon-list ul li:hover .description {
+        max-height: 270px;
+    }
+}

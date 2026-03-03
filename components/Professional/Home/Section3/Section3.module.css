@@ -1,0 +1,65 @@
+.reviews-area{
+    background-color: #E9F1F9;
+}
+.content-section {
+    background-color: #e0f3ff;
+    padding: 2rem;
+    border-radius: 15px;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.section-header .icon {
+    background-color: #ffa726;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 35px;
+    height: 35px;
+    font-size: 1.2rem;
+    margin-right: 0.75rem;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #ffffff;
+    margin: 0;
+}
+
+.content-wrapper p {
+    color: #ffffff;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.content-wrapper {
+    background-color: #1e73be;
+    padding: 1rem;
+    margin: 1rem 0;
+    position: relative;
+    right: 50px;
+    top: 43px;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 60px;
+    border-bottom-right-radius: 60px;
+}
+
+/* Responsive adjustments for small screens */
+@media (max-width: 991.98px) {
+    .content-wrapper {
+        right: 0;
+        bottom: 50px;
+        position: relative;
+        margin-top: 1rem;
+    }
+}

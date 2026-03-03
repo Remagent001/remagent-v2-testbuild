@@ -1,0 +1,274 @@
+.section-title {
+    max-width: 680px;
+    margin: auto auto 40px;
+    text-align: center
+}
+
+.section-title span {
+    color: #1f86ef;
+    display: inline-block;
+    margin-bottom: 10px;
+    font-weight: 500
+}
+
+.section-title h2 {
+    font-size: 36px;
+    margin-bottom: 10px;
+    position: relative;
+    border-radius: 10px;
+    margin-top: -10px
+}
+
+.section-title h2 .overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: #1f86ef;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    border-radius: 10px
+}
+
+.section-title.white-title span {
+    color: #1f86ef
+}
+
+.section-title.white-title h2 {
+    color: #fff
+}
+
+
+.shoting-btn {
+    text-align: center;
+    margin-bottom: 40px
+}
+
+.shoting-btn ul {
+    padding-left: 0;
+    margin-bottom: 0
+}
+
+.shoting-btn ul li {
+    display: inline-block;
+    margin-right: 5px
+}
+
+.shoting-btn ul li:last-child {
+    margin-right: 0
+}
+
+.shoting-btn ul li button {
+    background-color: transparent;
+    border: unset;
+    padding: 5px 10px;
+    transition: all ease .5s;
+    font-weight: 500;
+    border-radius: 5px;
+    color: #666
+}
+
+.shoting-btn ul li button:hover,
+.shoting-btn ul li button:focus,
+.shoting-btn ul li button.active {
+    background-color: #f0f5f7;
+    color: #1f86ef
+}
+
+.single-job-card {
+    margin-bottom: 30px
+}
+
+.single-job-card .job-image {
+    position: relative;
+    margin-bottom: 30px
+}
+
+.single-job-card .job-image img {
+    border-radius: 5px
+}
+
+.single-job-card .job-image .bookmark {
+    height: 35px;
+    width: 35px;
+    line-height: 38px;
+    text-align: center;
+    background-color: #fff;
+    border-radius: 100%;
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    color: #666;
+    transition: all ease .5s
+}
+
+.single-job-card .job-image .bookmark:hover {
+    color: #fff;
+    background-color: #1f86ef
+}
+
+.single-job-card .job-image .urgent {
+    background-color: #1f86ef;
+    padding: 5px 10px;
+    color: #fff;
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    border-radius: 5px
+}
+
+.single-job-card .job-content .time {
+    background-color: #f0f5f7;
+    color: #1f86ef;
+    padding: 5px 15px;
+    margin-bottom: 20px;
+    display: inline-block;
+    transition: all ease .5s;
+    border-radius: 5px
+}
+
+.single-job-card .job-content .time:hover {
+    color: #fff;
+    background-color: #1f86ef
+}
+
+.single-job-card .job-content h2 {
+    font-size: 22px;
+    line-height: 32px;
+    margin-bottom: 18px
+}
+
+.single-job-card .job-content h2 a {
+    color: #202124;
+    transition: all ease .5s
+}
+
+.single-job-card .job-content h2 a:hover {
+    color: #1f86ef
+}
+
+.single-job-card .job-content .info {
+    margin-bottom: 30px
+}
+
+.single-job-card .job-content .info ul {
+    padding-left: 0;
+    margin-bottom: 0
+}
+
+.single-job-card .job-content .info ul li {
+    display: inline-block;
+    position: relative;
+    padding-left: 22px;
+    margin-right: 15px
+}
+
+.single-job-card .job-content .info ul li svg {
+    position: absolute;
+    left: 0;
+    top: 2px;
+    color: #1f86ef
+}
+
+.single-job-card .job-content .info ul li:last-child {
+    margin-right: 0
+}
+
+.single-job-card .job-content .bottom-content ul {
+    padding-left: 0;
+    margin-bottom: 0
+}
+
+.single-job-card .job-content .bottom-content ul li {
+    list-style-type: none
+}
+
+.single-job-card .job-content .bottom-content ul li .left-content {
+    padding-left: 60px;
+    position: relative
+}
+
+.single-job-card .job-content .bottom-content ul li .left-content .icon {
+    height: 45px;
+    width: 45px;
+    line-height: 42px;
+    background-color: #f0f5f7;
+    border-radius: 100%;
+    text-align: center;
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%)
+}
+
+.single-job-card .job-content .bottom-content ul li h3 {
+    font-size: 20px;
+    color: #1f86ef
+}
+
+.single-job-card .job-content .bottom-content ul li h3 span {
+    color: #666;
+    font-size: 16px;
+    font-weight: 400
+}
+
+.default-btn {
+    background-color: #1f86ef;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 12px 30px;
+    border-radius: 5px;
+    position: relative;
+    text-align: center;
+    transition: all ease .5s;
+    display: inline-block;
+    border: unset;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.default-btn::before {
+    position: absolute;
+    content: "";
+    background-color: #202124;
+    height: 100%;
+    width: 0%;
+    border-radius: 0 5px 5px 0;
+    -webkit-clip-path: polygon(25% 0%, 100% 0%, 100% 100%, 0% 100%);
+    clip-path: polygon(25% 0%, 100% 0%, 100% 100%, 0% 100%);
+    bottom: 0;
+    right: 0;
+    transition: all ease .5s;
+    z-index: -1
+}
+
+.default-btn::after {
+    position: absolute;
+    content: "";
+    background-color: #1f86ef;
+    height: 100%;
+    width: 0%;
+    border-radius: 5px 0 0 5px;
+    -webkit-clip-path: polygon(0 0, 100% 0%, 75% 100%, 0% 100%);
+    clip-path: polygon(0 0, 100% 0%, 75% 100%, 0% 100%);
+    top: 0;
+    left: 0;
+    transition: all ease .5s;
+    z-index: -1
+}
+
+.default-btn:hover {
+    color: #fff;
+    border-color: #1f86ef
+}
+
+.default-btn:hover::before {
+    width: 60%;
+    height: 100%
+}
+
+.default-btn:hover::after {
+    width: 60%;
+    height: 100%
+}

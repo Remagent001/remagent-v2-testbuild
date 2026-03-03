@@ -1,0 +1,193 @@
+.faq-section {
+    position: relative;
+    z-index: 0;
+    padding-top: 50px;
+    background-color: #E9F1F9;
+  }
+  
+  .faq-section .faq-shape {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    z-index: -1;
+  }
+  
+  .faq-section .faq-top-shape {
+    background-color: #1f252f;
+    width: 240px;
+    height: 240px;
+    position: absolute;
+    top: -185px;
+    right: 145px;
+    border-radius: 50%;
+  }
+  
+  @media only screen and (max-width: 992px) {
+    .faq-section .faq-top-shape {
+        right: 0px;
+    }
+  }
+  
+  .faq-section .faq-top-shape:before {
+    background-color: transparent;
+    content: "";
+    width: 260px;
+    height: 260px;
+    position: absolute;
+    top: 10px;
+    left: -30px;
+    border-radius: 50%;
+    border: 1px solid #1f252f;
+  }
+  
+  @media only screen and (max-width: 767px) {
+    .faq-section .faq-top-shape:before {
+        display: none;
+    }
+  }
+  
+  .faq-content .section-heading .section-title {
+    font-size: 45px;
+  }
+  
+  @media (max-width: 1170px) {
+    .faq-content .section-heading .section-title {
+        margin-left: 0;
+    }
+  }
+  
+  @media only screen and (max-width: 992px) {
+    .faq-content .section-heading .section-title {
+        margin-left: 0;
+        max-width: 600px;
+        width: 100%;
+        font-size: 32px;
+    }
+  }
+  
+  @media only screen and (max-width: 767px) {
+    .faq-content .section-heading .section-title {
+        font-size: 32px;
+    }
+  }
+  
+  .faq-content .accordion .accordion-item {
+    background-color: transparent;
+    border: none;
+    padding-bottom: 30px;
+    border-radius: 10px;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    -ms-border-radius: 10px;
+    -o-border-radius: 10px;
+    background-color: rgba(255, 255, 255, 1);
+}
+  
+  .faq-content .accordion .accordion-item:not(:last-of-type) {
+    padding-top: 30px;
+    margin-bottom: 30px;
+  }
+  
+  .faq-content .accordion .accordion-item:first-child {
+    padding-top: 30px;
+    border-top: 1px solid var(--text-color-1);
+  }
+  .faq-content .accordion .accordion-item:last-child {
+    padding-top: 30px;
+    border-top: 1px solid var(--text-color-1);
+  }
+  .faq-content .accordion .accordion-item .accordion-button {
+    color: var(--text-color-1);
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    font-size: 20px;
+    font-weight: 600;
+    padding: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    transition: color 0.3s ease;
+    position: relative;
+  }
+  
+  .faq-content .accordion .accordion-item .accordion-button:after {
+    background-image: none;
+    content: "";
+    margin-left: 0px !important;
+  }
+  
+  .faq-content .accordion .accordion-item .accordion-button:not(.collapsed):after {
+    transform: rotate(180deg);
+  }
+  
+  .faq-content .accordion .accordion-collapse {
+    transition: height 0.3s ease;
+  }
+  
+  .faq-content .accordion .accordion-body {
+    font-size: 16px;
+    color: var(--text-color-1);
+    padding: 0;
+    padding-top: 25px;
+    transition: opacity 0.3s ease;
+  }
+  
+  .faq-content .accordion .accordion-collapse.show .accordion-body {
+    opacity: 1;
+  }
+  
+  /* Set the image width and height to 400px and make it sticky while in the section */
+  .faq-img {
+    padding-left: 25px;
+    max-width: 400px;
+    width: 100%;
+    height: 400px;
+    position: -webkit-sticky;
+    position: sticky;
+    top: 110px;
+  }
+  
+  .faq-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  @media (max-width: 1170px) {
+    .faq-img {
+        margin: 0 auto;
+        margin-top: 40px;
+        height: auto;
+        position: static; /* Disable sticky on smaller screens */
+    }
+  }
+  
+  @media only screen and (max-width: 992px) {
+    .faq-img {
+        padding-left: 0;
+        height: auto;
+        position: static; /* Disable sticky on smaller screens */
+    }
+  }
+  
+  /* New CSS for the icon after the text */
+  .faq-content .accordion .accordion-item .accordion-button .icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-left: auto; /* Make the icon stick to the right */
+    transition: transform 0.3s ease;
+  }
+  
+  .faq-content .accordion .accordion-item .accordion-button:not(.collapsed) .icon {
+    transform: rotate(180deg);
+  }
+  
+  .faq-content .accordion {
+    padding-top: 25px !important;
+  }
+  
+

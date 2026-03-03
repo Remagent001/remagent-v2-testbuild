@@ -1,0 +1,169 @@
+.reviews-area {
+  background-color: #E9F1F9;
+}
+
+.section-title span {
+  color: #1f86ef;
+  display: inline-block;
+  margin-bottom: 10px;
+  font-weight: 500
+}
+
+.section-title h2 {
+  font-size: 46px;
+  margin-bottom: 10px;
+  position: relative;
+  border-radius: 10px;
+  margin-top: -10px
+}
+
+.section-title h2 .overlay {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: #1f86ef;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  border-radius: 10px
+}
+
+.section-title.white-title span {
+  color: #1f86ef
+}
+
+.section-title.white-title h2 {
+  color: #fff
+}
+
+.card-container {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+}
+
+.custom-card {
+  border-radius: 15px;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  width: 100%;
+  max-width: 250px;
+  margin: 0 auto;
+}
+
+/* Tab style at the top left */
+.custom-card::before {
+  content: "";
+  position: absolute;
+  top: -28px;
+  left: 0px;
+  width: 60px;
+  height: 40px;
+  border-radius: 10px 10px 0 0;
+}
+
+/* Circular white dot with a hole inside */
+.custom-card::after {
+  content: "";
+  position: absolute;
+  top: -15px;
+  left: 20px;
+  width: 15px;
+  height: 15px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-card::after::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background-color: inherit;
+  /* Match card background color to create a "hole" */
+  border-radius: 50%;
+}
+
+.icon img {
+  width: 120px;
+  margin-bottom: 1rem;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.card-text {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* Specific card background colors */
+.blue-card {
+  background-color: rgba(224, 243, 255, 1);
+}
+
+.blue-card::before {
+  background-color: rgba(224, 243, 255, 1);
+}
+
+.light-blue-card {
+  background-color: rgba(156, 221, 241, 1);
+}
+
+.light-blue-card::before {
+  background-color: rgba(156, 221, 241, 1);
+}
+
+.purple-card {
+  background-color: rgba(231, 202, 255, 1);
+}
+
+.purple-card::before {
+  background-color: rgba(231, 202, 255, 1);
+}
+
+.green-card {
+  background-color: rgba(167, 238, 212, 1);
+}
+
+.green-card::before {
+  background-color: rgba(167, 238, 212, 1);
+}
+@media screen and (min-width: 1024px) and (max-width: 1336px) {
+
+  .card-container {
+    gap: 5rem !important;
+  }
+}
+
+@media screen and (min-width: 768px) and (max-width: 1024px) {
+
+  .card-container {
+    gap: 3rem !important;
+  }
+}
+
+.ptb-100 {
+  padding-top: 100px;
+  padding-bottom: 50px;
+}
+
+@media only screen and (max-width: 767px) {
+  .section-title h2 {
+    font-size: 30px;
+  }
+
+  .card-container {
+    gap: 3rem !important;
+}
+}

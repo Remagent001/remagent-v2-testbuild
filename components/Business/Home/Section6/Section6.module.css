@@ -1,0 +1,26 @@
+.section-6-bg{
+    background-color: #E9F1F9;
+}
+.main-heading {
+    font-weight: bold;
+    font-size: 1.75rem;
+    color: #2d2d2d;
+  }
+  .sub-heading {
+    font-size: 1rem;
+    color: #6c757d;
+  }
+  .section-title {
+    font-weight: 600;
+    color: #2d2d2d;
+    margin-top: 1.5rem;
+  }
+  .section-text {
+    font-size: 0.95rem;
+    color: #6c757d;
+  }
+  .divider {
+    height: 1px;
+    background-color: #dcdcdc;
+    margin: 1rem 0;
+  }
