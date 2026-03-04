@@ -37,7 +37,7 @@ export default function Section2() {
         <div className={style.header}>
           <span className={style.label}>Why Remagent</span>
           <h2 className={style.title}>
-            You Are More Than <span className={style.accent}>a Resume.</span>
+            You Are More Than <span className={style.accent}>a Resume</span>
           </h2>
           <p className={style.subtitle}>
             Your Remagent profile is structured data — not a document employers
