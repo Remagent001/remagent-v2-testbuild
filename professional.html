@@ -52,7 +52,8 @@
     .nav-logo-text span { color: var(--teal); }
     .nav-links { display: flex; gap: 28px; list-style: none; }
     .nav-links a { color: rgba(255,255,255,0.7); font-size: 0.88rem; font-weight: 500; transition: color 0.2s; }
-    .nav-links a:hover { color: var(--teal); }
+    .nav-links a:hover, .nav-links a.active { color: var(--teal); }
+    .nav-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.15); align-self: center; }
     .nav-actions { display: flex; gap: 12px; align-items: center; }
     .nav-login { color: rgba(255,255,255,0.8); font-size: 0.88rem; font-weight: 600; padding: 8px 16px; border-radius: 8px; }
     .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: var(--radius); font-size: 0.9rem; font-weight: 700; cursor: pointer; border: 2px solid transparent; transition: all 0.22s ease; white-space: nowrap; }
@@ -266,9 +267,11 @@
       <span class="nav-logo-text">rem<span>agent</span></span>
     </a>
     <ul class="nav-links">
-      <li><a href="business.html" >For Businesses</a></li>
-      <li><a href="professional.html" style="color:#0fd4b0;">For Professionals</a></li>
-      <li><a href="#">How It Works</a></li>
+      <li><a href="professional.html" class="active">For Professionals</a></li>
+      <li><a href="why-remagent-professional.html">Why Remagent</a></li>
+      <li><a href="how-it-works-professional.html">How It Works</a></li>
+      <div class="nav-sep"></div>
+      <li><a href="business.html">For Businesses</a></li>
     </ul>
     <div class="nav-actions">
       <a href="#" class="nav-login">Sign In</a>
@@ -367,27 +370,29 @@
           <div class="nav-logo-mark">R</div>
           <span class="nav-logo-text">rem<span>agent</span></span>
         </div>
-        <p>The remote contact center talent marketplace. Search, filter, and invite pre-screened professionals — in minutes, not weeks.</p>
+        <p>The remote contact center talent marketplace. Search, filter, and invite pre-screened professionals — in minutes, not months.</p>
       </div>
       <div>
         <div class="footer-col-title">For Businesses</div>
         <ul class="footer-links">
-          <li><a href="#">How It Works</a></li>
-          <li><a href="#">Why Remagent</a></li>
-          <li><a href="#">Get Started</a></li>
+          <li><a href="business.html">Overview</a></li>
+          <li><a href="why-remagent-business.html">Why Remagent</a></li>
+          <li><a href="how-it-works-business.html">How It Works</a></li>
+          <li><a href="#">Start Hiring</a></li>
         </ul>
       </div>
       <div>
         <div class="footer-col-title">For Professionals</div>
         <ul class="footer-links">
-          <li><a href="#">How It Works</a></li>
-          <li><a href="#">Why Remagent</a></li>
+          <li><a href="professional.html">Overview</a></li>
+          <li><a href="why-remagent-professional.html">Why Remagent</a></li>
+          <li><a href="how-it-works-professional.html">How It Works</a></li>
           <li><a href="#">Build My Profile</a></li>
         </ul>
       </div>
     </div>
     <div class="footer-bottom">
-      <p>© 2025 Remagent. All rights reserved.</p>
+      <p>© 2026 Remagent. All rights reserved.</p>
     </div>
   </div>
 </footer>
