@@ -20,6 +20,7 @@ export default function StepEnvironment({ data, onNext, onBack, onSaveExit, onSk
     return Array.isArray(saved) ? saved : [];
   });
   const [homeOfficeDesc, setHomeOfficeDesc] = useState(env?.homeOfficeDesc || "");
+  const [showInfoTip, setShowInfoTip] = useState(false);
 
   const toggleComputerType = (type) => {
     if (computers.find((c) => c.type === type)) {
@@ -130,7 +131,23 @@ export default function StepEnvironment({ data, onNext, onBack, onSaveExit, onSk
       </div>
 
       <div className="form-group">
-        <label className="form-label">Describe Your Home Office *</label>
+        <div className="form-label-with-info">
+          <label className="form-label" style={{ marginBottom: 0 }}>Describe Your Home Office</label>
+          <button
+            type="button"
+            className="info-btn"
+            onClick={() => setShowInfoTip(!showInfoTip)}
+            onMouseEnter={() => setShowInfoTip(true)}
+            onMouseLeave={() => setShowInfoTip(false)}
+          >
+            i
+          </button>
+          {showInfoTip && (
+            <div className="info-tooltip">
+              Please describe your home office or work environment. Include relevant details such as whether you have a dedicated, quiet workspace, the level of background noise during working hours, and any factors that may impact your ability to work effectively (e.g., a private room, door, sound-controlled area, multiple monitors, etc.).
+            </div>
+          )}
+        </div>
         <textarea className="form-input form-textarea" rows={3} placeholder="Describe your workspace setup..." value={homeOfficeDesc} onChange={(e) => setHomeOfficeDesc(e.target.value)} />
       </div>
 

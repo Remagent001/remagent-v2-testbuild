@@ -5,13 +5,16 @@ import { useState } from "react";
 const DAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 const DAY_LABELS = { sunday: "Sun", monday: "Mon", tuesday: "Tue", wednesday: "Wed", thursday: "Thu", friday: "Fri", saturday: "Sat" };
 
-// Generate time options in 15-min increments
+// Generate 12-hour time options in 15-min increments
 const TIMES = [];
 for (let h = 0; h < 24; h++) {
   for (let m = 0; m < 60; m += 15) {
-    const hh = String(h).padStart(2, "0");
+    const hh24 = String(h).padStart(2, "0");
     const mm = String(m).padStart(2, "0");
-    TIMES.push(`${hh}:${mm}`);
+    const period = h < 12 ? "AM" : "PM";
+    const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    const label = `${h12}:${mm} ${period}`;
+    TIMES.push({ value: `${hh24}:${mm}`, label });
   }
 }
 
@@ -19,14 +22,23 @@ const TIMEZONES = [
   "US/Eastern", "US/Central", "US/Mountain", "US/Pacific", "US/Alaska", "US/Hawaii",
   "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles",
   "America/Phoenix", "America/Anchorage", "America/Toronto", "America/Vancouver",
+  "America/Mexico_City", "America/Bogota", "America/Sao_Paulo",
   "Europe/London", "Europe/Berlin", "Europe/Paris", "Asia/Tokyo", "Asia/Shanghai",
   "Asia/Kolkata", "Australia/Sydney",
 ];
 
-export default function StepAvailability({ data, onNext, onBack, onSaveExit, onSkip, saving }) {
-  const [timezone, setTimezone] = useState(data?.user?.timezone || "US/Eastern");
+function detectTimezone() {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  } catch {
+    return "US/Eastern";
+  }
+}
 
-  // Build initial schedule from saved data
+export default function StepAvailability({ data, onNext, onBack, onSaveExit, onSkip, saving }) {
+  const savedTz = data?.user?.timezone;
+  const [timezone, setTimezone] = useState(savedTz || detectTimezone());
+
   const [schedule, setSchedule] = useState(() => {
     const saved = {};
     (data?.availability || []).forEach((a) => {
@@ -48,7 +60,6 @@ export default function StepAvailability({ data, onNext, onBack, onSaveExit, onS
   };
 
   const applyToAll = () => {
-    // Find first enabled day
     const firstEnabled = DAYS.find((d) => schedule[d].enabled);
     if (!firstEnabled) return;
     const { startTime, endTime } = schedule[firstEnabled];
@@ -93,11 +104,11 @@ export default function StepAvailability({ data, onNext, onBack, onSaveExit, onS
             {schedule[day].enabled && (
               <div className="availability-times">
                 <select className="form-input form-select" value={schedule[day].startTime} onChange={(e) => updateTime(day, "startTime", e.target.value)}>
-                  {TIMES.map((t) => <option key={t} value={t}>{t}</option>)}
+                  {TIMES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
                 <span className="availability-to">to</span>
                 <select className="form-input form-select" value={schedule[day].endTime} onChange={(e) => updateTime(day, "endTime", e.target.value)}>
-                  {TIMES.map((t) => <option key={t} value={t}>{t}</option>)}
+                  {TIMES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
               </div>
             )}

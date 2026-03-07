@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import StepGettingStarted from "@/components/App/Onboarding/StepGettingStarted";
 import StepExperience from "@/components/App/Onboarding/StepExperience";
@@ -11,8 +11,7 @@ import StepLanguages from "@/components/App/Onboarding/StepLanguages";
 import StepAvailability from "@/components/App/Onboarding/StepAvailability";
 import StepEnvironment from "@/components/App/Onboarding/StepEnvironment";
 import StepHourlyRate from "@/components/App/Onboarding/StepHourlyRate";
-import StepPhoto from "@/components/App/Onboarding/StepPhoto";
-import StepVideo from "@/components/App/Onboarding/StepVideo";
+import StepPhotoVideo from "@/components/App/Onboarding/StepPhotoVideo";
 import StepLocation from "@/components/App/Onboarding/StepLocation";
 import StepContact from "@/components/App/Onboarding/StepContact";
 import StepAgreement from "@/components/App/Onboarding/StepAgreement";
@@ -27,12 +26,13 @@ const STEPS = [
   { num: 7, label: "Availability", component: StepAvailability },
   { num: 8, label: "Environment", component: StepEnvironment },
   { num: 9, label: "Hourly Rate", component: StepHourlyRate },
-  { num: 10, label: "Photo", component: StepPhoto },
-  { num: 11, label: "Video", component: StepVideo },
-  { num: 12, label: "Location", component: StepLocation },
-  { num: 13, label: "Contact", component: StepContact },
-  { num: 14, label: "Agreement", component: StepAgreement },
+  { num: 10, label: "Photo & Video", component: StepPhotoVideo },
+  { num: 11, label: "Location", component: StepLocation },
+  { num: 12, label: "Contact", component: StepContact },
+  { num: 13, label: "Agreement", component: StepAgreement },
 ];
+
+const TOTAL = STEPS.length;
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -42,22 +42,28 @@ export default function OnboardingPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  const loadData = useCallback(async () => {
+    try {
+      const res = await fetch("/api/onboarding/load");
+      const data = await res.json();
+      setAllData(data);
+      return data;
+    } catch {
+      setError("Failed to load your profile data.");
+      return null;
+    }
+  }, []);
+
   // Load all onboarding data on mount
   useEffect(() => {
-    fetch("/api/onboarding/load")
-      .then((r) => r.json())
-      .then((data) => {
-        setAllData(data);
-        // Resume where they left off
+    loadData().then((data) => {
+      if (data) {
         const step = data.profile?.onboardingStep || 1;
-        setCurrentStep(Math.min(step, 14));
-        setLoading(false);
-      })
-      .catch(() => {
-        setError("Failed to load your profile data.");
-        setLoading(false);
-      });
-  }, []);
+        setCurrentStep(Math.min(step, TOTAL));
+      }
+      setLoading(false);
+    });
+  }, [loadData]);
 
   const saveStep = async (stepNum, stepData) => {
     setSaving(true);
@@ -72,6 +78,8 @@ export default function OnboardingPage() {
         const err = await res.json();
         throw new Error(err.error || "Save failed");
       }
+      // Reload data so all steps see the latest
+      await loadData();
       return true;
     } catch (e) {
       setError(e.message);
@@ -84,7 +92,7 @@ export default function OnboardingPage() {
   const handleNext = async (stepData) => {
     const ok = await saveStep(currentStep, stepData);
     if (ok) {
-      if (currentStep === 14) {
+      if (currentStep === TOTAL) {
         router.push("/dashboard");
       } else {
         setCurrentStep(currentStep + 1);
@@ -102,7 +110,11 @@ export default function OnboardingPage() {
   };
 
   const handleSkip = () => {
-    if (currentStep < 14) setCurrentStep(currentStep + 1);
+    if (currentStep < TOTAL) setCurrentStep(currentStep + 1);
+  };
+
+  const handleStepClick = (stepNum) => {
+    setCurrentStep(stepNum);
   };
 
   if (loading) {
@@ -116,22 +128,51 @@ export default function OnboardingPage() {
 
   const stepConfig = STEPS[currentStep - 1];
   const StepComponent = stepConfig.component;
-  const progress = ((currentStep - 1) / 14) * 100;
+  const highestStep = allData?.profile?.onboardingStep || 1;
 
   return (
     <div className="onboarding">
-      {/* Progress header */}
+      {/* Progress bubbles */}
       <div className="onboarding-header">
         <div className="onboarding-header-top">
           <h1 className="onboarding-title">Complete Your Profile</h1>
           <span className="onboarding-step-count">
-            Step {currentStep} of 14
+            Step {currentStep} of {TOTAL}
           </span>
         </div>
-        <div className="onboarding-progress">
-          <div className="onboarding-progress-bar" style={{ width: `${progress}%` }} />
+
+        <div className="progress-bubbles">
+          {STEPS.map((step, i) => {
+            const isCompleted = step.num < highestStep;
+            const isCurrent = step.num === currentStep;
+            const isAccessible = step.num <= highestStep;
+            return (
+              <div key={step.num} className="progress-bubble-wrap">
+                {i > 0 && (
+                  <div className={`progress-line ${isCompleted ? "completed" : ""}`} />
+                )}
+                <button
+                  type="button"
+                  className={`progress-bubble ${isCurrent ? "current" : ""} ${isCompleted ? "completed" : ""} ${isAccessible ? "accessible" : ""}`}
+                  onClick={() => isAccessible && handleStepClick(step.num)}
+                  disabled={!isAccessible}
+                  title={step.label}
+                >
+                  {isCompleted ? (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  ) : (
+                    step.num
+                  )}
+                </button>
+                <span className={`progress-label ${isCurrent ? "current" : ""}`}>
+                  {step.label}
+                </span>
+              </div>
+            );
+          })}
         </div>
-        <div className="onboarding-step-label">{stepConfig.label}</div>
       </div>
 
       {/* Error */}
@@ -146,7 +187,7 @@ export default function OnboardingPage() {
           onSaveExit={handleSaveExit}
           onSkip={handleSkip}
           isFirst={currentStep === 1}
-          isLast={currentStep === 14}
+          isLast={currentStep === TOTAL}
           saving={saving}
         />
       </div>

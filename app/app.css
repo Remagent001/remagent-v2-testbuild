@@ -720,25 +720,111 @@
   border-radius: 20px;
 }
 
-.onboarding-progress {
-  height: 6px;
-  background: var(--gray-100);
-  border-radius: 3px;
-  overflow: hidden;
-  margin-bottom: 12px;
+/* ── PROGRESS BUBBLES ── */
+.progress-bubbles {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  overflow-x: auto;
+  padding: 4px 0 8px;
+  gap: 0;
 }
 
-.onboarding-progress-bar {
-  height: 100%;
+.progress-bubble-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.progress-line {
+  position: absolute;
+  top: 14px;
+  right: 50%;
+  width: 100%;
+  height: 2px;
+  background: var(--gray-200);
+  z-index: 0;
+}
+
+.progress-line.completed {
   background: var(--teal);
-  border-radius: 3px;
-  transition: width 0.3s ease;
 }
 
-.onboarding-step-label {
-  font-size: 0.85rem;
+.progress-bubble {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--gray-200);
+  background: var(--white);
+  color: var(--gray-400);
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: var(--font);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  position: relative;
+  z-index: 1;
+  transition: all 0.2s;
+}
+
+.progress-bubble.accessible {
+  cursor: pointer;
+}
+
+.progress-bubble.accessible:hover {
+  border-color: var(--teal);
+  color: var(--teal-dark);
+}
+
+.progress-bubble.completed {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: var(--white);
+}
+
+.progress-bubble.current {
+  border-color: var(--teal);
+  color: var(--teal-dark);
+  box-shadow: 0 0 0 3px var(--teal-dim);
+}
+
+.progress-label {
+  font-size: 0.6rem;
+  color: var(--gray-400);
+  margin-top: 4px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 60px;
+}
+
+.progress-label.current {
+  color: var(--teal-dark);
   font-weight: 600;
-  color: var(--gray-600);
+}
+
+@media (max-width: 768px) {
+  .progress-bubbles {
+    gap: 2px;
+    padding-bottom: 4px;
+  }
+  .progress-label {
+    display: none;
+  }
+  .progress-bubble {
+    width: 24px;
+    height: 24px;
+    font-size: 0.6rem;
+  }
+  .progress-line {
+    top: 12px;
+  }
 }
 
 .onboarding-body {
@@ -1086,4 +1172,118 @@
 
 .agreement-content p {
   margin-bottom: 12px;
+}
+
+.agreement-signed-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: rgba(15, 212, 176, 0.08);
+  border: 1px solid var(--teal-border);
+  border-radius: 8px;
+  font-size: 0.835rem;
+  font-weight: 600;
+  color: var(--teal-dark);
+}
+
+/* ── CHARACTER COUNT ── */
+.form-char-count {
+  text-align: right;
+  font-size: 0.72rem;
+  color: var(--gray-400);
+  margin-top: 4px;
+}
+
+/* ── FILE UPLOAD ZONE ── */
+.file-upload-zone {
+  border: 2px dashed var(--gray-200);
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.file-upload-zone:hover {
+  border-color: var(--teal-border);
+  background: rgba(15, 212, 176, 0.03);
+}
+
+.file-upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: var(--gray-400);
+  font-size: 0.835rem;
+}
+
+.file-upload-hint {
+  font-size: 0.72rem;
+  color: var(--gray-400);
+}
+
+.file-upload-selected {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+  font-size: 0.835rem;
+  font-weight: 500;
+  color: var(--teal-dark);
+}
+
+/* ── DRAG OVER ── */
+.photo-upload-area.drag-over {
+  border-color: var(--teal);
+  background: var(--teal-dim);
+}
+
+/* ── INFO TOOLTIP ── */
+.form-label-with-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  position: relative;
+}
+
+.info-btn {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid var(--gray-300);
+  background: var(--white);
+  color: var(--gray-500);
+  font-size: 0.65rem;
+  font-weight: 700;
+  font-style: italic;
+  font-family: Georgia, serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.info-btn:hover {
+  border-color: var(--teal);
+  color: var(--teal-dark);
+}
+
+.info-tooltip {
+  position: absolute;
+  top: 28px;
+  left: 0;
+  z-index: 20;
+  background: var(--navy);
+  color: rgba(255, 255, 255, 0.9);
+  padding: 14px 16px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  max-width: 400px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }

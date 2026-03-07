@@ -6,8 +6,6 @@ import Link from "next/link";
 export default function DashboardPage() {
   const { data: session } = useSession();
   const user = session?.user;
-  const isPro = user?.role === "PROFESSIONAL";
-
   return (
     <div>
       <div className="page-header">
@@ -36,17 +34,15 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {isPro && (
-        <div className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <div>
-            <div className="card-title">Complete Your Profile</div>
-            <div className="card-subtitle">Fill out your professional profile to start getting matched with opportunities.</div>
-          </div>
-          <Link href="/onboarding" className="btn-primary" style={{ width: "auto", whiteSpace: "nowrap", textDecoration: "none" }}>
-            Get Started
-          </Link>
+      <div className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <div>
+          <div className="card-title">Complete Your Profile</div>
+          <div className="card-subtitle">Fill out your professional profile to start getting matched with opportunities.</div>
         </div>
-      )}
+        <Link href="/onboarding" className="btn-primary" style={{ width: "auto", whiteSpace: "nowrap", textDecoration: "none" }}>
+          Get Started
+        </Link>
+      </div>
 
       <div className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>

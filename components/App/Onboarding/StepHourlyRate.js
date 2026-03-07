@@ -8,12 +8,10 @@ export default function StepHourlyRate({ data, onNext, onBack, onSaveExit, onSki
 
   const getData = () => ({ regularRate });
 
-  const displayRate = regularRate ? (parseFloat(regularRate) * 1.1).toFixed(2) : "0.00";
-
   return (
     <div className="onboarding-step">
       <p className="onboarding-step-desc">
-        Set your hourly rate. When hired, you'll receive your rate plus a 10% Remagent bonus.
+        Set your hourly rate. This is the rate businesses will see on your profile.
       </p>
 
       <div className="form-group">
@@ -28,14 +26,6 @@ export default function StepHourlyRate({ data, onNext, onBack, onSaveExit, onSki
           onChange={(e) => setRegularRate(e.target.value)}
         />
       </div>
-
-      {regularRate && (
-        <div className="rate-preview">
-          <div className="rate-preview-label">You will receive:</div>
-          <div className="rate-preview-value">${displayRate}/hr</div>
-          <div className="rate-preview-note">(Your rate of ${parseFloat(regularRate || 0).toFixed(2)} + 10% Remagent bonus)</div>
-        </div>
-      )}
 
       <div className="onboarding-actions">
         <button className="btn-secondary" onClick={onBack} disabled={saving}>Back</button>

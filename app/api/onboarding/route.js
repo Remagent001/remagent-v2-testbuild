@@ -28,7 +28,10 @@ export async function GET() {
   });
 }
 
-// PUT — save a step's data
+// PUT — save a step's data (13 steps total)
+// 1=Getting Started, 2=Experience, 3=Channels, 4=Education, 5=Employment,
+// 6=Languages, 7=Availability, 8=Environment, 9=Hourly Rate,
+// 10=Photo+Video, 11=Location, 12=Contact, 13=Agreement
 export async function PUT(request) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -47,6 +50,8 @@ export async function PUT(request) {
     });
   }
 
+  const advanceTo = (nextStep) => Math.max(profile.onboardingStep, nextStep);
+
   switch (step) {
     case 1: {
       // Getting Started
@@ -57,7 +62,7 @@ export async function PUT(request) {
           summary: data.summary || null,
           website: data.website || null,
           linkedinUrl: data.linkedinUrl || null,
-          onboardingStep: Math.max(profile.onboardingStep, 2),
+          onboardingStep: advanceTo(2),
         },
       });
       break;
@@ -69,33 +74,15 @@ export async function PUT(request) {
         where: { userId },
         data: {
           overallExperience: data.overallExperience || null,
-          onboardingStep: Math.max(profile.onboardingStep, 3),
+          onboardingStep: advanceTo(3),
         },
       });
 
-      // Replace skills: delete old, insert new
       await prisma.userSkill.deleteMany({ where: { userId } });
       if (data.skillIds?.length) {
         await prisma.userSkill.createMany({
           data: data.skillIds.map((skillId) => ({ userId, skillId })),
         });
-      }
-
-      // Handle custom skills
-      if (data.customSkills?.length) {
-        for (const name of data.customSkills) {
-          const trimmed = name.trim();
-          if (!trimmed) continue;
-          let skill = await prisma.skill.findUnique({ where: { name: trimmed } });
-          if (!skill) {
-            skill = await prisma.skill.create({ data: { name: trimmed, isCustom: true } });
-          }
-          await prisma.userSkill.upsert({
-            where: { userId_skillId: { userId, skillId: skill.id } },
-            update: {},
-            create: { userId, skillId: skill.id },
-          });
-        }
       }
       break;
     }
@@ -114,7 +101,7 @@ export async function PUT(request) {
       }
       await prisma.professionalProfile.update({
         where: { userId },
-        data: { onboardingStep: Math.max(profile.onboardingStep, 4) },
+        data: { onboardingStep: advanceTo(4) },
       });
       break;
     }
@@ -138,7 +125,7 @@ export async function PUT(request) {
       }
       await prisma.professionalProfile.update({
         where: { userId },
-        data: { onboardingStep: Math.max(profile.onboardingStep, 5) },
+        data: { onboardingStep: advanceTo(5) },
       });
       break;
     }
@@ -166,7 +153,7 @@ export async function PUT(request) {
       }
       await prisma.professionalProfile.update({
         where: { userId },
-        data: { onboardingStep: Math.max(profile.onboardingStep, 6) },
+        data: { onboardingStep: advanceTo(6) },
       });
       break;
     }
@@ -185,7 +172,7 @@ export async function PUT(request) {
       }
       await prisma.professionalProfile.update({
         where: { userId },
-        data: { onboardingStep: Math.max(profile.onboardingStep, 7) },
+        data: { onboardingStep: advanceTo(7) },
       });
       break;
     }
@@ -208,7 +195,7 @@ export async function PUT(request) {
       }
       await prisma.professionalProfile.update({
         where: { userId },
-        data: { onboardingStep: Math.max(profile.onboardingStep, 8) },
+        data: { onboardingStep: advanceTo(8) },
       });
       break;
     }
@@ -235,7 +222,7 @@ export async function PUT(request) {
       });
       await prisma.professionalProfile.update({
         where: { userId },
-        data: { onboardingStep: Math.max(profile.onboardingStep, 9) },
+        data: { onboardingStep: advanceTo(9) },
       });
       break;
     }
@@ -258,30 +245,21 @@ export async function PUT(request) {
       });
       await prisma.professionalProfile.update({
         where: { userId },
-        data: { onboardingStep: Math.max(profile.onboardingStep, 10) },
+        data: { onboardingStep: advanceTo(10) },
       });
       break;
     }
 
     case 10: {
-      // Photo — just advance step (file upload handled separately)
+      // Photo + Video (combined) — file uploads handled separately
       await prisma.professionalProfile.update({
         where: { userId },
-        data: { onboardingStep: Math.max(profile.onboardingStep, 11) },
+        data: { onboardingStep: advanceTo(11) },
       });
       break;
     }
 
     case 11: {
-      // Video — just advance step (file upload handled separately)
-      await prisma.professionalProfile.update({
-        where: { userId },
-        data: { onboardingStep: Math.max(profile.onboardingStep, 12) },
-      });
-      break;
-    }
-
-    case 12: {
       // Location
       await prisma.location.upsert({
         where: { userId },
@@ -315,27 +293,26 @@ export async function PUT(request) {
       });
       await prisma.professionalProfile.update({
         where: { userId },
-        data: { onboardingStep: Math.max(profile.onboardingStep, 13) },
+        data: { onboardingStep: advanceTo(12) },
+      });
+      break;
+    }
+
+    case 12: {
+      // Contact — phone + whatsapp
+      const updateData = {};
+      if (data.phone) updateData.phone = data.phone;
+      if (Object.keys(updateData).length) {
+        await prisma.user.update({ where: { id: userId }, data: updateData });
+      }
+      await prisma.professionalProfile.update({
+        where: { userId },
+        data: { onboardingStep: advanceTo(13) },
       });
       break;
     }
 
     case 13: {
-      // Contact — phone
-      if (data.phone) {
-        await prisma.user.update({
-          where: { id: userId },
-          data: { phone: data.phone },
-        });
-      }
-      await prisma.professionalProfile.update({
-        where: { userId },
-        data: { onboardingStep: Math.max(profile.onboardingStep, 14) },
-      });
-      break;
-    }
-
-    case 14: {
       // Agreement — mark as complete
       await prisma.professionalProfile.update({
         where: { userId },
@@ -343,7 +320,7 @@ export async function PUT(request) {
           agreementSigned: true,
           agreementSignedAt: new Date(),
           profileComplete: true,
-          onboardingStep: 15,
+          onboardingStep: 14,
         },
       });
       break;

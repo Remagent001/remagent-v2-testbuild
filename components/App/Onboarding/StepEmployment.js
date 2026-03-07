@@ -6,6 +6,8 @@ const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov
 const YEARS = Array.from({ length: 30 }, (_, i) => String(2026 - i));
 const STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
 
+const monthIndex = (m) => MONTHS.indexOf(m);
+
 const emptyEntry = () => ({
   company: "", city: "", state: "", title: "",
   fromMonth: "", fromYear: "", throughMonth: "", throughYear: "",
@@ -28,7 +30,31 @@ export default function StepEmployment({ data, onNext, onBack, onSaveExit, onSki
   const update = (i, field, value) => {
     const next = [...entries];
     next[i] = { ...next[i], [field]: value };
+    // Validate: To date must be after From date
+    const e = next[i];
+    if ((field === "fromMonth" || field === "fromYear") && e.throughYear) {
+      if (e.fromYear && e.throughYear) {
+        const fromNum = parseInt(e.fromYear) * 12 + monthIndex(e.fromMonth);
+        const toNum = parseInt(e.throughYear) * 12 + monthIndex(e.throughMonth);
+        if (toNum < fromNum) {
+          next[i].throughMonth = "";
+          next[i].throughYear = "";
+        }
+      }
+    }
     setEntries(next);
+  };
+
+  // Get min year for "To" dropdown based on "From" selection
+  const getToYears = (entry) => {
+    if (!entry.fromYear) return YEARS;
+    return YEARS.filter((y) => parseInt(y) >= parseInt(entry.fromYear));
+  };
+
+  const getToMonths = (entry) => {
+    if (!entry.fromYear || !entry.throughYear || entry.fromYear !== entry.throughYear) return MONTHS;
+    const fromIdx = monthIndex(entry.fromMonth);
+    return MONTHS.filter((_, idx) => idx >= fromIdx);
   };
 
   const addEntry = () => setEntries([...entries, emptyEntry()]);
@@ -91,14 +117,14 @@ export default function StepEmployment({ data, onNext, onBack, onSaveExit, onSki
               <label className="form-label">To Month</label>
               <select className="form-input form-select" value={entry.throughMonth} onChange={(e) => update(i, "throughMonth", e.target.value)} disabled={entry.currentlyWorking}>
                 <option value="">Month</option>
-                {MONTHS.map((m) => <option key={m} value={m}>{m}</option>)}
+                {getToMonths(entry).map((m) => <option key={m} value={m}>{m}</option>)}
               </select>
             </div>
             <div className="form-group form-quarter">
               <label className="form-label">To Year</label>
               <select className="form-input form-select" value={entry.throughYear} onChange={(e) => update(i, "throughYear", e.target.value)} disabled={entry.currentlyWorking}>
                 <option value="">Year</option>
-                {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
+                {getToYears(entry).map((y) => <option key={y} value={y}>{y}</option>)}
               </select>
             </div>
           </div>

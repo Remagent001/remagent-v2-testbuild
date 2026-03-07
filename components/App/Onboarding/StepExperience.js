@@ -15,8 +15,6 @@ export default function StepExperience({ data, onNext, onBack, onSaveExit, onSki
   const profile = data?.profile;
   const [overallExperience, setOverallExperience] = useState(profile?.overallExperience || "");
   const [selectedSkills, setSelectedSkills] = useState(new Set(data?.userSkillIds || []));
-  const [customSkill, setCustomSkill] = useState("");
-  const [customSkills, setCustomSkills] = useState([]);
 
   const allSkills = data?.allSkills || [];
 
@@ -27,28 +25,16 @@ export default function StepExperience({ data, onNext, onBack, onSaveExit, onSki
     setSelectedSkills(next);
   };
 
-  const addCustomSkill = () => {
-    const name = customSkill.trim();
-    if (name && !customSkills.includes(name)) {
-      setCustomSkills([...customSkills, name]);
-    }
-    setCustomSkill("");
-  };
-
-  const removeCustomSkill = (name) => {
-    setCustomSkills(customSkills.filter((s) => s !== name));
-  };
-
   const getData = () => ({
     overallExperience,
     skillIds: Array.from(selectedSkills),
-    customSkills,
+    customSkills: [],
   });
 
   return (
     <div className="onboarding-step">
       <p className="onboarding-step-desc">
-        What is your overall experience level, and which skills do you have?
+        What is your overall, relevant experience in contact/call center work?
       </p>
 
       <div className="form-group">
@@ -79,42 +65,6 @@ export default function StepExperience({ data, onNext, onBack, onSaveExit, onSki
             </button>
           ))}
         </div>
-      </div>
-
-      {/* Custom skills */}
-      <div className="form-group">
-        <label className="form-label">Add Custom Skill</label>
-        <div className="custom-skill-input">
-          <input
-            className="form-input"
-            placeholder="Type a skill name..."
-            value={customSkill}
-            onChange={(e) => setCustomSkill(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCustomSkill())}
-          />
-          <button
-            type="button"
-            className="btn-secondary"
-            onClick={addCustomSkill}
-            disabled={!customSkill.trim()}
-          >
-            Add
-          </button>
-        </div>
-        {customSkills.length > 0 && (
-          <div className="skill-grid" style={{ marginTop: 8 }}>
-            {customSkills.map((name) => (
-              <button
-                key={name}
-                type="button"
-                className="skill-tag active"
-                onClick={() => removeCustomSkill(name)}
-              >
-                {name} &times;
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
       <div className="onboarding-actions">

@@ -1,28 +1,75 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
+
+function formatPhone(value) {
+  // Strip everything except digits
+  const digits = value.replace(/\D/g, "").slice(0, 10);
+  if (digits.length === 0) return "";
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
 
 export default function StepContact({ data, onNext, onBack, onSaveExit, onSkip, saving }) {
-  const [phone, setPhone] = useState(data?.user?.phone || "");
+  const { data: session } = useSession();
+  const userEmail = session?.user?.email || "";
+
+  const [phone, setPhone] = useState(() => {
+    const saved = data?.user?.phone || "";
+    return saved ? formatPhone(saved) : "";
+  });
+  const [whatsapp, setWhatsapp] = useState("");
   const [agreeTexts, setAgreeTexts] = useState(false);
 
-  const getData = () => ({ phone });
+  const handlePhoneChange = (e) => {
+    setPhone(formatPhone(e.target.value));
+  };
+
+  const getData = () => ({
+    phone: phone.replace(/\D/g, ""),
+    whatsapp: whatsapp.replace(/\D/g, ""),
+  });
 
   return (
     <div className="onboarding-step">
       <p className="onboarding-step-desc">
-        Add your phone number so businesses and Remagent can reach you when needed.
+        Add your contact information so businesses and Remagent can reach you when needed.
       </p>
 
       <div className="form-group">
-        <label className="form-label">Phone Number</label>
+        <label className="form-label">Email</label>
         <input
           className="form-input"
-          type="tel"
-          placeholder="(555) 123-4567"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
+          type="email"
+          value={userEmail}
+          disabled
+          style={{ background: "var(--gray-50)", color: "var(--gray-500)" }}
         />
+      </div>
+
+      <div className="form-row">
+        <div className="form-group form-half">
+          <label className="form-label">Phone Number</label>
+          <input
+            className="form-input"
+            type="tel"
+            placeholder="(123) 456-7890"
+            value={phone}
+            onChange={handlePhoneChange}
+          />
+        </div>
+        <div className="form-group form-half">
+          <label className="form-label">WhatsApp (optional)</label>
+          <input
+            className="form-input"
+            type="tel"
+            placeholder="(123) 456-7890"
+            value={whatsapp}
+            onChange={(e) => setWhatsapp(formatPhone(e.target.value))}
+          />
+        </div>
       </div>
 
       <div className="form-group">

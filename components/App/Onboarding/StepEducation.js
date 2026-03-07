@@ -34,6 +34,10 @@ export default function StepEducation({ data, onNext, onBack, onSaveExit, onSkip
   const update = (i, field, value) => {
     const next = [...entries];
     next[i] = { ...next[i], [field]: value };
+    // If From Date changes and To Date is before it, clear To Date
+    if (field === "fromDate" && next[i].toDate && value > next[i].toDate) {
+      next[i].toDate = "";
+    }
     setEntries(next);
   };
 
@@ -90,7 +94,13 @@ export default function StepEducation({ data, onNext, onBack, onSaveExit, onSkip
             </div>
             <div className="form-group form-third">
               <label className="form-label">To Date</label>
-              <input className="form-input" type="date" value={entry.toDate} onChange={(e) => update(i, "toDate", e.target.value)} />
+              <input
+                className="form-input"
+                type="date"
+                value={entry.toDate}
+                min={entry.fromDate || undefined}
+                onChange={(e) => update(i, "toDate", e.target.value)}
+              />
             </div>
             <div className="form-group form-third">
               <label className="form-label">GPA</label>
