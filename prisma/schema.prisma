@@ -1,0 +1,556 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ──────────────────────────────────────
+// USERS & AUTH
+// ──────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  firstName     String
+  lastName      String
+  role          Role      @default(PROFESSIONAL)
+  image         String?
+  profileVideo  String?
+  phone         String?
+  phoneVerified DateTime?
+  timezone      String?
+  lastLogin     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  professionalProfile ProfessionalProfile?
+  businessProfile     BusinessProfile?
+  education           Education[]
+  employment          Employment[]
+  languages           UserLanguage[]
+  availability        Availability[]
+  environment         Environment?
+  location            Location?
+  hourlyRate          HourlyRate?
+  skills              UserSkill[]
+  channels            UserChannel[]
+  sentMessages        Message[]          @relation("sender")
+  conversations1      Conversation[]     @relation("user1")
+  conversations2      Conversation[]     @relation("user2")
+  jobApplications     JobApplication[]
+  jobOffers           JobOffer[]
+  hiresAsPro          Hire[]             @relation("professional")
+  hiresAsBiz          Hire[]             @relation("business")
+  positions           Position[]
+
+  @@map("users")
+}
+
+enum Role {
+  PROFESSIONAL
+  BUSINESS
+  ADMIN
+}
+
+// ──────────────────────────────────────
+// PROFESSIONAL PROFILE
+// ──────────────────────────────────────
+
+model ProfessionalProfile {
+  id                String  @id @default(cuid())
+  userId            String  @unique
+  title             String?
+  summary           String? @db.Text
+  website           String?
+  linkedinUrl       String?
+  resume            String?
+  overallExperience String?
+  agreementSigned   Boolean @default(false)
+  agreementSignedAt DateTime?
+  profileComplete   Boolean @default(false)
+  onboardingStep    Int     @default(1)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("professional_profiles")
+}
+
+// ──────────────────────────────────────
+// BUSINESS PROFILE
+// ──────────────────────────────────────
+
+model BusinessProfile {
+  id              String  @id @default(cuid())
+  userId          String  @unique
+  businessName    String?
+  industry        String?
+  website         String?
+  linkedinUrl     String?
+  logo            String?
+  country         String?
+  state           String?
+  city            String?
+  zip             String?
+  fullAddress     String?
+  phone           String?
+  agreementSigned Boolean @default(false)
+  agreementSignedAt DateTime?
+  adminMarkup     Float   @default(10)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("business_profiles")
+}
+
+// ──────────────────────────────────────
+// SKILLS & CHANNELS (Lookup tables)
+// ──────────────────────────────────────
+
+model Skill {
+  id        String      @id @default(cuid())
+  name      String      @unique
+  isCustom  Boolean     @default(false)
+  createdAt DateTime    @default(now())
+
+  users     UserSkill[]
+  positions PositionSkill[]
+
+  @@map("skills")
+}
+
+model Channel {
+  id        String        @id @default(cuid())
+  name      String        @unique
+  createdAt DateTime      @default(now())
+
+  users     UserChannel[]
+  positions PositionChannel[]
+
+  @@map("channels")
+}
+
+model UserSkill {
+  id      String @id @default(cuid())
+  userId  String
+  skillId String
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skillId])
+  @@map("user_skills")
+}
+
+model UserChannel {
+  id         String @id @default(cuid())
+  userId     String
+  channelId  String
+  experience String // "none", "1-6mo", "6-12mo", "1-2yr", "2-3yr", "3+yr"
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, channelId])
+  @@map("user_channels")
+}
+
+// ──────────────────────────────────────
+// EDUCATION
+// ──────────────────────────────────────
+
+model Education {
+  id          String  @id @default(cuid())
+  userId      String
+  institution String
+  degree      String  // PHD, Masters, BA/BS, Associates, High School, GED, Other
+  areaOfStudy String?
+  fromDate    DateTime?
+  toDate      DateTime?
+  gpa         String?
+  description String? @db.Text
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("education")
+}
+
+// ──────────────────────────────────────
+// EMPLOYMENT
+// ──────────────────────────────────────
+
+model Employment {
+  id               String  @id @default(cuid())
+  userId           String
+  company          String
+  city             String?
+  state            String?
+  title            String?
+  fromMonth        String?
+  fromYear         String?
+  throughMonth      String?
+  throughYear       String?
+  currentlyWorking Boolean @default(false)
+  remote           Boolean @default(false)
+  description      String? @db.Text
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("employment")
+}
+
+// ──────────────────────────────────────
+// LANGUAGES
+// ──────────────────────────────────────
+
+model UserLanguage {
+  id          String @id @default(cuid())
+  userId      String
+  language    String // Spanish, French, Chinese, etc.
+  proficiency String // basic, conversational, fluent
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, language])
+  @@map("user_languages")
+}
+
+// ──────────────────────────────────────
+// AVAILABILITY
+// ──────────────────────────────────────
+
+model Availability {
+  id        String @id @default(cuid())
+  userId    String
+  day       String // sunday, monday, etc.
+  startTime String // HH:MM
+  endTime   String // HH:MM
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, day])
+  @@map("availability")
+}
+
+// ──────────────────────────────────────
+// ENVIRONMENT (work setup)
+// ──────────────────────────────────────
+
+model Environment {
+  id                String  @id @default(cuid())
+  userId            String  @unique
+  workFromHome      Boolean @default(false)
+  workFromOffice    Boolean @default(false)
+  // Computer details stored as JSON
+  computers         Json?   // [{type: "desktop"|"laptop"|"mac", brand, year, model, cpu, ram}]
+  internetTypes     Json?   // ["dsl", "cable", "fiber"]
+  homeOfficeDesc    String? @db.Text
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("environments")
+}
+
+// ──────────────────────────────────────
+// LOCATION
+// ──────────────────────────────────────
+
+model Location {
+  id             String  @id @default(cuid())
+  userId         String  @unique
+  // Home
+  fullAddress    String?
+  country        String?
+  state          String?
+  city           String?
+  zip            String?
+  latitude       Float?
+  longitude      Float?
+  isPrimary      Boolean @default(true)
+  // Work (if different)
+  workAddress    String?
+  workCountry    String?
+  workState      String?
+  workCity       String?
+  workZip        String?
+  workLatitude   Float?
+  workLongitude  Float?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("locations")
+}
+
+// ──────────────────────────────────────
+// HOURLY RATE
+// ──────────────────────────────────────
+
+model HourlyRate {
+  id              String @id @default(cuid())
+  userId          String @unique
+  regularRate     Float
+  afterHoursRate  Float?
+  holidayRate     Float?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("hourly_rates")
+}
+
+// ──────────────────────────────────────
+// POSITIONS (Job Postings by Business)
+// ──────────────────────────────────────
+
+model Position {
+  id                 String   @id @default(cuid())
+  userId             String
+  title              String
+  description        String   @db.Text
+  numberOfHires      Int      @default(1)
+  regularRate        Float?
+  afterHoursRate     Float?
+  holidayRate        Float?
+  contractType       String?  // "open_ended" or "fixed"
+  startOption        String?  // "immediately", "flexible", "date"
+  expectedStartDate  DateTime?
+  expectedEndDate    DateTime?
+  visibility         String   @default("public") // "public" or "private"
+  status             String   @default("draft")  // draft, pending_review, active, closed
+  screeningQuestions Json?    // array of question strings
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channels        PositionChannel[]
+  skills          PositionSkill[]
+  environment     PositionEnvironment?
+  availability    PositionAvailability[]
+  trainingTopics  TrainingTopic[]
+  documents       Document[]
+  applications    JobApplication[]
+  offers          JobOffer[]
+  hires           Hire[]
+
+  @@map("positions")
+}
+
+model PositionChannel {
+  id         String @id @default(cuid())
+  positionId String
+  channelId  String
+  experience String // required experience level
+
+  position Position @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  channel  Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@unique([positionId, channelId])
+  @@map("position_channels")
+}
+
+model PositionSkill {
+  id         String @id @default(cuid())
+  positionId String
+  skillId    String
+
+  position Position @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  skill    Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([positionId, skillId])
+  @@map("position_skills")
+}
+
+model PositionEnvironment {
+  id              String  @id @default(cuid())
+  positionId      String  @unique
+  workLocation    Json?   // ["office", "home", "mix", "optional"]
+  equipmentPolicy String? // "provided" or "byod"
+  requirements    String? @db.Text
+
+  position Position @relation(fields: [positionId], references: [id], onDelete: Cascade)
+
+  @@map("position_environments")
+}
+
+model PositionAvailability {
+  id         String @id @default(cuid())
+  positionId String
+  day        String
+  startTime  String
+  endTime    String
+
+  position Position @relation(fields: [positionId], references: [id], onDelete: Cascade)
+
+  @@unique([positionId, day])
+  @@map("position_availability")
+}
+
+model TrainingTopic {
+  id         String    @id @default(cuid())
+  positionId String
+  topic      String
+  details    String?   @db.Text
+  startTime  String?
+  endTime    String?
+  startDate  DateTime?
+  endDate    DateTime?
+  offDays    String?   // comma-separated dates
+
+  position Position @relation(fields: [positionId], references: [id], onDelete: Cascade)
+
+  @@map("training_topics")
+}
+
+model Document {
+  id         String @id @default(cuid())
+  positionId String
+  name       String
+  file       String
+  createdAt  DateTime @default(now())
+
+  position Position @relation(fields: [positionId], references: [id], onDelete: Cascade)
+
+  @@map("documents")
+}
+
+// ──────────────────────────────────────
+// JOB APPLICATIONS & OFFERS
+// ──────────────────────────────────────
+
+model JobApplication {
+  id         String   @id @default(cuid())
+  positionId String
+  userId     String   // the professional
+  status     String   @default("new") // new, reviewing, declined, accepted
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  position    Position      @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  negotiation Negotiation?
+
+  @@unique([positionId, userId])
+  @@map("job_applications")
+}
+
+model JobOffer {
+  id         String   @id @default(cuid())
+  positionId String
+  userId     String   // the professional being invited
+  status     String   @default("pending") // pending, accepted, declined, withdrawn
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  position    Position      @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  negotiation Negotiation?
+
+  @@unique([positionId, userId])
+  @@map("job_offers")
+}
+
+// ──────────────────────────────────────
+// NEGOTIATIONS
+// ──────────────────────────────────────
+
+model Negotiation {
+  id               String @id @default(cuid())
+  applicationId    String? @unique
+  offerId          String? @unique
+  // Professional's proposed terms
+  proStartDate     DateTime?
+  proEndDate       DateTime?
+  proDaysOfWork    Json?    // ["monday", "tuesday", ...]
+  proStartTime     String?
+  proEndTime       String?
+  proRegularRate   Float?
+  proAfterRate     Float?
+  proHolidayRate   Float?
+  // Business's proposed terms
+  bizStartDate     DateTime?
+  bizEndDate       DateTime?
+  bizDaysOfWork    Json?
+  bizStartTime     String?
+  bizEndTime       String?
+  bizRegularRate   Float?
+  bizAfterRate     Float?
+  bizHolidayRate   Float?
+  // Shared
+  trainingTopic    String?
+  trainingDetails  String?  @db.Text
+  noticePeriod     String?
+  status           String   @default("pending") // pending, accepted, declined
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  application JobApplication? @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  offer       JobOffer?       @relation(fields: [offerId], references: [id], onDelete: Cascade)
+
+  @@map("negotiations")
+}
+
+// ──────────────────────────────────────
+// HIRES
+// ──────────────────────────────────────
+
+model Hire {
+  id              String   @id @default(cuid())
+  positionId      String
+  businessId      String
+  professionalId  String
+  regularRate     Float?
+  afterHoursRate  Float?
+  holidayRate     Float?
+  daysOfWork      Json?
+  startTime       String?
+  endTime         String?
+  startDate       DateTime?
+  endDate         DateTime?
+  status          String   @default("active") // active, completed, terminated
+  rating          Int?     // 1-5 stars
+  ratingComment   String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  position     Position @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  business     User     @relation("business", fields: [businessId], references: [id], onDelete: Cascade)
+  professional User     @relation("professional", fields: [professionalId], references: [id], onDelete: Cascade)
+
+  @@map("hires")
+}
+
+// ──────────────────────────────────────
+// MESSAGING
+// ──────────────────────────────────────
+
+model Conversation {
+  id          String    @id @default(cuid())
+  user1Id     String
+  user2Id     String
+  lastMessage DateTime?
+  createdAt   DateTime  @default(now())
+
+  user1    User      @relation("user1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2    User      @relation("user2", fields: [user2Id], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@unique([user1Id, user2Id])
+  @@map("conversations")
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String   @db.Text
+  read           Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation("sender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
