@@ -1772,6 +1772,22 @@
   font-size: 0.9rem;
   line-height: 1.7;
   color: var(--gray-600);
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+.profile-summary-collapsed {
+  position: relative;
+  overflow: hidden;
+}
+.profile-summary-collapsed::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: linear-gradient(transparent, var(--white));
+  pointer-events: none;
 }
 .profile-summary p { margin: 0 0 8px; }
 .profile-summary ul, .profile-summary ol { padding-left: 1.5em; margin: 8px 0; }

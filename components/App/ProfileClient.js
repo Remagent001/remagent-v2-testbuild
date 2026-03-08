@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 
@@ -8,6 +8,14 @@ function safeParse(val, fallback = []) {
   if (!val) return fallback;
   if (typeof val === "object") return val; // already parsed
   try { return JSON.parse(val); } catch { return fallback; }
+}
+
+function formatPhone(phone) {
+  if (!phone) return "";
+  const digits = phone.replace(/\D/g, "");
+  const d = digits.length === 11 && digits[0] === "1" ? digits.slice(1) : digits;
+  if (d.length === 10) return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+  return phone;
 }
 
 const DAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
@@ -56,6 +64,39 @@ function Section({ title, step, children, empty, incomplete }) {
 
 function Tag({ children }) {
   return <span className="profile-tag">{children}</span>;
+}
+
+function ExpandableText({ html, maxHeight = 96 }) {
+  const [expanded, setExpanded] = useState(false);
+  const [needsExpand, setNeedsExpand] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (ref.current && ref.current.scrollHeight > maxHeight) {
+      setNeedsExpand(true);
+    }
+  }, [html, maxHeight]);
+
+  return (
+    <div>
+      <div
+        ref={ref}
+        className={`profile-summary ${!expanded && needsExpand ? "profile-summary-collapsed" : ""}`}
+        style={!expanded && needsExpand ? { maxHeight } : {}}
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+      {needsExpand && (
+        <button
+          type="button"
+          className="btn-link"
+          style={{ fontSize: "0.85rem", marginTop: 4, padding: 0 }}
+          onClick={() => setExpanded(!expanded)}
+        >
+          {expanded ? "Show less" : "Read more"}
+        </button>
+      )}
+    </div>
+  );
 }
 
 export default function ProfileClient() {
@@ -170,10 +211,7 @@ export default function ProfileClient() {
 
       {/* Summary */}
       <Section title="About" step={1} empty={!profile.summary} incomplete={isIncomplete(1)}>
-        <div
-          className="profile-summary"
-          dangerouslySetInnerHTML={{ __html: profile.summary }}
-        />
+        <ExpandableText html={profile.summary} />
         <div className="profile-links">
           {profile.website && (
             <a href={profile.website} target="_blank" rel="noopener noreferrer" className="profile-link">
@@ -395,7 +433,7 @@ export default function ProfileClient() {
         {user?.phone && (
           <p className="profile-detail">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ verticalAlign: "middle", marginRight: 6 }}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
-            {user.phone}
+            {formatPhone(user.phone)}
           </p>
         )}
       </Section>
