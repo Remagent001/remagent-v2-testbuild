@@ -84,13 +84,14 @@ const proNav = [
 const bizNav = [
   { section: "Main", links: [
     { href: "/dashboard", label: "Dashboard", icon: "dashboard" },
-    { href: "/positions", label: "My Positions", icon: "briefcase" },
-    { href: "/positions/new", label: "Create Position", icon: "plus" },
+    { href: "/company-profile", label: "Company Profile", icon: "profile" },
     { href: "/search", label: "Search Professionals", icon: "search" },
+    { href: "/positions", label: "Job Postings", icon: "briefcase" },
   ]},
   { section: "Manage", links: [
-    { href: "/applications", label: "Applications", icon: "fileText" },
-    { href: "/offers", label: "Offers & Hires", icon: "handshake" },
+    { href: "/invites", label: "Invites", icon: "clipboard" },
+    { href: "/applicants", label: "Applicants", icon: "users" },
+    { href: "/hires", label: "Hires", icon: "handshake" },
     { href: "/inbox", label: "Inbox", icon: "inbox" },
   ]},
   { section: "Account", links: [

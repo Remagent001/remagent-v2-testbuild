@@ -12,5 +12,10 @@ export const config = {
     "/search/:path*",
     "/applications/:path*",
     "/offers/:path*",
+    "/company-profile/:path*",
+    "/invites/:path*",
+    "/applicants/:path*",
+    "/hires/:path*",
+    "/onboarding/:path*",
   ],
 };
