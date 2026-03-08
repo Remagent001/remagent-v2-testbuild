@@ -18,6 +18,14 @@ for (let h = 0; h < 24; h++) {
   }
 }
 
+// Hours for the visual grid (6am-11pm)
+const GRID_HOURS = [];
+for (let h = 6; h <= 23; h++) {
+  const period = h < 12 ? "AM" : "PM";
+  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  GRID_HOURS.push({ hour: h, label: `${h12}${period}` });
+}
+
 const TIMEZONES = [
   "US/Eastern", "US/Central", "US/Mountain", "US/Pacific", "US/Alaska", "US/Hawaii",
   "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles",
@@ -33,6 +41,15 @@ function detectTimezone() {
   } catch {
     return "US/Eastern";
   }
+}
+
+function to12hr(time24) {
+  if (!time24) return "";
+  const [h, m] = time24.split(":");
+  const hr = parseInt(h, 10);
+  const ampm = hr >= 12 ? "PM" : "AM";
+  const hr12 = hr === 0 ? 12 : hr > 12 ? hr - 12 : hr;
+  return `${hr12}:${m} ${ampm}`;
 }
 
 export default function StepAvailability({ data, onNext, onBack, onSaveExit, onSkip, saving }) {
@@ -81,6 +98,20 @@ export default function StepAvailability({ data, onNext, onBack, onSaveExit, onS
     })),
   });
 
+  // Calculate bar position for the visual grid
+  const getBarStyle = (startTime, endTime) => {
+    const [sh, sm] = startTime.split(":").map(Number);
+    const [eh, em] = endTime.split(":").map(Number);
+    const startMin = sh * 60 + sm;
+    const endMin = eh * 60 + em;
+    const gridStart = 6 * 60; // 6 AM
+    const gridEnd = 24 * 60; // midnight
+    const gridSpan = gridEnd - gridStart;
+    const left = Math.max(0, ((startMin - gridStart) / gridSpan) * 100);
+    const width = Math.max(0, Math.min(((endMin - gridStart) / gridSpan) * 100 - left, 100 - left));
+    return { left: `${left}%`, width: `${width}%` };
+  };
+
   return (
     <div className="onboarding-step">
       <p className="onboarding-step-desc">
@@ -119,6 +150,44 @@ export default function StepAvailability({ data, onNext, onBack, onSaveExit, onS
       <button type="button" className="btn-link" onClick={applyToAll} style={{ marginTop: 8 }}>
         Apply same time to all selected days
       </button>
+
+      {/* Visual weekly grid */}
+      {DAYS.some((d) => schedule[d].enabled) && (
+        <div className="avail-visual">
+          <label className="form-label" style={{ marginBottom: 12 }}>Your Weekly Schedule</label>
+          <div className="avail-visual-grid">
+            {/* Hour labels header */}
+            <div className="avail-visual-header">
+              <div className="avail-visual-day-label" />
+              <div className="avail-visual-hours">
+                {GRID_HOURS.filter((_, i) => i % 2 === 0).map((h) => (
+                  <span key={h.hour} className="avail-visual-hour-label" style={{ left: `${((h.hour - 6) / 18) * 100}%` }}>
+                    {h.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+            {/* Day rows */}
+            {DAYS.map((day) => (
+              <div key={day} className="avail-visual-row">
+                <div className="avail-visual-day-label">{DAY_LABELS[day]}</div>
+                <div className="avail-visual-track">
+                  {schedule[day].enabled ? (
+                    <>
+                      <div className="avail-visual-bar" style={getBarStyle(schedule[day].startTime, schedule[day].endTime)} />
+                      <span className="avail-visual-time-label">
+                        {to12hr(schedule[day].startTime)} – {to12hr(schedule[day].endTime)}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="avail-visual-off">Off</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="onboarding-actions">
         <button className="btn-secondary" onClick={onBack} disabled={saving}>Back</button>

@@ -14,7 +14,7 @@ function formatPhone(value) {
 
 export default function StepContact({ data, onNext, onBack, onSaveExit, onSkip, saving }) {
   const { data: session } = useSession();
-  const userEmail = session?.user?.email || "";
+  const [email, setEmail] = useState(session?.user?.email || "");
 
   const [phone, setPhone] = useState(() => {
     const saved = data?.user?.phone || "";
@@ -28,6 +28,7 @@ export default function StepContact({ data, onNext, onBack, onSaveExit, onSkip, 
   };
 
   const getData = () => ({
+    email: email.trim(),
     phone: phone.replace(/\D/g, ""),
     whatsapp: whatsapp.replace(/\D/g, ""),
   });
@@ -43,9 +44,9 @@ export default function StepContact({ data, onNext, onBack, onSaveExit, onSkip, 
         <input
           className="form-input"
           type="email"
-          value={userEmail}
-          disabled
-          style={{ background: "var(--gray-50)", color: "var(--gray-500)" }}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="your@email.com"
         />
       </div>
 

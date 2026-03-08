@@ -71,7 +71,7 @@ const icons = {
 const proNav = [
   { section: "Main", links: [
     { href: "/dashboard", label: "Dashboard", icon: "dashboard" },
-    { href: "/onboarding", label: "Complete Profile", icon: "profile" },
+    { href: "/profile", label: "My Profile", icon: "profile" },
     { href: "/jobs", label: "Browse Jobs", icon: "briefcase" },
     { href: "/my-jobs", label: "My Jobs", icon: "clipboard" },
     { href: "/inbox", label: "Inbox", icon: "inbox" },

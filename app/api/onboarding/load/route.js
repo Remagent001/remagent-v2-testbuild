@@ -25,10 +25,14 @@ export async function GET() {
     hourlyRate,
     allSkills,
     allChannels,
+    userIndustries,
+    allIndustries,
+    userApplications,
+    allApplications,
   ] = await Promise.all([
     prisma.user.findUnique({ where: { id: userId }, select: { phone: true, timezone: true, image: true, profileVideo: true } }),
     prisma.professionalProfile.findUnique({ where: { userId } }),
-    prisma.userSkill.findMany({ where: { userId }, select: { skillId: true } }),
+    prisma.userSkill.findMany({ where: { userId } }),
     prisma.userChannel.findMany({ where: { userId } }),
     prisma.education.findMany({ where: { userId }, orderBy: { fromDate: "desc" } }),
     prisma.employment.findMany({ where: { userId }, orderBy: { fromYear: "desc" } }),
@@ -39,12 +43,16 @@ export async function GET() {
     prisma.hourlyRate.findUnique({ where: { userId } }),
     prisma.skill.findMany({ orderBy: { name: "asc" } }),
     prisma.channel.findMany({ orderBy: { name: "asc" } }),
+    prisma.userIndustry.findMany({ where: { userId } }),
+    prisma.industry.findMany({ orderBy: { name: "asc" } }),
+    prisma.userApplication.findMany({ where: { userId } }),
+    prisma.application.findMany({ orderBy: { name: "asc" } }),
   ]);
 
   return NextResponse.json({
     user,
     profile,
-    userSkillIds: userSkills.map((s) => s.skillId),
+    userSkills,
     userChannels,
     education,
     employment,
@@ -55,5 +63,9 @@ export async function GET() {
     hourlyRate,
     allSkills,
     allChannels,
+    userIndustries,
+    allIndustries,
+    userApplications,
+    allApplications,
   });
 }

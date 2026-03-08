@@ -19,7 +19,14 @@ export default function StepChannels({ data, onNext, onBack, onSaveExit, onSkip,
   });
 
   const [channels, setChannels] = useState(existing);
-  const allChannels = data?.allChannels || [];
+
+  // Custom sort order for channels
+  const CHANNEL_ORDER = ["Phone (Inbound calls)", "Phone (Outbound calls)", "Web Chat", "Mobile / Text Chat", "Screen Share / Control", "Email"];
+  const allChannels = [...(data?.allChannels || [])].sort((a, b) => {
+    const ai = CHANNEL_ORDER.indexOf(a.name);
+    const bi = CHANNEL_ORDER.indexOf(b.name);
+    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+  });
 
   const toggleChannel = (id) => {
     const next = { ...channels };

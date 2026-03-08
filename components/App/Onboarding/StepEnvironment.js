@@ -19,6 +19,13 @@ export default function StepEnvironment({ data, onNext, onBack, onSaveExit, onSk
     const saved = env?.internetTypes;
     return Array.isArray(saved) ? saved : [];
   });
+  const [internetSpeed, setInternetSpeed] = useState(env?.internetSpeed || "");
+  const [needsEquipment, setNeedsEquipment] = useState(env?.needsEquipment || false);
+  const [hasOwnEquipment, setHasOwnEquipment] = useState(() => {
+    // If they previously selected computers, they have their own
+    const saved = env?.computers;
+    return Array.isArray(saved) && saved.length > 0;
+  });
   const [homeOfficeDesc, setHomeOfficeDesc] = useState(env?.homeOfficeDesc || "");
   const [showInfoTip, setShowInfoTip] = useState(false);
 
@@ -43,43 +50,59 @@ export default function StepEnvironment({ data, onNext, onBack, onSaveExit, onSk
   };
 
   const getData = () => ({
-    workFromHome, workFromOffice, computers, internetTypes, homeOfficeDesc,
+    workFromHome, workFromOffice, needsEquipment, computers, internetTypes, internetSpeed, homeOfficeDesc,
   });
 
   return (
     <div className="onboarding-step">
       <p className="onboarding-step-desc">
-        Tell us about your work environment and equipment.
+        Tell us about your work environment and any computer equipment you could use if required.
       </p>
 
-      <div className="form-group">
+      <div className="form-group" style={{ marginBottom: 28 }}>
         <label className="form-label">Work Location Preference</label>
         <div style={{ display: "flex", gap: 24 }}>
           <label className="form-checkbox">
             <input type="checkbox" checked={workFromHome} onChange={(e) => setWorkFromHome(e.target.checked)} />
-            Willing to work from home
+            Willing to work remotely
           </label>
           <label className="form-checkbox">
             <input type="checkbox" checked={workFromOffice} onChange={(e) => setWorkFromOffice(e.target.checked)} />
-            Willing to work from office
+            Willing to come into an office
           </label>
         </div>
       </div>
 
       <div className="form-group">
-        <label className="form-label">Computer Equipment (select all that apply)</label>
-        <div className="skill-grid">
-          {COMPUTER_TYPES.map((type) => (
-            <button
-              key={type}
-              type="button"
-              className={`skill-tag ${computers.find((c) => c.type === type) ? "active" : ""}`}
-              onClick={() => toggleComputerType(type)}
-            >
-              {type}
-            </button>
-          ))}
-        </div>
+        <label className="form-label">Computer Equipment</label>
+        <label className="form-checkbox">
+          <input type="checkbox" checked={needsEquipment} onChange={(e) => setNeedsEquipment(e.target.checked)} />
+          I would need computer equipment provided
+        </label>
+        <p style={{ fontSize: "0.85rem", color: "var(--gray-400)", margin: "10px 0", textAlign: "center" }}>Or</p>
+        <label className="form-checkbox">
+          <input type="checkbox" checked={hasOwnEquipment} onChange={(e) => {
+            setHasOwnEquipment(e.target.checked);
+            if (!e.target.checked) setComputers([]);
+          }} />
+          I have my own computer equipment I can use
+        </label>
+        {hasOwnEquipment && (
+          <div style={{ marginTop: 12 }}>
+            <div className="skill-grid">
+              {COMPUTER_TYPES.map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  className={`skill-tag ${computers.find((c) => c.type === type) ? "active" : ""}`}
+                  onClick={() => toggleComputerType(type)}
+                >
+                  {type}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {computers.map((comp) => (
@@ -120,14 +143,25 @@ export default function StepEnvironment({ data, onNext, onBack, onSaveExit, onSk
 
       <div className="form-group" style={{ marginTop: 16 }}>
         <label className="form-label">Internet Type</label>
-        <div style={{ display: "flex", gap: 16 }}>
-          {["DSL", "Cable", "Fiber"].map((type) => (
+        <p className="form-hint">I have the following type of internet:</p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
+          {["DSL", "Cable", "Fiber", "Wireless 5G"].map((type) => (
             <label key={type} className="form-checkbox">
               <input type="checkbox" checked={internetTypes.includes(type)} onChange={() => toggleInternet(type)} />
               {type}
             </label>
           ))}
         </div>
+        <label className="form-checkbox" style={{ marginTop: 10 }}>
+          <input type="checkbox" checked={internetTypes.includes("None")} onChange={() => toggleInternet("None")} />
+          I do not have internet
+        </label>
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">Internet Speed</label>
+        <p className="form-hint">If you know your download speed, enter it here. You can check at speedtest.net.</p>
+        <input className="form-input" placeholder="e.g. 100 Mbps" value={internetSpeed} onChange={(e) => setInternetSpeed(e.target.value)} style={{ maxWidth: 200 }} />
       </div>
 
       <div className="form-group">

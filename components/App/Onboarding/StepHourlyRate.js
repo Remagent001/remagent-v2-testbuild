@@ -32,7 +32,7 @@ export default function StepHourlyRate({ data, onNext, onBack, onSaveExit, onSki
         <div className="onboarding-actions-right">
           <button className="btn-link" onClick={onSkip}>Skip</button>
           <button className="btn-secondary" onClick={() => onSaveExit(getData())} disabled={saving}>Save & Exit</button>
-          <button className="btn-primary" style={{ width: "auto" }} onClick={() => onNext(getData())} disabled={!regularRate || saving}>{saving ? "Saving..." : "Next"}</button>
+          <button className="btn-primary" style={{ width: "auto" }} onClick={() => onNext(getData())} disabled={saving}>{saving ? "Saving..." : "Next"}</button>
         </div>
       </div>
     </div>

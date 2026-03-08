@@ -52,6 +52,18 @@ export async function PUT(request) {
 
   const advanceTo = (nextStep) => Math.max(profile.onboardingStep, nextStep);
 
+  // Track which individual steps have been completed
+  // If isComplete=true, add step; if false, remove it
+  const setStepCompletion = (stepNum, isComplete) => {
+    let existing = profile.completedSteps ? JSON.parse(profile.completedSteps) : [];
+    if (isComplete && !existing.includes(stepNum)) {
+      existing.push(stepNum);
+    } else if (!isComplete) {
+      existing = existing.filter((n) => n !== stepNum);
+    }
+    return JSON.stringify(existing);
+  };
+
   switch (step) {
     case 1: {
       // Getting Started
@@ -63,25 +75,53 @@ export async function PUT(request) {
           website: data.website || null,
           linkedinUrl: data.linkedinUrl || null,
           onboardingStep: advanceTo(2),
+          completedSteps: setStepCompletion(1, !!(data.title || data.summary)),
         },
       });
       break;
     }
 
     case 2: {
-      // Experience + Skills
+      // Experience + Skills + Industries + Applications
       await prisma.professionalProfile.update({
         where: { userId },
         data: {
           overallExperience: data.overallExperience || null,
           onboardingStep: advanceTo(3),
+          completedSteps: setStepCompletion(2, !!(data.overallExperience || data.skills?.length || data.industries?.length || data.applications?.length)),
         },
       });
 
       await prisma.userSkill.deleteMany({ where: { userId } });
-      if (data.skillIds?.length) {
+      if (data.skills?.length) {
         await prisma.userSkill.createMany({
-          data: data.skillIds.map((skillId) => ({ userId, skillId })),
+          data: data.skills.map((s) => ({
+            userId,
+            skillId: s.skillId,
+            experience: s.experience,
+          })),
+        });
+      }
+
+      await prisma.userIndustry.deleteMany({ where: { userId } });
+      if (data.industries?.length) {
+        await prisma.userIndustry.createMany({
+          data: data.industries.map((ind) => ({
+            userId,
+            industryId: ind.industryId,
+            experience: ind.experience,
+          })),
+        });
+      }
+
+      await prisma.userApplication.deleteMany({ where: { userId } });
+      if (data.applications?.length) {
+        await prisma.userApplication.createMany({
+          data: data.applications.map((app) => ({
+            userId,
+            applicationId: app.applicationId,
+            experience: app.experience,
+          })),
         });
       }
       break;
@@ -101,7 +141,7 @@ export async function PUT(request) {
       }
       await prisma.professionalProfile.update({
         where: { userId },
-        data: { onboardingStep: advanceTo(4) },
+        data: { onboardingStep: advanceTo(4), completedSteps: setStepCompletion(3, !!(data.channels?.length)) },
       });
       break;
     }
@@ -125,7 +165,7 @@ export async function PUT(request) {
       }
       await prisma.professionalProfile.update({
         where: { userId },
-        data: { onboardingStep: advanceTo(5) },
+        data: { onboardingStep: advanceTo(5), completedSteps: setStepCompletion(4, !!(data.entries?.length)) },
       });
       break;
     }
@@ -153,7 +193,7 @@ export async function PUT(request) {
       }
       await prisma.professionalProfile.update({
         where: { userId },
-        data: { onboardingStep: advanceTo(6) },
+        data: { onboardingStep: advanceTo(6), completedSteps: setStepCompletion(5, !!(data.entries?.length)) },
       });
       break;
     }
@@ -172,7 +212,7 @@ export async function PUT(request) {
       }
       await prisma.professionalProfile.update({
         where: { userId },
-        data: { onboardingStep: advanceTo(7) },
+        data: { onboardingStep: advanceTo(7), completedSteps: setStepCompletion(6, !!(data.languages?.length)) },
       });
       break;
     }
@@ -195,7 +235,7 @@ export async function PUT(request) {
       }
       await prisma.professionalProfile.update({
         where: { userId },
-        data: { onboardingStep: advanceTo(8) },
+        data: { onboardingStep: advanceTo(8), completedSteps: setStepCompletion(7, !!(data.schedule?.length)) },
       });
       break;
     }
@@ -207,22 +247,26 @@ export async function PUT(request) {
         update: {
           workFromHome: data.workFromHome || false,
           workFromOffice: data.workFromOffice || false,
+          needsEquipment: data.needsEquipment || false,
           computers: data.computers || null,
           internetTypes: data.internetTypes || null,
+          internetSpeed: data.internetSpeed || null,
           homeOfficeDesc: data.homeOfficeDesc || null,
         },
         create: {
           userId,
           workFromHome: data.workFromHome || false,
           workFromOffice: data.workFromOffice || false,
+          needsEquipment: data.needsEquipment || false,
           computers: data.computers || null,
           internetTypes: data.internetTypes || null,
+          internetSpeed: data.internetSpeed || null,
           homeOfficeDesc: data.homeOfficeDesc || null,
         },
       });
       await prisma.professionalProfile.update({
         where: { userId },
-        data: { onboardingStep: advanceTo(9) },
+        data: { onboardingStep: advanceTo(9), completedSteps: setStepCompletion(8, !!(data.workFromHome || data.workFromOffice)) },
       });
       break;
     }
@@ -245,16 +289,19 @@ export async function PUT(request) {
       });
       await prisma.professionalProfile.update({
         where: { userId },
-        data: { onboardingStep: advanceTo(10) },
+        data: { onboardingStep: advanceTo(10), completedSteps: setStepCompletion(9, !!(parseFloat(data.regularRate) > 0)) },
       });
       break;
     }
 
     case 10: {
       // Photo + Video (combined) — file uploads handled separately
+      // Re-read profile to check current photo/video state
+      const freshProfile = await prisma.professionalProfile.findUnique({ where: { userId } });
+      const hasMedia = !!(freshProfile?.photoUrl || freshProfile?.videoUrl);
       await prisma.professionalProfile.update({
         where: { userId },
-        data: { onboardingStep: advanceTo(11) },
+        data: { onboardingStep: advanceTo(11), completedSteps: setStepCompletion(10, hasMedia) },
       });
       break;
     }
@@ -293,7 +340,7 @@ export async function PUT(request) {
       });
       await prisma.professionalProfile.update({
         where: { userId },
-        data: { onboardingStep: advanceTo(12) },
+        data: { onboardingStep: advanceTo(12), completedSteps: setStepCompletion(11, !!(data.city)) },
       });
       break;
     }
@@ -301,13 +348,14 @@ export async function PUT(request) {
     case 12: {
       // Contact — phone + whatsapp
       const updateData = {};
+      if (data.email) updateData.email = data.email;
       if (data.phone) updateData.phone = data.phone;
       if (Object.keys(updateData).length) {
         await prisma.user.update({ where: { id: userId }, data: updateData });
       }
       await prisma.professionalProfile.update({
         where: { userId },
-        data: { onboardingStep: advanceTo(13) },
+        data: { onboardingStep: advanceTo(13), completedSteps: setStepCompletion(12, !!(data.phone || data.email)) },
       });
       break;
     }
@@ -321,6 +369,7 @@ export async function PUT(request) {
           agreementSignedAt: new Date(),
           profileComplete: true,
           onboardingStep: 14,
+          completedSteps: setStepCompletion(13, true),
         },
       });
       break;

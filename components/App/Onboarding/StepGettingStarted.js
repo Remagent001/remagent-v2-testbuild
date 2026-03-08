@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useRef } from "react";
+import dynamic from "next/dynamic";
+
+const RichTextEditor = dynamic(() => import("@/components/App/RichTextEditor"), { ssr: false });
 
 const MAX_SUMMARY = 5000;
 
@@ -30,14 +33,9 @@ export default function StepGettingStarted({ data, onNext, onSaveExit, saving })
     setUploading(false);
   };
 
-  const handleSummaryChange = (e) => {
-    const val = e.target.value;
-    if (val.length <= MAX_SUMMARY) setSummary(val);
-  };
-
   const getData = () => ({ title, summary, website, linkedinUrl });
 
-  const canProceed = title.trim() && summary.trim();
+  const canProceed = title.trim() && summary.replace(/<[^>]*>/g, "").trim();
 
   return (
     <div className="onboarding-step">
@@ -57,52 +55,12 @@ export default function StepGettingStarted({ data, onNext, onSaveExit, saving })
 
       <div className="form-group">
         <label className="form-label">Professional Summary *</label>
-        <textarea
-          className="form-input form-textarea"
+        <RichTextEditor
+          content={summary}
+          onChange={setSummary}
           placeholder="Write a short summary about your experience and what you bring to the table..."
-          rows={5}
-          value={summary}
-          onChange={handleSummaryChange}
+          maxLength={MAX_SUMMARY}
         />
-        <div className="form-char-count">
-          {summary.length}/{MAX_SUMMARY}
-        </div>
-      </div>
-
-      <div className="form-group">
-        <label className="form-label">Resume (optional)</label>
-        <div
-          className="file-upload-zone"
-          onClick={() => fileRef.current?.click()}
-        >
-          {resumeName ? (
-            <div className="file-upload-selected">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" strokeWidth="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <path d="M14 2v6h6" />
-              </svg>
-              <span>{resumeName}</span>
-            </div>
-          ) : (
-            <div className="file-upload-placeholder">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="17 8 12 3 7 8" />
-                <line x1="12" y1="3" x2="12" y2="15" />
-              </svg>
-              <span>Click to upload your resume</span>
-              <span className="file-upload-hint">PDF, DOC, HTML, PPT accepted</span>
-            </div>
-          )}
-          <input
-            ref={fileRef}
-            type="file"
-            accept=".pdf,.doc,.docx,.html,.ppt,.pptx"
-            onChange={handleResume}
-            style={{ display: "none" }}
-          />
-        </div>
-        {uploading && <p className="upload-status">Uploading...</p>}
       </div>
 
       <div className="form-row">
@@ -124,6 +82,36 @@ export default function StepGettingStarted({ data, onNext, onSaveExit, saving })
             onChange={(e) => setLinkedinUrl(e.target.value)}
           />
         </div>
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">Resume (optional)</label>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <input
+            className="form-input"
+            readOnly
+            placeholder="No file selected"
+            value={resumeName || ""}
+            onClick={() => fileRef.current?.click()}
+            style={{ cursor: "pointer" }}
+          />
+          <button
+            type="button"
+            className="btn-secondary"
+            style={{ whiteSpace: "nowrap", padding: "8px 16px" }}
+            onClick={() => fileRef.current?.click()}
+          >
+            Browse
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".pdf,.doc,.docx,.html,.ppt,.pptx"
+            onChange={handleResume}
+            style={{ display: "none" }}
+          />
+        </div>
+        {uploading && <p className="upload-status">Uploading...</p>}
       </div>
 
       <div className="onboarding-actions">

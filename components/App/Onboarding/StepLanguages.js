@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-const LANGUAGES = ["Spanish", "French", "Chinese", "Mandarin", "Hindi", "Russian", "Arabic", "Portuguese"];
+const LANGUAGES = ["Spanish", "French", "Chinese", "Mandarin", "Hindi", "Russian", "Arabic", "Portuguese", "German", "Japanese", "Korean", "Italian"];
 const PROFICIENCIES = [
   { value: "basic", label: "Basic" },
   { value: "conversational", label: "Conversational" },
@@ -29,7 +29,14 @@ export default function StepLanguages({ data, onNext, onBack, onSaveExit, onSkip
 
   const removeLanguage = (lang) => setLanguages(languages.filter((l) => l.language !== lang));
 
-  const getData = () => ({ languages });
+  // Auto-include whatever is in the dropdowns if user hasn't clicked Add
+  const getData = () => {
+    let result = [...languages];
+    if (newLang && !result.find((l) => l.language === newLang)) {
+      result.push({ language: newLang, proficiency: newProf });
+    }
+    return { languages: result };
+  };
 
   // Languages already added (exclude from dropdown)
   const available = LANGUAGES.filter((l) => !languages.find((s) => s.language === l));
@@ -40,13 +47,20 @@ export default function StepLanguages({ data, onNext, onBack, onSaveExit, onSkip
         Do you speak any additional languages? This is optional but can help match you with more opportunities.
       </p>
 
+      {/* Added language cards */}
       {languages.length > 0 && (
-        <div className="language-list">
+        <div className="language-cards">
           {languages.map((l) => (
-            <div key={l.language} className="language-item">
-              <span className="language-name">{l.language}</span>
-              <span className="language-prof">{PROFICIENCIES.find((p) => p.value === l.proficiency)?.label || l.proficiency}</span>
-              <button type="button" className="btn-link btn-danger" onClick={() => removeLanguage(l.language)}>Remove</button>
+            <div key={l.language} className="language-card">
+              <div className="language-card-info">
+                <span className="language-card-name">{l.language}</span>
+                <span className="language-card-prof">{PROFICIENCIES.find((p) => p.value === l.proficiency)?.label || l.proficiency}</span>
+              </div>
+              <button type="button" className="language-card-remove" onClick={() => removeLanguage(l.language)} title="Remove">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
             </div>
           ))}
         </div>
@@ -69,7 +83,7 @@ export default function StepLanguages({ data, onNext, onBack, onSaveExit, onSkip
           </div>
           <div className="form-group form-third">
             <button type="button" className="btn-secondary" onClick={addLanguage} disabled={!newLang} style={{ marginBottom: 20 }}>
-              Add Language
+              + Add Another
             </button>
           </div>
         </div>

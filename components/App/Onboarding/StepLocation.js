@@ -1,6 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import dynamic from "next/dynamic";
+
+const AddressAutocomplete = dynamic(() => import("@/components/App/AddressAutocomplete"), { ssr: false });
 
 const STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
 
@@ -19,6 +22,22 @@ export default function StepLocation({ data, onNext, onBack, onSaveExit, onSkip,
   const [workZip, setWorkZip] = useState(loc?.workZip || "");
   const [workCountry, setWorkCountry] = useState(loc?.workCountry || "United States");
 
+  const handleHomePlace = useCallback((place) => {
+    setFullAddress(place.fullAddress);
+    setCity(place.city);
+    setState(place.state);
+    setZip(place.zip);
+    setCountry(place.country);
+  }, []);
+
+  const handleWorkPlace = useCallback((place) => {
+    setWorkAddress(place.fullAddress);
+    setWorkCity(place.city);
+    setWorkState(place.state);
+    setWorkZip(place.zip);
+    setWorkCountry(place.country);
+  }, []);
+
   const getData = () => ({
     fullAddress, city, state, zip, country,
     ...(hasDifferentWork ? { workAddress, workCity, workState, workZip, workCountry } : {}),
@@ -32,7 +51,12 @@ export default function StepLocation({ data, onNext, onBack, onSaveExit, onSkip,
 
       <div className="form-group">
         <label className="form-label">Full Address</label>
-        <input className="form-input" placeholder="Street address" value={fullAddress} onChange={(e) => setFullAddress(e.target.value)} />
+        <AddressAutocomplete
+          value={fullAddress}
+          onChange={setFullAddress}
+          onPlaceSelect={handleHomePlace}
+          placeholder="Start typing your address..."
+        />
       </div>
 
       <div className="form-row">
@@ -64,7 +88,12 @@ export default function StepLocation({ data, onNext, onBack, onSaveExit, onSkip,
         <>
           <div className="form-group">
             <label className="form-label">Work Address</label>
-            <input className="form-input" placeholder="Work street address" value={workAddress} onChange={(e) => setWorkAddress(e.target.value)} />
+            <AddressAutocomplete
+              value={workAddress}
+              onChange={setWorkAddress}
+              onPlaceSelect={handleWorkPlace}
+              placeholder="Start typing your work address..."
+            />
           </div>
           <div className="form-row">
             <div className="form-group form-third">
