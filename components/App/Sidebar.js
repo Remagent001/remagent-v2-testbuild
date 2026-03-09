@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 
 // Simple inline SVG icons to avoid extra dependencies
 const icons = {
@@ -133,7 +134,7 @@ export default function Sidebar({ isOpen, onClose, role = "professional", user =
           <div className="sidebar-avatar">
             {user?.firstName?.[0] || "U"}{user?.lastName?.[0] || ""}
           </div>
-          <div>
+          <div style={{ flex: 1 }}>
             <div className="sidebar-user-name">
               {user?.firstName || "User"} {user?.lastName?.[0] || ""}.
             </div>
@@ -141,6 +142,17 @@ export default function Sidebar({ isOpen, onClose, role = "professional", user =
               {role === "business" ? "Business" : "Professional"}
             </div>
           </div>
+          <button
+            className="sidebar-signout"
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            title="Sign out"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+          </button>
         </div>
       </div>
     </aside>

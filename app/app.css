@@ -136,6 +136,21 @@
 .sidebar-user:hover {
   background: rgba(255,255,255,0.06);
 }
+.sidebar-signout {
+  background: none;
+  border: none;
+  color: var(--gray-400);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+  display: flex;
+  align-items: center;
+}
+.sidebar-signout:hover {
+  color: var(--white);
+  background: rgba(255,255,255,0.1);
+}
 
 .sidebar-avatar {
   width: 34px;
