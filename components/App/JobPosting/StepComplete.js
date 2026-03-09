@@ -2,12 +2,41 @@
 
 import { useState } from "react";
 
+function safeParse(val) {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  try { return JSON.parse(val); } catch { return []; }
+}
+
+const STEP_NAMES = {
+  1: "Position Detail",
+  2: "Context (Channels/Skills/Apps)",
+  3: "Environment",
+  4: "Availability",
+  5: "Hourly Rate",
+  6: "Dates & Duration",
+  7: "Attachments",
+  8: "Screening Questions",
+};
+
 export default function StepComplete({ data, onNext, onBack, onSaveExit, saving }) {
   const pos = data?.position;
   const [visibility, setVisibility] = useState(pos?.visibility || "public");
   const [isDefault, setIsDefault] = useState(pos?.isDefault || false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const completedSteps = safeParse(pos?.completedSteps);
+  const incompleteSteps = [1, 2, 3, 4, 5, 6, 7, 8].filter((n) => !completedSteps.includes(n));
 
   const getData = () => ({ visibility, isDefault, status: "pending_approval" });
+
+  const handleSubmit = () => {
+    if (incompleteSteps.length > 0) {
+      setShowConfirm(true);
+    } else {
+      onNext(getData());
+    }
+  };
 
   return (
     <div className="onboarding-step">
@@ -111,13 +140,57 @@ export default function StepComplete({ data, onNext, onBack, onSaveExit, saving 
           <button
             className="btn-primary"
             style={{ width: "auto" }}
-            onClick={() => onNext(getData())}
+            onClick={handleSubmit}
             disabled={saving}
           >
             {saving ? "Submitting..." : "Submit for Approval"}
           </button>
         </div>
       </div>
+
+      {/* Incomplete sections confirmation dialog */}
+      {showConfirm && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+          background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center",
+          justifyContent: "center", zIndex: 9999,
+        }}>
+          <div className="card" style={{
+            padding: "28px 32px", maxWidth: 460, width: "90%",
+            background: "white", borderRadius: 12,
+          }}>
+            <h3 style={{ marginBottom: 12, color: "var(--gray-800)" }}>Incomplete Sections</h3>
+            <p style={{ fontSize: "0.9rem", color: "var(--gray-600)", marginBottom: 16 }}>
+              The following sections have not been filled out:
+            </p>
+            <ul style={{ margin: "0 0 20px 20px", fontSize: "0.85rem", color: "var(--gray-500)" }}>
+              {incompleteSteps.map((n) => (
+                <li key={n} style={{ marginBottom: 4 }}>{STEP_NAMES[n]}</li>
+              ))}
+            </ul>
+            <p style={{ fontSize: "0.9rem", color: "var(--gray-600)", marginBottom: 20 }}>
+              Are you sure you want to submit this posting for approval?
+            </p>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+              <button
+                className="btn-secondary"
+                style={{ width: "auto" }}
+                onClick={() => setShowConfirm(false)}
+              >
+                Go Back
+              </button>
+              <button
+                className="btn-primary"
+                style={{ width: "auto" }}
+                onClick={() => { setShowConfirm(false); onNext(getData()); }}
+                disabled={saving}
+              >
+                Submit Anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

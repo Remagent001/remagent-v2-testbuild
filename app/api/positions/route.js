@@ -54,12 +54,41 @@ export async function POST(request) {
         regularRate: defaultPos.regularRate,
         timezone: defaultPos.timezone,
         visibility: defaultPos.visibility,
+        screeningQuestions: defaultPos.screeningQuestions,
       } : {}),
     },
   });
 
   // Copy default position's related data if exists
   if (defaultPos) {
+    if (defaultPos.channels?.length) {
+      await prisma.positionChannel.createMany({
+        data: defaultPos.channels.map((ch) => ({
+          positionId: position.id,
+          channelId: ch.channelId,
+          experience: ch.experience,
+          requirement: ch.requirement,
+        })),
+      });
+    }
+    if (defaultPos.skills?.length) {
+      await prisma.positionSkill.createMany({
+        data: defaultPos.skills.map((s) => ({
+          positionId: position.id,
+          skillId: s.skillId,
+          requirement: s.requirement,
+        })),
+      });
+    }
+    if (defaultPos.positionApps?.length) {
+      await prisma.positionApplication.createMany({
+        data: defaultPos.positionApps.map((a) => ({
+          positionId: position.id,
+          applicationId: a.applicationId,
+          requirement: a.requirement,
+        })),
+      });
+    }
     if (defaultPos.environment) {
       await prisma.positionEnvironment.create({
         data: {

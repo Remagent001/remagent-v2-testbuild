@@ -8,6 +8,22 @@ function safeParse(val) {
   try { return JSON.parse(val); } catch { return []; }
 }
 
+// Decide if a step has meaningful data filled in
+function isStepComplete(step, data) {
+  switch (step) {
+    case 1: return !!(data.title && data.title.trim());
+    case 2: return !!(data.channels?.length || data.skills?.length || data.applications?.length);
+    case 3: return !!(data.workLocation?.length || data.equipmentPolicy);
+    case 4: return !!(data.schedule?.length);
+    case 5: return !!(data.regularRate && parseFloat(data.regularRate) > 0);
+    case 6: return !!(data.contractType || data.startOption);
+    case 7: return true; // Attachments are optional — always counts
+    case 8: return true; // Screening questions have defaults — always counts
+    case 9: return true; // Complete step itself
+    default: return false;
+  }
+}
+
 // PUT — save a single wizard step
 export async function PUT(request, { params }) {
   const session = await auth();
@@ -26,9 +42,15 @@ export async function PUT(request, { params }) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  // Track completed steps
+  // Only mark complete if the step actually has data
   const completedSteps = safeParse(position.completedSteps);
-  if (!completedSteps.includes(step)) completedSteps.push(step);
+  const complete = isStepComplete(step, data);
+  if (complete && !completedSteps.includes(step)) {
+    completedSteps.push(step);
+  } else if (!complete) {
+    const idx = completedSteps.indexOf(step);
+    if (idx !== -1) completedSteps.splice(idx, 1);
+  }
   const nextStep = Math.max(position.currentStep || 1, step + 1);
 
   switch (step) {
@@ -189,7 +211,7 @@ export async function PUT(request, { params }) {
       break;
     }
 
-    // Step 7: Attachments (documents are uploaded separately, just mark complete)
+    // Step 7: Attachments (documents are uploaded separately, always complete)
     case 7: {
       await prisma.position.update({
         where: { id },
