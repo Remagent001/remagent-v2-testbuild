@@ -13,19 +13,14 @@ const EXP_OPTIONS = [
   { value: "3+yr", label: "3+ years" },
 ];
 
-// Triple-tap: not selected → nice_to_have → required → not selected
-function TripleTapGrid({ items, selected, onToggle, label, hint, showExp, expOptions }) {
+// Triple-tap grid for Skills and Applications — styled like Channels (white text on required)
+function TripleTapGrid({ items, selected, onToggle, label }) {
   return (
     <div className="form-group">
       <label className="form-label">{label}</label>
-      {hint && <p className="form-hint">{hint}</p>}
-      <div className="triple-tap-legend" style={{ display: "flex", gap: 16, marginBottom: 12, fontSize: "0.8rem", color: "var(--gray-500)" }}>
-        <span><span style={{ display: "inline-block", width: 12, height: 12, border: "2px solid var(--teal)", borderRadius: 3, marginRight: 4, verticalAlign: "middle" }}></span> Nice to have</span>
-        <span><span style={{ display: "inline-block", width: 12, height: 12, background: "var(--teal)", borderRadius: 3, marginRight: 4, verticalAlign: "middle" }}></span> Required</span>
-      </div>
       <div className="industry-grid">
         {items.map((item) => {
-          const state = selected[item.id]; // undefined, "nice_to_have", or "required"
+          const state = selected[item.id];
           const isNice = state === "nice_to_have";
           const isRequired = state === "required";
           return (
@@ -37,28 +32,13 @@ function TripleTapGrid({ items, selected, onToggle, label, hint, showExp, expOpt
             >
               <div className="industry-card-toggle">
                 {(isNice || isRequired) && (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={isRequired ? "white" : "currentColor"} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 )}
-                {item.name}
-                {isRequired && <span style={{ fontSize: "0.65rem", marginLeft: 4, opacity: 0.8 }}>REQUIRED</span>}
+                <span style={isRequired ? { color: "white", fontWeight: 600 } : undefined}>{item.name}</span>
+                {isRequired && <span style={{ fontSize: "0.65rem", marginLeft: 4, color: "white", fontWeight: 700 }}>REQUIRED TO VIEW</span>}
               </div>
-              {showExp && (isNice || isRequired) && selected[item.id + "_exp"] !== undefined && (
-                <select
-                  className="industry-card-exp"
-                  value={selected[item.id + "_exp"] || "none"}
-                  onClick={(e) => e.stopPropagation()}
-                  onChange={(e) => {
-                    e.stopPropagation();
-                    // handled via onExpChange
-                  }}
-                >
-                  {(expOptions || EXP_OPTIONS).map((exp) => (
-                    <option key={exp.value} value={exp.value}>{exp.label}</option>
-                  ))}
-                </select>
-              )}
             </div>
           );
         })}
@@ -103,6 +83,8 @@ export default function StepContext({ data, onNext, onBack, onSaveExit, onSkip, 
     return map;
   });
 
+  const [isDefault, setIsDefault] = useState(false);
+
   // Triple-tap: nothing → nice_to_have → required → nothing
   const tripleTap = (setter) => (id) => {
     setter((prev) => {
@@ -137,18 +119,30 @@ export default function StepContext({ data, onNext, onBack, onSaveExit, onSkip, 
     applications: Object.entries(applications)
       .filter(([, v]) => v)
       .map(([applicationId, requirement]) => ({ applicationId, requirement })),
+    isDefault,
   });
 
   return (
     <div className="onboarding-step">
       <p className="onboarding-step-desc">
-        Select the channels, skills, and applications needed for this role. Tap once for "nice to have", tap again for "required". Required items on public postings mean only matching professionals will see your posting.
+        Select the channels, skills, and applications needed for this role. Tap once for "desired" experience. If you want this job posting to only appear to candidates with the skill identified in their profile, tap twice to consider as "Required to View".
       </p>
+
+      {/* Legend — shown once between intro text and Channels */}
+      <div style={{ display: "flex", gap: 20, marginBottom: 20, fontSize: "0.85rem", color: "var(--gray-500)" }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <span style={{ display: "inline-block", width: 14, height: 14, border: "2px solid var(--teal)", borderRadius: 3 }}></span>
+          Desired
+        </span>
+        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <span style={{ display: "inline-block", width: 14, height: 14, background: "var(--teal)", borderRadius: 3 }}></span>
+          Required to View
+        </span>
+      </div>
 
       {/* Channels */}
       <div className="form-group">
         <label className="form-label">Channels</label>
-        <p className="form-hint">Select the communication channels this role requires. Tap once = nice to have, tap twice = required.</p>
         <div className="channel-list">
           {allChannels.map((ch) => {
             const state = channels[ch.id];
@@ -156,16 +150,21 @@ export default function StepContext({ data, onNext, onBack, onSaveExit, onSkip, 
             const isRequired = state === "required";
             const isSelected = isNice || isRequired;
             return (
-              <div key={ch.id} className={`channel-item ${isSelected ? "active" : ""}`}
-                style={isRequired ? { borderColor: "var(--teal)", background: "var(--teal)", color: "white" } : undefined}
+              <div
+                key={ch.id}
+                className={`channel-item ${isSelected ? "active" : ""}`}
+                style={{
+                  cursor: "pointer",
+                  ...(isRequired ? { borderColor: "var(--teal)", background: "var(--teal)", color: "white" } : {}),
+                }}
+                onClick={() => tripleTap(setChannels)(ch.id)}
               >
                 <div
                   className="channel-check"
-                  style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
-                  onClick={() => tripleTap(setChannels)(ch.id)}
+                  style={{ display: "flex", alignItems: "center", gap: 8 }}
                 >
                   <span className="channel-name">{ch.name}</span>
-                  {isRequired && <span style={{ fontSize: "0.65rem", fontWeight: 600, opacity: 0.8 }}>REQUIRED</span>}
+                  {isRequired && <span style={{ fontSize: "0.65rem", fontWeight: 700, color: "white" }}>REQUIRED TO VIEW</span>}
                 </div>
                 {isSelected && (
                   <select
@@ -192,7 +191,6 @@ export default function StepContext({ data, onNext, onBack, onSaveExit, onSkip, 
         selected={skills}
         onToggle={tripleTap(setSkills)}
         label="Skills (Interaction Types)"
-        hint="Select up to 3 key skills needed. Tap once = nice to have, tap twice = required."
       />
 
       {/* Applications */}
@@ -201,8 +199,15 @@ export default function StepContext({ data, onNext, onBack, onSaveExit, onSkip, 
         selected={applications}
         onToggle={tripleTap(setApplications)}
         label="Applications"
-        hint="Select the software/platforms the professional should know."
       />
+
+      {/* Save as Default */}
+      <div className="form-group" style={{ marginTop: 20 }}>
+        <label className="form-checkbox">
+          <input type="checkbox" checked={isDefault} onChange={(e) => setIsDefault(e.target.checked)} />
+          Save as Default for Future Postings
+        </label>
+      </div>
 
       <div className="onboarding-actions">
         <button className="btn-secondary" onClick={onBack} disabled={saving}>Back</button>

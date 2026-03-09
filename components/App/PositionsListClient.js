@@ -19,6 +19,60 @@ const STATUS_COLORS = {
   closed: "#ef4444",
 };
 
+const WIZARD_STEPS = [
+  { num: 1, short: "Detail" },
+  { num: 2, short: "Context" },
+  { num: 3, short: "Enviro" },
+  { num: 4, short: "Avail" },
+  { num: 5, short: "Rate" },
+  { num: 6, short: "Dates" },
+  { num: 7, short: "Attach" },
+  { num: 8, short: "Screen" },
+  { num: 9, short: "Post" },
+];
+
+function safeParse(val) {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  try { return JSON.parse(val); } catch { return []; }
+}
+
+function MiniProgressBubbles({ completedSteps }) {
+  const completed = safeParse(completedSteps);
+  return (
+    <div style={{ display: "flex", gap: 4, alignItems: "center", marginTop: 8 }}>
+      {WIZARD_STEPS.map((step) => {
+        const done = completed.includes(step.num);
+        return (
+          <div
+            key={step.num}
+            title={`${step.short}${done ? " (complete)" : " (incomplete)"}`}
+            style={{
+              width: 20,
+              height: 20,
+              borderRadius: "50%",
+              fontSize: "0.55rem",
+              fontWeight: 600,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: done ? "var(--teal)" : "var(--gray-100)",
+              color: done ? "white" : "var(--gray-400)",
+              border: done ? "none" : "1px solid var(--gray-200)",
+            }}
+          >
+            {done ? (
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            ) : step.num}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function PositionsListClient() {
   const router = useRouter();
   const [positions, setPositions] = useState([]);
@@ -163,6 +217,10 @@ export default function PositionsListClient() {
                 <p className="position-card-desc">
                   {pos.description.length > 150 ? pos.description.slice(0, 150) + "..." : pos.description}
                 </p>
+              )}
+
+              {pos.status === "draft" && (
+                <MiniProgressBubbles completedSteps={pos.completedSteps} />
               )}
 
               <div className="position-card-stats">

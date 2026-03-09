@@ -13,15 +13,15 @@ import StepScreening from "./StepScreening";
 import StepComplete from "./StepComplete";
 
 const STEPS = [
-  { num: 1, label: "Position Detail", short: "Detail" },
-  { num: 2, label: "Context", short: "Context" },
-  { num: 3, label: "Environment", short: "Enviro" },
-  { num: 4, label: "Availability", short: "Avail" },
-  { num: 5, label: "Hourly Rate", short: "Rate" },
-  { num: 6, label: "Dates & Duration", short: "Dates" },
-  { num: 7, label: "Attachments", short: "Attach" },
-  { num: 8, label: "Screening", short: "Screen" },
-  { num: 9, label: "Complete Posting", short: "Post" },
+  { num: 1, label: "Position Detail", short: "Detail", full: "Position Detail" },
+  { num: 2, label: "Context", short: "Context", full: "Context" },
+  { num: 3, label: "Environment", short: "Enviro", full: "Environment" },
+  { num: 4, label: "Availability", short: "Avail", full: "Availability" },
+  { num: 5, label: "Hourly Rate", short: "Rate", full: "Hourly Rate" },
+  { num: 6, label: "Dates & Duration", short: "Dates", full: "Dates & Duration" },
+  { num: 7, label: "Attachments", short: "Attach", full: "Attachments" },
+  { num: 8, label: "Screening", short: "Screen", full: "Screening" },
+  { num: 9, label: "Complete Posting", short: "Post", full: "Complete Posting" },
 ];
 
 const STEP_COMPONENTS = [
@@ -200,7 +200,7 @@ export default function JobPostingWizard({ positionId }) {
                   )}
                 </button>
                 <span className={`progress-label ${isCurrent ? "current" : ""}`}>
-                  {step.short}
+                  {isCurrent ? step.full : step.short}
                 </span>
               </div>
             );

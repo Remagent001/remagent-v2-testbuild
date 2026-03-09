@@ -86,11 +86,20 @@ export async function PUT(request, { params }) {
         });
       }
 
+      // Handle isDefault from Context step
+      if (data.isDefault) {
+        await prisma.position.updateMany({
+          where: { userId: session.user.id, isDefault: true, id: { not: id } },
+          data: { isDefault: false },
+        });
+      }
+
       await prisma.position.update({
         where: { id },
         data: {
           completedSteps: JSON.stringify(completedSteps),
           currentStep: nextStep,
+          isDefault: data.isDefault ? true : position.isDefault,
         },
       });
       break;

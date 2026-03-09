@@ -13,24 +13,16 @@ export default function StepEnvironment({ data, onNext, onBack, onSaveExit, onSk
   const env = data?.position?.environment;
 
   const [workLocation, setWorkLocation] = useState(() => {
-    if (!env?.workLocation) return [];
-    if (Array.isArray(env.workLocation)) return env.workLocation;
-    try { return JSON.parse(env.workLocation); } catch { return []; }
+    if (!env?.workLocation) return "";
+    const loc = Array.isArray(env.workLocation) ? env.workLocation : (typeof env.workLocation === "string" ? (() => { try { return JSON.parse(env.workLocation); } catch { return []; } })() : []);
+    return loc[0] || "";
   });
   const [equipmentPolicy, setEquipmentPolicy] = useState(env?.equipmentPolicy || "");
   const [requirements, setRequirements] = useState(env?.requirements || "");
   const [isDefault, setIsDefault] = useState(false);
 
-  const toggleLocation = (val) => {
-    if (workLocation.includes(val)) {
-      setWorkLocation(workLocation.filter((v) => v !== val));
-    } else {
-      setWorkLocation([...workLocation, val]);
-    }
-  };
-
   const getData = () => ({
-    workLocation,
+    workLocation: workLocation ? [workLocation] : [],
     equipmentPolicy,
     requirements: requirements.trim(),
     isDefault,
@@ -48,9 +40,10 @@ export default function StepEnvironment({ data, onNext, onBack, onSaveExit, onSk
           {WORK_LOCATIONS.map((loc) => (
             <label key={loc.value} className="form-checkbox">
               <input
-                type="checkbox"
-                checked={workLocation.includes(loc.value)}
-                onChange={() => toggleLocation(loc.value)}
+                type="radio"
+                name="workLocation"
+                checked={workLocation === loc.value}
+                onChange={() => setWorkLocation(loc.value)}
               />
               {loc.label}
             </label>

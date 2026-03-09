@@ -17,19 +17,19 @@ import StepContact from "@/components/App/Onboarding/StepContact";
 import StepAgreement from "@/components/App/Onboarding/StepAgreement";
 
 const STEPS = [
-  { num: 1, label: "Getting Started", short: "Start", component: StepGettingStarted },
-  { num: 2, label: "Experience", short: "Exp", component: StepExperience },
-  { num: 3, label: "Channels", short: "Channels", component: StepChannels },
-  { num: 4, label: "Education", short: "Edu", component: StepEducation },
-  { num: 5, label: "Employment", short: "Work", component: StepEmployment },
-  { num: 6, label: "Languages", short: "Lang", component: StepLanguages },
-  { num: 7, label: "Availability", short: "Avail", component: StepAvailability },
-  { num: 8, label: "Environment", short: "Enviro", component: StepEnvironment },
-  { num: 9, label: "Hourly Rate", short: "Rate", component: StepHourlyRate },
-  { num: 10, label: "Photo & Video", short: "Media", component: StepPhotoVideo },
-  { num: 11, label: "Location", short: "Location", component: StepLocation },
-  { num: 12, label: "Contact", short: "Contact", component: StepContact },
-  { num: 13, label: "Agreement", short: "Agree", component: StepAgreement },
+  { num: 1, label: "Getting Started", short: "Start", full: "Getting Started", component: StepGettingStarted },
+  { num: 2, label: "Experience", short: "Exp", full: "Experience", component: StepExperience },
+  { num: 3, label: "Channels", short: "Chan", full: "Channels", component: StepChannels },
+  { num: 4, label: "Education", short: "Edu", full: "Education", component: StepEducation },
+  { num: 5, label: "Employment", short: "Work", full: "Employment", component: StepEmployment },
+  { num: 6, label: "Languages", short: "Lang", full: "Languages", component: StepLanguages },
+  { num: 7, label: "Availability", short: "Avail", full: "Availability", component: StepAvailability },
+  { num: 8, label: "Environment", short: "Enviro", full: "Environment", component: StepEnvironment },
+  { num: 9, label: "Hourly Rate", short: "Rate", full: "Hourly Rate", component: StepHourlyRate },
+  { num: 10, label: "Photo & Video", short: "Media", full: "Photo & Video", component: StepPhotoVideo },
+  { num: 11, label: "Location", short: "Loc", full: "Location", component: StepLocation },
+  { num: 12, label: "Contact", short: "Contact", full: "Contact", component: StepContact },
+  { num: 13, label: "Agreement", short: "Agree", full: "Agreement", component: StepAgreement },
 ];
 
 const TOTAL = STEPS.length;
@@ -184,7 +184,7 @@ export default function OnboardingClient() {
                   )}
                 </button>
                 <span className={`progress-label ${isCurrent ? "current" : ""}`}>
-                  {step.short}
+                  {isCurrent ? step.full : step.short}
                 </span>
               </div>
             );
