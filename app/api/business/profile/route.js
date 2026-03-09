@@ -43,6 +43,7 @@ export async function PUT(request) {
       city: data.city || null,
       zip: data.zip || null,
       phone: data.phone || null,
+      otherIndustry: data.industry === "Other" ? (data.otherIndustry || null) : null,
     },
     create: {
       userId,
@@ -56,6 +57,7 @@ export async function PUT(request) {
       city: data.city || null,
       zip: data.zip || null,
       phone: data.phone || null,
+      otherIndustry: data.industry === "Other" ? (data.otherIndustry || null) : null,
     },
   });
 

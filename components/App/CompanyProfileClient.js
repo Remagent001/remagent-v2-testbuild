@@ -1,11 +1,23 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import AddressAutocomplete from "./AddressAutocomplete";
+import { useState, useEffect, useRef, useCallback } from "react";
+import dynamic from "next/dynamic";
+
+const AddressAutocomplete = dynamic(() => import("@/components/App/AddressAutocomplete"), { ssr: false });
 
 const TIMEZONES = [
   "US/Eastern", "US/Central", "US/Mountain", "US/Pacific", "US/Alaska", "US/Hawaii",
 ];
+
+const STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
+
+function formatPhone(value) {
+  const digits = value.replace(/\D/g, "").slice(0, 10);
+  if (digits.length === 0) return "";
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
 
 export default function CompanyProfileClient() {
   const [loading, setLoading] = useState(true);
@@ -16,6 +28,7 @@ export default function CompanyProfileClient() {
   // Form fields
   const [businessName, setBusinessName] = useState("");
   const [industry, setIndustry] = useState("");
+  const [otherIndustry, setOtherIndustry] = useState("");
   const [website, setWebsite] = useState("");
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [phone, setPhone] = useState("");
@@ -44,6 +57,7 @@ export default function CompanyProfileClient() {
         if (p) {
           setBusinessName(p.businessName || "");
           setIndustry(p.industry || "");
+          setOtherIndustry(p.otherIndustry || "");
           setWebsite(p.website || "");
           setLinkedinUrl(p.linkedinUrl || "");
           setFullAddress(p.fullAddress || "");
@@ -51,13 +65,13 @@ export default function CompanyProfileClient() {
           setState(p.state || "");
           setCity(p.city || "");
           setZip(p.zip || "");
-          setPhone(p.phone || "");
+          setPhone(p.phone ? formatPhone(p.phone) : "");
           if (p.logo) {
             setLogoPath(p.logo);
             setLogoPreview(`/${p.logo}`);
           }
         }
-        if (u?.phone && !p?.phone) setPhone(u.phone);
+        if (u?.phone && !p?.phone) setPhone(formatPhone(u.phone));
         if (u?.timezone) setTimezone(u.timezone);
       })
       .finally(() => setLoading(false));
@@ -101,12 +115,16 @@ export default function CompanyProfileClient() {
     } catch {}
   };
 
-  const handleAddressSelect = (place) => {
+  const handleAddressSelect = useCallback((place) => {
     setFullAddress(place.fullAddress || "");
     setCity(place.city || "");
     setState(place.state || "");
     setCountry(place.country || "");
     setZip(place.zip || "");
+  }, []);
+
+  const handlePhoneChange = (e) => {
+    setPhone(formatPhone(e.target.value));
   };
 
   const handleSave = async () => {
@@ -117,7 +135,8 @@ export default function CompanyProfileClient() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          businessName, industry, website, linkedinUrl, phone, timezone,
+          businessName, industry, otherIndustry, website, linkedinUrl,
+          phone: phone.replace(/\D/g, ""), timezone,
           fullAddress, country, state, city, zip,
         }),
       });
@@ -202,8 +221,15 @@ export default function CompanyProfileClient() {
             {industries.map((ind) => (
               <option key={ind.id} value={ind.name}>{ind.name}</option>
             ))}
+            <option value="Other">Other</option>
           </select>
         </div>
+        {industry === "Other" && (
+          <div className="form-group">
+            <label className="form-label">Please specify your industry</label>
+            <input className="form-input" placeholder="e.g. Renewable Energy, Logistics..." value={otherIndustry} onChange={(e) => setOtherIndustry(e.target.value)} />
+          </div>
+        )}
 
         {/* Website + LinkedIn */}
         <div className="form-row">
@@ -223,7 +249,7 @@ export default function CompanyProfileClient() {
           <AddressAutocomplete
             value={fullAddress}
             onChange={setFullAddress}
-            onSelect={handleAddressSelect}
+            onPlaceSelect={handleAddressSelect}
             placeholder="Start typing your address..."
           />
         </div>
@@ -235,7 +261,10 @@ export default function CompanyProfileClient() {
           </div>
           <div className="form-group form-third">
             <label className="form-label">State</label>
-            <input className="form-input" value={state} onChange={(e) => setState(e.target.value)} />
+            <select className="form-input form-select" value={state} onChange={(e) => setState(e.target.value)}>
+              <option value="">Select</option>
+              {STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
           </div>
           <div className="form-group form-third">
             <label className="form-label">Zip</label>
@@ -247,7 +276,7 @@ export default function CompanyProfileClient() {
         <div className="form-row">
           <div className="form-group form-half">
             <label className="form-label">Phone</label>
-            <input className="form-input" placeholder="(555) 123-4567" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            <input className="form-input" type="tel" placeholder="(555) 123-4567" value={phone} onChange={handlePhoneChange} />
           </div>
           <div className="form-group form-half">
             <label className="form-label">Timezone</label>
@@ -257,6 +286,7 @@ export default function CompanyProfileClient() {
                 <option key={tz} value={tz}>{tz.replace("US/", "")}</option>
               ))}
             </select>
+            <p className="form-hint" style={{ marginTop: 4 }}>All candidate availability times will be shown in this timezone, regardless of their location.</p>
           </div>
         </div>
 

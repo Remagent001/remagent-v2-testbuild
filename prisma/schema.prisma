@@ -107,6 +107,7 @@ model BusinessProfile {
   zip             String?
   fullAddress     String?
   phone           String?
+  otherIndustry   String?
   agreementSigned Boolean @default(false)
   agreementSignedAt DateTime?
   adminMarkup     Float   @default(10)
