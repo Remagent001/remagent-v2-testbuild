@@ -383,6 +383,7 @@ model Position {
   completedSteps     String?  // JSON array of completed step numbers
   currentStep        Int      @default(1)
   isDefault          Boolean  @default(false)
+  defaultSteps       String?  @db.Text // JSON array of step numbers this position is default for
   timezone           String?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt

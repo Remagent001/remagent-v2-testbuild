@@ -95,8 +95,9 @@ export default function StepEnvironment({ data, onNext, onBack, onSaveExit, onSk
       <div className="form-group" style={{ marginTop: 20 }}>
         <label className="form-checkbox">
           <input type="checkbox" checked={isDefault} onChange={(e) => setIsDefault(e.target.checked)} />
-          Default to this for future job postings
+          Save these settings as default for future job postings
         </label>
+        <p className="form-hint" style={{ marginLeft: 24 }}>When checked, your next new job posting will pre-fill with the details from this section.</p>
       </div>
 
       <div className="onboarding-actions">

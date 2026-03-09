@@ -2,6 +2,12 @@ import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
+function safeParse(val) {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  try { return JSON.parse(val); } catch { return []; }
+}
+
 // GET — list business's positions
 export async function GET() {
   const session = await auth();
@@ -22,18 +28,19 @@ export async function GET() {
   return NextResponse.json({ positions });
 }
 
-// POST — create new position
+// POST — create new position with per-step defaults
 export async function POST(request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const data = await request.json();
-
-  // Check if there's a default position to pre-fill from
-  const defaultPos = await prisma.position.findFirst({
-    where: { userId: session.user.id, isDefault: true },
+  // Find all positions that have any defaultSteps set
+  const defaultPositions = await prisma.position.findMany({
+    where: {
+      userId: session.user.id,
+      defaultSteps: { not: null },
+    },
     include: {
       channels: true,
       skills: true,
@@ -41,29 +48,61 @@ export async function POST(request) {
       environment: true,
       availability: true,
     },
+    orderBy: { updatedAt: "desc" },
   });
 
-  const position = await prisma.position.create({
-    data: {
-      userId: session.user.id,
-      status: "draft",
-      // Pre-fill from default if available
-      ...(defaultPos ? {
-        contractType: defaultPos.contractType,
-        startOption: defaultPos.startOption,
-        regularRate: defaultPos.regularRate,
-        timezone: defaultPos.timezone,
-        visibility: defaultPos.visibility,
-        screeningQuestions: defaultPos.screeningQuestions,
-      } : {}),
-    },
-  });
+  // Build a map: step number → the position that is default for that step
+  const stepDefaults = {};
+  for (const pos of defaultPositions) {
+    const steps = safeParse(pos.defaultSteps);
+    for (const stepNum of steps) {
+      if (!stepDefaults[stepNum]) {
+        stepDefaults[stepNum] = pos; // first match wins (most recently updated)
+      }
+    }
+  }
 
-  // Copy default position's related data if exists
-  if (defaultPos) {
-    if (defaultPos.channels?.length) {
+  // Build the create data by merging defaults from each step
+  const createData = { userId: session.user.id, status: "draft" };
+
+  // Step 1: Position Detail (title, description, numberOfHires)
+  if (stepDefaults[1]) {
+    const d = stepDefaults[1];
+    createData.description = d.description;
+    createData.numberOfHires = d.numberOfHires;
+    // Don't copy title — each posting should have a unique title
+  }
+
+  // Step 5: Hourly Rate
+  if (stepDefaults[5]) {
+    createData.regularRate = stepDefaults[5].regularRate;
+  }
+
+  // Step 6: Dates & Duration
+  if (stepDefaults[6]) {
+    const d = stepDefaults[6];
+    createData.contractType = d.contractType;
+    createData.startOption = d.startOption;
+  }
+
+  // Step 4: Availability (timezone on position)
+  if (stepDefaults[4]) {
+    createData.timezone = stepDefaults[4].timezone;
+  }
+
+  // Step 8: Screening Questions
+  if (stepDefaults[8]) {
+    createData.screeningQuestions = stepDefaults[8].screeningQuestions;
+  }
+
+  const position = await prisma.position.create({ data: createData });
+
+  // Step 2: Context (channels, skills, apps)
+  if (stepDefaults[2]) {
+    const d = stepDefaults[2];
+    if (d.channels?.length) {
       await prisma.positionChannel.createMany({
-        data: defaultPos.channels.map((ch) => ({
+        data: d.channels.map((ch) => ({
           positionId: position.id,
           channelId: ch.channelId,
           experience: ch.experience,
@@ -71,44 +110,49 @@ export async function POST(request) {
         })),
       });
     }
-    if (defaultPos.skills?.length) {
+    if (d.skills?.length) {
       await prisma.positionSkill.createMany({
-        data: defaultPos.skills.map((s) => ({
+        data: d.skills.map((s) => ({
           positionId: position.id,
           skillId: s.skillId,
           requirement: s.requirement,
         })),
       });
     }
-    if (defaultPos.positionApps?.length) {
+    if (d.positionApps?.length) {
       await prisma.positionApplication.createMany({
-        data: defaultPos.positionApps.map((a) => ({
+        data: d.positionApps.map((a) => ({
           positionId: position.id,
           applicationId: a.applicationId,
           requirement: a.requirement,
         })),
       });
     }
-    if (defaultPos.environment) {
-      await prisma.positionEnvironment.create({
-        data: {
-          positionId: position.id,
-          workLocation: defaultPos.environment.workLocation,
-          equipmentPolicy: defaultPos.environment.equipmentPolicy,
-          requirements: defaultPos.environment.requirements,
-        },
-      });
-    }
-    if (defaultPos.availability?.length) {
-      await prisma.positionAvailability.createMany({
-        data: defaultPos.availability.map((a) => ({
-          positionId: position.id,
-          day: a.day,
-          startTime: a.startTime,
-          endTime: a.endTime,
-        })),
-      });
-    }
+  }
+
+  // Step 3: Environment
+  if (stepDefaults[3] && stepDefaults[3].environment) {
+    const env = stepDefaults[3].environment;
+    await prisma.positionEnvironment.create({
+      data: {
+        positionId: position.id,
+        workLocation: env.workLocation,
+        equipmentPolicy: env.equipmentPolicy,
+        requirements: env.requirements,
+      },
+    });
+  }
+
+  // Step 4: Availability (schedule rows)
+  if (stepDefaults[4] && stepDefaults[4].availability?.length) {
+    await prisma.positionAvailability.createMany({
+      data: stepDefaults[4].availability.map((a) => ({
+        positionId: position.id,
+        day: a.day,
+        startTime: a.startTime,
+        endTime: a.endTime,
+      })),
+    });
   }
 
   return NextResponse.json({ success: true, position });

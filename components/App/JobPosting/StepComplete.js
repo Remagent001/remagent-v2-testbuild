@@ -22,13 +22,12 @@ const STEP_NAMES = {
 export default function StepComplete({ data, onNext, onBack, onSaveExit, saving }) {
   const pos = data?.position;
   const [visibility, setVisibility] = useState(pos?.visibility || "public");
-  const [isDefault, setIsDefault] = useState(pos?.isDefault || false);
   const [showConfirm, setShowConfirm] = useState(false);
 
   const completedSteps = safeParse(pos?.completedSteps);
   const incompleteSteps = [1, 2, 3, 4, 5, 6, 7, 8].filter((n) => !completedSteps.includes(n));
 
-  const getData = () => ({ visibility, isDefault, status: "pending_approval" });
+  const getData = () => ({ visibility, status: "pending_approval" });
 
   const handleSubmit = () => {
     if (incompleteSteps.length > 0) {
@@ -119,17 +118,6 @@ export default function StepComplete({ data, onNext, onBack, onSaveExit, saving 
           {visibility === "public"
             ? "After you submit, an administrator will review your posting. Once approved, it will be published and visible to qualified professionals."
             : "After you submit, an administrator will review your posting. Once approved, you'll be able to invite professionals to apply."}
-        </p>
-      </div>
-
-      {/* Default checkbox */}
-      <div className="form-group" style={{ marginTop: 20 }}>
-        <label className="form-checkbox">
-          <input type="checkbox" checked={isDefault} onChange={(e) => setIsDefault(e.target.checked)} />
-          Save these settings as default for future job postings
-        </label>
-        <p className="form-hint" style={{ marginLeft: 24 }}>
-          When checked, your next new job posting will pre-fill with the details from this one.
         </p>
       </div>
 

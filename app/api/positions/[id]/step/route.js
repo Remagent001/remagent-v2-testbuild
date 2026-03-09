@@ -17,11 +17,39 @@ function isStepComplete(step, data) {
     case 4: return !!(data.schedule?.length);
     case 5: return !!(data.regularRate && parseFloat(data.regularRate) > 0);
     case 6: return !!(data.contractType || data.startOption);
-    case 7: return true; // Attachments are optional — always counts
-    case 8: return true; // Screening questions have defaults — always counts
-    case 9: return true; // Complete step itself
+    case 7: return true; // Attachments are optional
+    case 8: return true; // Screening questions have defaults
+    case 9: return true;
     default: return false;
   }
+}
+
+// Update the defaultSteps array: add or remove this step number
+async function handleDefaultStep(userId, positionId, step, isDefault, currentDefaultSteps) {
+  const defaults = safeParse(currentDefaultSteps);
+
+  if (isDefault) {
+    // Add this step to this position's defaults
+    if (!defaults.includes(step)) defaults.push(step);
+
+    // Remove this step from any OTHER position's defaultSteps for this user
+    const otherPositions = await prisma.position.findMany({
+      where: { userId, id: { not: positionId } },
+      select: { id: true, defaultSteps: true },
+    });
+    for (const other of otherPositions) {
+      const otherDefaults = safeParse(other.defaultSteps);
+      if (otherDefaults.includes(step)) {
+        const updated = otherDefaults.filter((s) => s !== step);
+        await prisma.position.update({
+          where: { id: other.id },
+          data: { defaultSteps: JSON.stringify(updated) },
+        });
+      }
+    }
+  }
+
+  return JSON.stringify(defaults);
 }
 
 // PUT — save a single wizard step
@@ -34,7 +62,6 @@ export async function PUT(request, { params }) {
   const { id } = await params;
   const { step, data } = await request.json();
 
-  // Verify ownership
   const position = await prisma.position.findUnique({
     where: { id, userId: session.user.id },
   });
@@ -53,8 +80,13 @@ export async function PUT(request, { params }) {
   }
   const nextStep = Math.max(position.currentStep || 1, step + 1);
 
+  // Handle per-step default
+  let defaultStepsJson = position.defaultSteps;
+  if (data.isDefault) {
+    defaultStepsJson = await handleDefaultStep(session.user.id, id, step, true, position.defaultSteps);
+  }
+
   switch (step) {
-    // Step 1: Position Detail
     case 1: {
       await prisma.position.update({
         where: { id },
@@ -64,14 +96,13 @@ export async function PUT(request, { params }) {
           numberOfHires: data.numberOfHires ? parseInt(data.numberOfHires) : 1,
           completedSteps: JSON.stringify(completedSteps),
           currentStep: nextStep,
+          defaultSteps: defaultStepsJson,
         },
       });
       break;
     }
 
-    // Step 2: Context (Channels, Skills, Applications) — triple-tap
     case 2: {
-      // Replace channels
       await prisma.positionChannel.deleteMany({ where: { positionId: id } });
       if (data.channels?.length) {
         await prisma.positionChannel.createMany({
@@ -84,7 +115,6 @@ export async function PUT(request, { params }) {
         });
       }
 
-      // Replace skills
       await prisma.positionSkill.deleteMany({ where: { positionId: id } });
       if (data.skills?.length) {
         await prisma.positionSkill.createMany({
@@ -96,7 +126,6 @@ export async function PUT(request, { params }) {
         });
       }
 
-      // Replace applications
       await prisma.positionApplication.deleteMany({ where: { positionId: id } });
       if (data.applications?.length) {
         await prisma.positionApplication.createMany({
@@ -108,26 +137,17 @@ export async function PUT(request, { params }) {
         });
       }
 
-      // Handle isDefault from Context step
-      if (data.isDefault) {
-        await prisma.position.updateMany({
-          where: { userId: session.user.id, isDefault: true, id: { not: id } },
-          data: { isDefault: false },
-        });
-      }
-
       await prisma.position.update({
         where: { id },
         data: {
           completedSteps: JSON.stringify(completedSteps),
           currentStep: nextStep,
-          isDefault: data.isDefault ? true : position.isDefault,
+          defaultSteps: defaultStepsJson,
         },
       });
       break;
     }
 
-    // Step 3: Environment
     case 3: {
       await prisma.positionEnvironment.upsert({
         where: { positionId: id },
@@ -149,15 +169,13 @@ export async function PUT(request, { params }) {
         data: {
           completedSteps: JSON.stringify(completedSteps),
           currentStep: nextStep,
-          isDefault: data.isDefault ? true : position.isDefault,
+          defaultSteps: defaultStepsJson,
         },
       });
       break;
     }
 
-    // Step 4: Availability
     case 4: {
-      // Replace availability
       await prisma.positionAvailability.deleteMany({ where: { positionId: id } });
       if (data.schedule?.length) {
         await prisma.positionAvailability.createMany({
@@ -176,12 +194,12 @@ export async function PUT(request, { params }) {
           timezone: data.timezone || null,
           completedSteps: JSON.stringify(completedSteps),
           currentStep: nextStep,
+          defaultSteps: defaultStepsJson,
         },
       });
       break;
     }
 
-    // Step 5: Hourly Rate
     case 5: {
       await prisma.position.update({
         where: { id },
@@ -189,12 +207,12 @@ export async function PUT(request, { params }) {
           regularRate: data.regularRate ? parseFloat(data.regularRate) : null,
           completedSteps: JSON.stringify(completedSteps),
           currentStep: nextStep,
+          defaultSteps: defaultStepsJson,
         },
       });
       break;
     }
 
-    // Step 6: Dates & Duration
     case 6: {
       await prisma.position.update({
         where: { id },
@@ -203,27 +221,26 @@ export async function PUT(request, { params }) {
           startOption: data.startOption || null,
           expectedStartDate: data.expectedStartDate ? new Date(data.expectedStartDate) : null,
           expectedEndDate: data.expectedEndDate ? new Date(data.expectedEndDate) : null,
-          isDefault: data.isDefault ? true : position.isDefault,
           completedSteps: JSON.stringify(completedSteps),
           currentStep: nextStep,
+          defaultSteps: defaultStepsJson,
         },
       });
       break;
     }
 
-    // Step 7: Attachments (documents are uploaded separately, always complete)
     case 7: {
       await prisma.position.update({
         where: { id },
         data: {
           completedSteps: JSON.stringify(completedSteps),
           currentStep: nextStep,
+          defaultSteps: defaultStepsJson,
         },
       });
       break;
     }
 
-    // Step 8: Screening Questions
     case 8: {
       await prisma.position.update({
         where: { id },
@@ -231,29 +248,18 @@ export async function PUT(request, { params }) {
           screeningQuestions: data.screeningQuestions || [],
           completedSteps: JSON.stringify(completedSteps),
           currentStep: nextStep,
+          defaultSteps: defaultStepsJson,
         },
       });
       break;
     }
 
-    // Step 9: Complete Posting
     case 9: {
-      // If they chose to submit, set status to pending_approval
       const newStatus = data.status === "pending_approval" ? "pending_approval" : position.status;
-
-      // If isDefault, unmark any other default positions for this user
-      if (data.isDefault) {
-        await prisma.position.updateMany({
-          where: { userId: session.user.id, isDefault: true, id: { not: id } },
-          data: { isDefault: false },
-        });
-      }
-
       await prisma.position.update({
         where: { id },
         data: {
           visibility: data.visibility || position.visibility,
-          isDefault: data.isDefault || false,
           status: newStatus,
           completedSteps: JSON.stringify(completedSteps),
           currentStep: nextStep,

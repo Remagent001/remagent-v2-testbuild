@@ -95,11 +95,14 @@ export default function StepAvailability({ data, onNext, onBack, onSaveExit, onS
     return { left: `${left}%`, width: `${width}%` };
   };
 
+  const [isDefault, setIsDefault] = useState(false);
+
   const getData = () => ({
     timezone,
     schedule: DAYS.filter((d) => schedule[d].enabled).map((d) => ({
       day: d, startTime: schedule[d].startTime, endTime: schedule[d].endTime,
     })),
+    isDefault,
   });
 
   return (
@@ -177,6 +180,14 @@ export default function StepAvailability({ data, onNext, onBack, onSaveExit, onS
           </div>
         </div>
       )}
+
+      <div className="form-group" style={{ marginTop: 20 }}>
+        <label className="form-checkbox">
+          <input type="checkbox" checked={isDefault} onChange={(e) => setIsDefault(e.target.checked)} />
+          Save these settings as default for future job postings
+        </label>
+        <p className="form-hint" style={{ marginLeft: 24 }}>When checked, your next new job posting will pre-fill with the details from this section.</p>
+      </div>
 
       <div className="onboarding-actions">
         <button className="btn-secondary" onClick={onBack} disabled={saving}>Back</button>
