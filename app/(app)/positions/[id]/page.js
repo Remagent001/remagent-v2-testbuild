@@ -1,8 +1,8 @@
 export const dynamic = "force-dynamic";
 
-import PositionFormClient from "@/components/App/PositionFormClient";
+import JobPostingWizard from "@/components/App/JobPosting/JobPostingWizard";
 
 export default async function EditPositionPage({ params }) {
   const { id } = await params;
-  return <PositionFormClient positionId={id} />;
+  return <JobPostingWizard positionId={id} />;
 }

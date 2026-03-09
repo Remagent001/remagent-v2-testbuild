@@ -1,0 +1,63 @@
+"use client";
+
+import { useState } from "react";
+
+export default function StepPositionDetail({ data, onNext, onBack, onSaveExit, onSkip, saving, isFirst }) {
+  const pos = data?.position;
+  const [title, setTitle] = useState(pos?.title || "");
+  const [description, setDescription] = useState(pos?.description || "");
+  const [numberOfHires, setNumberOfHires] = useState(pos?.numberOfHires || 1);
+
+  const getData = () => ({ title: title.trim(), description: description.trim(), numberOfHires: parseInt(numberOfHires) || 1 });
+
+  return (
+    <div className="onboarding-step">
+      <p className="onboarding-step-desc">
+        Start by giving your job posting a title and description. This is what professionals will see first.
+      </p>
+
+      <div className="form-group">
+        <label className="form-label">Job Title *</label>
+        <input
+          className="form-input"
+          placeholder="e.g. Customer Service Representative"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">Description</label>
+        <p className="form-hint">Describe the role, responsibilities, and what you're looking for.</p>
+        <textarea
+          className="form-input form-textarea"
+          placeholder="Tell professionals about this position..."
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={6}
+        />
+      </div>
+
+      <div className="form-group" style={{ maxWidth: 200 }}>
+        <label className="form-label">Number of Hires</label>
+        <input
+          className="form-input"
+          type="number"
+          min="1"
+          value={numberOfHires}
+          onChange={(e) => setNumberOfHires(e.target.value)}
+        />
+      </div>
+
+      <div className="onboarding-actions">
+        {!isFirst && <button className="btn-secondary" onClick={onBack} disabled={saving}>Back</button>}
+        <div className="onboarding-actions-right">
+          <button className="btn-secondary" onClick={() => onSaveExit(getData())} disabled={saving}>Save & Exit</button>
+          <button className="btn-primary" style={{ width: "auto" }} onClick={() => onNext(getData())} disabled={saving}>
+            {saving ? "Saving..." : "Next"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

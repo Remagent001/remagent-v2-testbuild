@@ -31,43 +31,55 @@ export async function POST(request) {
 
   const data = await request.json();
 
-  const position = await prisma.position.create({
-    data: {
-      userId: session.user.id,
-      title: data.title || "Untitled Position",
-      description: data.description || "",
-      numberOfHires: data.numberOfHires || 1,
-      regularRate: data.regularRate ? parseFloat(data.regularRate) : null,
-      afterHoursRate: data.afterHoursRate ? parseFloat(data.afterHoursRate) : null,
-      holidayRate: data.holidayRate ? parseFloat(data.holidayRate) : null,
-      contractType: data.contractType || null,
-      startOption: data.startOption || null,
-      expectedStartDate: data.expectedStartDate ? new Date(data.expectedStartDate) : null,
-      expectedEndDate: data.expectedEndDate ? new Date(data.expectedEndDate) : null,
-      visibility: data.visibility || "public",
-      status: data.status || "draft",
+  // Check if there's a default position to pre-fill from
+  const defaultPos = await prisma.position.findFirst({
+    where: { userId: session.user.id, isDefault: true },
+    include: {
+      channels: true,
+      skills: true,
+      positionApps: true,
+      environment: true,
+      availability: true,
     },
   });
 
-  // Save skills
-  if (data.skills?.length) {
-    await prisma.positionSkill.createMany({
-      data: data.skills.map((s) => ({
-        positionId: position.id,
-        skillId: s,
-      })),
-    });
-  }
+  const position = await prisma.position.create({
+    data: {
+      userId: session.user.id,
+      status: "draft",
+      // Pre-fill from default if available
+      ...(defaultPos ? {
+        contractType: defaultPos.contractType,
+        startOption: defaultPos.startOption,
+        regularRate: defaultPos.regularRate,
+        timezone: defaultPos.timezone,
+        visibility: defaultPos.visibility,
+      } : {}),
+    },
+  });
 
-  // Save channels
-  if (data.channels?.length) {
-    await prisma.positionChannel.createMany({
-      data: data.channels.map((ch) => ({
-        positionId: position.id,
-        channelId: ch.channelId,
-        experience: ch.experience || "1-3 years",
-      })),
-    });
+  // Copy default position's related data if exists
+  if (defaultPos) {
+    if (defaultPos.environment) {
+      await prisma.positionEnvironment.create({
+        data: {
+          positionId: position.id,
+          workLocation: defaultPos.environment.workLocation,
+          equipmentPolicy: defaultPos.environment.equipmentPolicy,
+          requirements: defaultPos.environment.requirements,
+        },
+      });
+    }
+    if (defaultPos.availability?.length) {
+      await prisma.positionAvailability.createMany({
+        data: defaultPos.availability.map((a) => ({
+          positionId: position.id,
+          day: a.day,
+          startTime: a.startTime,
+          endTime: a.endTime,
+        })),
+      });
+    }
   }
 
   return NextResponse.json({ success: true, position });

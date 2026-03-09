@@ -5,15 +5,17 @@ import { useRouter } from "next/navigation";
 
 const STATUS_LABELS = {
   draft: "Draft",
-  pending_review: "Pending Review",
-  active: "Active",
+  pending_approval: "Pending Approval",
+  published: "Published",
+  private: "Private",
   closed: "Closed",
 };
 
 const STATUS_COLORS = {
   draft: "#94a3b8",
-  pending_review: "#f59e0b",
-  active: "#10b981",
+  pending_approval: "#f59e0b",
+  published: "#10b981",
+  private: "#6366f1",
   closed: "#ef4444",
 };
 

@@ -111,6 +111,7 @@ model BusinessProfile {
   agreementSigned Boolean @default(false)
   agreementSignedAt DateTime?
   adminMarkup     Float   @default(10)
+  autoApprove     Boolean @default(false)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -186,6 +187,7 @@ model Application {
   createdAt DateTime          @default(now())
 
   users     UserApplication[]
+  positions PositionApplication[]
 
   @@map("applications")
 }
@@ -367,25 +369,28 @@ model HourlyRate {
 model Position {
   id                 String   @id @default(cuid())
   userId             String
-  title              String
-  description        String   @db.Text
+  title              String?
+  description        String?  @db.Text
   numberOfHires      Int      @default(1)
   regularRate        Float?
-  afterHoursRate     Float?
-  holidayRate        Float?
-  contractType       String?  // "open_ended" or "fixed"
+  contractType       String?  // "open_ended", "fixed", "direct_hire"
   startOption        String?  // "immediately", "flexible", "date"
   expectedStartDate  DateTime?
   expectedEndDate    DateTime?
   visibility         String   @default("public") // "public" or "private"
-  status             String   @default("draft")  // draft, pending_review, active, closed
-  screeningQuestions Json?    // array of question strings
+  status             String   @default("draft")  // draft, pending_approval, published, private, closed
+  screeningQuestions Json?    // array of { text, isPreset, enabled }
+  completedSteps     String?  // JSON array of completed step numbers
+  currentStep        Int      @default(1)
+  isDefault          Boolean  @default(false)
+  timezone           String?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
-  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   channels        PositionChannel[]
   skills          PositionSkill[]
+  positionApps    PositionApplication[]
   environment     PositionEnvironment?
   availability    PositionAvailability[]
   trainingTopics  TrainingTopic[]
@@ -398,10 +403,11 @@ model Position {
 }
 
 model PositionChannel {
-  id         String @id @default(cuid())
-  positionId String
-  channelId  String
-  experience String // required experience level
+  id          String @id @default(cuid())
+  positionId  String
+  channelId   String
+  experience  String // required experience level
+  requirement String @default("nice_to_have") // "nice_to_have" or "required"
 
   position Position @relation(fields: [positionId], references: [id], onDelete: Cascade)
   channel  Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
@@ -411,15 +417,29 @@ model PositionChannel {
 }
 
 model PositionSkill {
-  id         String @id @default(cuid())
-  positionId String
-  skillId    String
+  id          String @id @default(cuid())
+  positionId  String
+  skillId     String
+  requirement String @default("nice_to_have") // "nice_to_have" or "required"
 
   position Position @relation(fields: [positionId], references: [id], onDelete: Cascade)
   skill    Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
 
   @@unique([positionId, skillId])
   @@map("position_skills")
+}
+
+model PositionApplication {
+  id            String @id @default(cuid())
+  positionId    String
+  applicationId String
+  requirement   String @default("nice_to_have") // "nice_to_have" or "required"
+
+  position    Position    @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@unique([positionId, applicationId])
+  @@map("position_applications")
 }
 
 model PositionEnvironment {
@@ -464,10 +484,12 @@ model TrainingTopic {
 }
 
 model Document {
-  id         String @id @default(cuid())
+  id         String  @id @default(cuid())
   positionId String
   name       String
+  title      String?
   file       String
+  isDefault  Boolean @default(false)
   createdAt  DateTime @default(now())
 
   position Position @relation(fields: [positionId], references: [id], onDelete: Cascade)

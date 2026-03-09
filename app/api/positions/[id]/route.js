@@ -11,23 +11,28 @@ export async function GET(request, { params }) {
 
   const { id } = await params;
 
-  const [position, allSkills, allChannels] = await Promise.all([
+  const [position, allSkills, allChannels, allApplications] = await Promise.all([
     prisma.position.findUnique({
       where: { id, userId: session.user.id },
       include: {
         skills: true,
         channels: true,
+        positionApps: true,
+        environment: true,
+        availability: true,
+        documents: true,
       },
     }),
     prisma.skill.findMany({ orderBy: { name: "asc" } }),
     prisma.channel.findMany({ orderBy: { name: "asc" } }),
+    prisma.application.findMany({ orderBy: { name: "asc" } }),
   ]);
 
   if (!position) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ position, allSkills, allChannels });
+  return NextResponse.json({ position, allSkills, allChannels, allApplications });
 }
 
 // PUT — update position
