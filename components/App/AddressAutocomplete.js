@@ -2,39 +2,27 @@
 
 import { useEffect, useRef, useState } from "react";
 
-let googleLoaded = false;
-let googleLoadPromise = null;
-
-function loadGoogle() {
-  if (googleLoaded) return Promise.resolve();
-  if (googleLoadPromise) return googleLoadPromise;
-
-  const key = process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY;
-  if (!key) return Promise.resolve();
-
-  googleLoadPromise = new Promise((resolve) => {
-    const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places`;
-    script.async = true;
-    script.onload = () => {
-      googleLoaded = true;
-      resolve();
-    };
-    script.onerror = () => resolve(); // fail silently
-    document.head.appendChild(script);
-  });
-  return googleLoadPromise;
-}
-
 export default function AddressAutocomplete({ value, onChange, onPlaceSelect, placeholder, className }) {
   const inputRef = useRef(null);
   const autocompleteRef = useRef(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    loadGoogle().then(() => {
-      if (window.google?.maps?.places) setReady(true);
-    });
+    // Google Maps script is loaded globally via next/script in layout.js
+    // Poll briefly until it's available (it loads with beforeInteractive strategy)
+    if (window.google?.maps?.places) {
+      setReady(true);
+      return;
+    }
+
+    const check = setInterval(() => {
+      if (window.google?.maps?.places) {
+        setReady(true);
+        clearInterval(check);
+      }
+    }, 200);
+
+    return () => clearInterval(check);
   }, []);
 
   useEffect(() => {

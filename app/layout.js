@@ -1,4 +1,5 @@
 
+import Script from "next/script";
 import Bootstrap from "@/components/Bootstrap";
 import { GlobalContextProvider } from "@/context/NavProvider";
 import { poppins } from "@/utilities/fonts";
@@ -33,6 +34,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${poppins}`}>
+        <Script
+          src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_PLACES_KEY}&libraries=places`}
+          strategy="beforeInteractive"
+        />
         <GlobalContextProvider>
           {children}
           <Bootstrap />
