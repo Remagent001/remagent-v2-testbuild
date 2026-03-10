@@ -3,6 +3,14 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+const TABS = [
+  { key: "published", label: "Published", color: "#10b981" },
+  { key: "private", label: "Private", color: "#6366f1" },
+  { key: "pending_approval", label: "Pending", color: "#f59e0b" },
+  { key: "draft", label: "Drafts", color: "#94a3b8" },
+  { key: "closed", label: "Closed", color: "#ef4444" },
+];
+
 const STATUS_LABELS = {
   draft: "Draft",
   pending_approval: "Pending Approval",
@@ -78,6 +86,8 @@ export default function PositionsListClient() {
   const [positions, setPositions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(null);
+  const [activeTab, setActiveTab] = useState("published");
+  const [updatingStatus, setUpdatingStatus] = useState(null);
 
   const loadPositions = () => {
     fetch("/api/positions")
@@ -88,6 +98,26 @@ export default function PositionsListClient() {
 
   useEffect(() => { loadPositions(); }, []);
 
+  // Count positions per tab
+  const counts = {};
+  TABS.forEach((t) => { counts[t.key] = 0; });
+  positions.forEach((p) => {
+    if (counts[p.status] !== undefined) counts[p.status]++;
+  });
+
+  // Auto-select first tab that has items, fallback to "published"
+  useEffect(() => {
+    if (!loading && positions.length > 0) {
+      const hasItemsInActive = counts[activeTab] > 0;
+      if (!hasItemsInActive) {
+        const firstWithItems = TABS.find((t) => counts[t.key] > 0);
+        if (firstWithItems) setActiveTab(firstWithItems.key);
+      }
+    }
+  }, [loading, positions.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const filtered = positions.filter((p) => p.status === activeTab);
+
   const handleDelete = async (id, title) => {
     if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
     setDeleting(id);
@@ -96,14 +126,15 @@ export default function PositionsListClient() {
     setDeleting(null);
   };
 
-  const handleStatusToggle = async (pos) => {
-    const newStatus = pos.status === "active" ? "closed" : "active";
-    await fetch(`/api/positions/${pos.id}`, {
+  const handleStatusChange = async (posId, newStatus) => {
+    setUpdatingStatus(posId);
+    await fetch(`/api/positions/${posId}/status`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...pos, status: newStatus, skills: pos.skills.map(s => s.skillId), channels: pos.channels.map(c => ({ channelId: c.channelId, experience: c.experience })) }),
+      body: JSON.stringify({ status: newStatus }),
     });
     loadPositions();
+    setUpdatingStatus(null);
   };
 
   if (loading) {
@@ -131,6 +162,54 @@ export default function PositionsListClient() {
         </button>
       </div>
 
+      {/* Tabs */}
+      <div style={{
+        display: "flex",
+        gap: 0,
+        borderBottom: "2px solid var(--gray-200)",
+        marginBottom: 24,
+        overflowX: "auto",
+      }}>
+        {TABS.map((tab) => {
+          const isActive = activeTab === tab.key;
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              style={{
+                padding: "12px 20px",
+                fontSize: "0.9rem",
+                fontWeight: isActive ? 600 : 400,
+                color: isActive ? tab.color : "var(--gray-500)",
+                background: "none",
+                border: "none",
+                borderBottom: isActive ? `3px solid ${tab.color}` : "3px solid transparent",
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+                marginBottom: -2,
+                transition: "all 0.15s ease",
+              }}
+            >
+              {tab.label}
+              {counts[tab.key] > 0 && (
+                <span style={{
+                  marginLeft: 8,
+                  fontSize: "0.75rem",
+                  fontWeight: 600,
+                  padding: "2px 8px",
+                  borderRadius: 10,
+                  background: isActive ? `${tab.color}18` : "var(--gray-100)",
+                  color: isActive ? tab.color : "var(--gray-400)",
+                }}>
+                  {counts[tab.key]}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Empty state */}
       {positions.length === 0 ? (
         <div className="card" style={{ textAlign: "center", padding: "48px 24px" }}>
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--gray-300)" strokeWidth="1.5" style={{ margin: "0 auto 16px" }}>
@@ -149,52 +228,55 @@ export default function PositionsListClient() {
             Create Your First Posting
           </button>
         </div>
+      ) : filtered.length === 0 ? (
+        <div className="card" style={{ textAlign: "center", padding: "48px 24px" }}>
+          <p style={{ color: "var(--gray-400)", fontSize: "0.9rem" }}>
+            No {STATUS_LABELS[activeTab]?.toLowerCase()} job postings.
+          </p>
+        </div>
       ) : (
         <div className="positions-list">
-          {positions.map((pos) => (
+          {filtered.map((pos) => (
             <div key={pos.id} className="card position-card">
               <div className="position-card-header">
                 <div style={{ flex: 1 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-                    <h3 className="position-card-title">{pos.title}</h3>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4, flexWrap: "wrap" }}>
+                    <h3 className="position-card-title">{pos.title || "Untitled Position"}</h3>
                     <span
                       className="position-status-badge"
                       style={{ backgroundColor: `${STATUS_COLORS[pos.status]}18`, color: STATUS_COLORS[pos.status] }}
                     >
                       {STATUS_LABELS[pos.status] || pos.status}
                     </span>
-                    <span className="position-visibility-badge" style={{
-                      backgroundColor: pos.visibility === "public" ? "var(--teal-light)" : "var(--gray-100)",
-                      color: pos.visibility === "public" ? "var(--teal)" : "var(--gray-500)",
-                    }}>
-                      {pos.visibility === "public" ? "Public" : "Private"}
-                    </span>
+                    {pos.status === "pending_approval" && pos.reviewRequired && (
+                      <span
+                        className="position-status-badge"
+                        style={{ backgroundColor: "#ef444418", color: "#ef4444" }}
+                      >
+                        Needs Changes
+                      </span>
+                    )}
+                    {(pos.status === "published" || pos.status === "private") && (
+                      <span className="position-visibility-badge" style={{
+                        backgroundColor: pos.visibility === "public" ? "var(--teal-light)" : "var(--gray-100)",
+                        color: pos.visibility === "public" ? "var(--teal)" : "var(--gray-500)",
+                      }}>
+                        {pos.visibility === "public" ? "Public" : "Private"}
+                      </span>
+                    )}
                   </div>
                   <p className="position-card-meta">
                     {pos.numberOfHires > 1 ? `${pos.numberOfHires} hires` : "1 hire"}
                     {pos.regularRate ? ` · $${pos.regularRate}/hr` : ""}
-                    {pos.contractType ? ` · ${pos.contractType === "open_ended" ? "Open-ended" : "Fixed term"}` : ""}
+                    {pos.contractType ? ` · ${pos.contractType === "open_ended" ? "Open-ended" : pos.contractType === "fixed" ? "Fixed term" : "Direct hire"}` : ""}
                   </p>
                 </div>
                 <div className="position-card-actions">
-                  {(pos.status === "draft" || pos.status === "active") && (
-                    <button
-                      className="btn-secondary"
-                      style={{ padding: "6px 12px", fontSize: "0.8rem" }}
-                      onClick={() => handleStatusToggle(pos)}
-                    >
-                      {pos.status === "draft" ? "Activate" : "Close"}
-                    </button>
-                  )}
-                  {pos.status === "closed" && (
-                    <button
-                      className="btn-secondary"
-                      style={{ padding: "6px 12px", fontSize: "0.8rem" }}
-                      onClick={() => handleStatusToggle(pos)}
-                    >
-                      Reopen
-                    </button>
-                  )}
+                  <StatusActions
+                    pos={pos}
+                    onStatusChange={handleStatusChange}
+                    updating={updatingStatus === pos.id}
+                  />
                   <button
                     className="btn-secondary"
                     style={{ padding: "6px 12px", fontSize: "0.8rem" }}
@@ -212,6 +294,21 @@ export default function PositionsListClient() {
                   </button>
                 </div>
               </div>
+
+              {/* Admin note banner */}
+              {pos.reviewRequired && pos.adminNote && (
+                <div style={{
+                  padding: "12px 16px",
+                  marginTop: 8,
+                  background: "#fef2f2",
+                  borderLeft: "4px solid #ef4444",
+                  borderRadius: 6,
+                  fontSize: "0.85rem",
+                }}>
+                  <strong style={{ color: "#dc2626" }}>Admin Note:</strong>
+                  <p style={{ margin: "4px 0 0", color: "#7f1d1d" }}>{pos.adminNote}</p>
+                </div>
+              )}
 
               {pos.description && (
                 <p className="position-card-desc">
@@ -249,4 +346,70 @@ export default function PositionsListClient() {
       )}
     </div>
   );
+}
+
+// Status action buttons — different per tab
+function StatusActions({ pos, onStatusChange, updating }) {
+  const btnStyle = { padding: "6px 12px", fontSize: "0.8rem" };
+  const disabled = updating;
+
+  switch (pos.status) {
+    case "published":
+      return (
+        <>
+          <button className="btn-secondary" style={btnStyle} disabled={disabled}
+            onClick={() => onStatusChange(pos.id, "private")}>
+            Make Private
+          </button>
+          <button className="btn-secondary" style={btnStyle} disabled={disabled}
+            onClick={() => onStatusChange(pos.id, "closed")}>
+            Close
+          </button>
+        </>
+      );
+    case "private":
+      return (
+        <>
+          <button className="btn-secondary" style={btnStyle} disabled={disabled}
+            onClick={() => onStatusChange(pos.id, "published")}>
+            Make Public
+          </button>
+          <button className="btn-secondary" style={btnStyle} disabled={disabled}
+            onClick={() => onStatusChange(pos.id, "closed")}>
+            Close
+          </button>
+        </>
+      );
+    case "closed":
+      return (
+        <>
+          <button className="btn-secondary" style={btnStyle} disabled={disabled}
+            onClick={() => onStatusChange(pos.id, "published")}>
+            Reopen as Public
+          </button>
+          <button className="btn-secondary" style={btnStyle} disabled={disabled}
+            onClick={() => onStatusChange(pos.id, "private")}>
+            Reopen as Private
+          </button>
+        </>
+      );
+    case "pending_approval":
+      if (pos.reviewRequired) {
+        return (
+          <button className="btn-primary" style={{ ...btnStyle, width: "auto" }} disabled={disabled}
+            onClick={() => onStatusChange(pos.id, "resubmit")}>
+            Resubmit for Approval
+          </button>
+        );
+      }
+      return (
+        <span style={{ fontSize: "0.8rem", color: "#f59e0b", fontStyle: "italic" }}>
+          Awaiting admin review...
+        </span>
+      );
+    case "draft":
+      return null; // Drafts just have Edit
+    default:
+      return null;
+  }
 }

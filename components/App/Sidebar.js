@@ -100,9 +100,17 @@ const bizNav = [
   ]},
 ];
 
+const adminNav = [
+  { section: "Admin", links: [
+    { href: "/admin/review-postings", label: "Review Postings", icon: "clipboard" },
+  ]},
+];
+
 export default function Sidebar({ isOpen, onClose, role = "professional", user = null }) {
   const pathname = usePathname();
-  const nav = role === "business" ? bizNav : proNav;
+  const isAdmin = role === "admin";
+  const baseNav = isAdmin ? bizNav : (role === "business" ? bizNav : proNav);
+  const nav = isAdmin ? [...adminNav, ...baseNav] : baseNav;
 
   return (
     <aside className={`sidebar ${isOpen ? "open" : ""}`}>
@@ -118,7 +126,7 @@ export default function Sidebar({ isOpen, onClose, role = "professional", user =
               <Link
                 key={link.href}
                 href={link.href}
-                className={`sidebar-link ${pathname === link.href ? "active" : ""}`}
+                className={`sidebar-link ${pathname === link.href || pathname.startsWith(link.href + "/") ? "active" : ""}`}
                 onClick={onClose}
               >
                 {icons[link.icon]}
@@ -139,7 +147,7 @@ export default function Sidebar({ isOpen, onClose, role = "professional", user =
               {user?.firstName || "User"} {user?.lastName?.[0] || ""}.
             </div>
             <div className="sidebar-user-role">
-              {role === "business" ? "Business" : "Professional"}
+              {role === "admin" ? "Admin" : role === "business" ? "Business" : "Professional"}
             </div>
           </div>
           <button

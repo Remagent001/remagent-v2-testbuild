@@ -379,6 +379,10 @@ model Position {
   expectedEndDate    DateTime?
   visibility         String   @default("public") // "public" or "private"
   status             String   @default("draft")  // draft, pending_approval, published, private, closed
+  reviewRequired     Boolean  @default(false)    // admin sent it back for fixes
+  adminNote          String?  @db.Text           // admin's note on what needs to change
+  approvedAt         DateTime?                   // when admin approved it
+  approvedBy         String?                     // admin user id who approved
   screeningQuestions Json?    // array of { text, isPreset, enabled }
   completedSteps     String?  // JSON array of completed step numbers
   currentStep        Int      @default(1)
