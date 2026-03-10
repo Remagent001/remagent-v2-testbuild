@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import InviteModal from "./InviteModal";
 
 function safeParse(val, fallback = []) {
   if (!val) return fallback;
@@ -44,6 +45,7 @@ export default function ViewProfessionalClient({ professionalId }) {
   const router = useRouter();
   const [pro, setPro] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showInvite, setShowInvite] = useState(false);
 
   useEffect(() => {
     fetch(`/api/search/professionals/${professionalId}`)
@@ -183,10 +185,10 @@ export default function ViewProfessionalClient({ professionalId }) {
           )}
         </div>
 
-        {/* Invite button placeholder */}
+        {/* Invite button */}
         <div style={{ marginTop: 20 }}>
-          <button className="btn-primary" style={{ width: "auto" }} disabled>
-            Invite to Apply (Coming Soon)
+          <button className="btn-primary" style={{ width: "auto" }} onClick={() => setShowInvite(true)}>
+            Invite to Apply
           </button>
         </div>
       </div>
@@ -371,6 +373,15 @@ export default function ViewProfessionalClient({ professionalId }) {
           </div>
         </Section>
       </div>
+
+      {/* Invite Modal */}
+      {showInvite && (
+        <InviteModal
+          professionalId={pro.id}
+          professionalName={`${pro.firstName} ${pro.lastName}`}
+          onClose={() => setShowInvite(false)}
+        />
+      )}
     </div>
   );
 }

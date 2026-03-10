@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import InviteModal from "./InviteModal";
 
 const LAST_LOGIN_OPTIONS = [
   { value: 0, label: "Any time" },
@@ -60,6 +61,7 @@ export default function SearchProfessionalsClient() {
   const [loading, setLoading] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
   const [filtersOpen, setFiltersOpen] = useState(true);
+  const [inviteTarget, setInviteTarget] = useState(null); // { id, name }
 
   // Filter data (lookups)
   const [allSkills, setAllSkills] = useState([]);
@@ -307,7 +309,7 @@ export default function SearchProfessionalsClient() {
           {!loading && results.length > 0 && (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {results.map((pro) => (
-                <ProfessionalCard key={pro.id} pro={pro} router={router} />
+                <ProfessionalCard key={pro.id} pro={pro} router={router} onInvite={setInviteTarget} />
               ))}
             </div>
           )}
@@ -338,12 +340,21 @@ export default function SearchProfessionalsClient() {
           )}
         </div>
       </div>
+
+      {/* Invite Modal */}
+      {inviteTarget && (
+        <InviteModal
+          professionalId={inviteTarget.id}
+          professionalName={inviteTarget.name}
+          onClose={() => setInviteTarget(null)}
+        />
+      )}
     </div>
   );
 }
 
 // Professional result card
-function ProfessionalCard({ pro, router }) {
+function ProfessionalCard({ pro, router, onInvite }) {
   const profile = pro.professionalProfile || {};
   const loc = pro.location;
   const rate = pro.hourlyRate?.regularRate;
@@ -422,6 +433,16 @@ function ProfessionalCard({ pro, router }) {
               ) : (
                 <span style={{ fontSize: "0.8rem", color: "var(--gray-300)" }}>Rate not set</span>
               )}
+              <button
+                className="btn-primary"
+                style={{ width: "auto", padding: "6px 14px", fontSize: "0.8rem", marginTop: 8 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onInvite({ id: pro.id, name: `${pro.firstName} ${pro.lastName}` });
+                }}
+              >
+                Invite to Apply
+              </button>
             </div>
           </div>
 
