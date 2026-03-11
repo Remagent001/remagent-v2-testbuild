@@ -152,11 +152,13 @@ export default function PositionsListClient() {
 
   useEffect(() => { loadPositions(); }, []);
 
-  // Count positions per tab
+  // Count positions per tab + count those needing attention
   const counts = {};
   TABS.forEach((t) => { counts[t.key] = 0; });
+  let needsAttention = 0;
   positions.forEach((p) => {
     if (counts[p.status] !== undefined) counts[p.status]++;
+    if (p.reviewRequired && p.adminNote) needsAttention++;
   });
 
   // Auto-select first tab that has items, fallback to "published"
@@ -244,6 +246,7 @@ export default function PositionsListClient() {
       }}>
         {TABS.map((tab) => {
           const isActive = activeTab === tab.key;
+          const showAlert = tab.key === "pending_approval" && needsAttention > 0;
           return (
             <button
               key={tab.key}
@@ -270,8 +273,9 @@ export default function PositionsListClient() {
                   fontWeight: 600,
                   padding: "2px 8px",
                   borderRadius: 10,
-                  background: isActive ? `${tab.color}18` : "var(--gray-100)",
-                  color: isActive ? tab.color : "var(--gray-400)",
+                  background: showAlert ? "#fef2f2" : (isActive ? `${tab.color}18` : "var(--gray-100)"),
+                  color: showAlert ? "#ef4444" : (isActive ? tab.color : "var(--gray-400)"),
+                  border: showAlert ? "1.5px solid #ef4444" : "none",
                 }}>
                   {counts[tab.key]}
                 </span>

@@ -802,6 +802,13 @@
   color: var(--white);
 }
 
+.progress-bubble.has-default {
+  border-color: var(--teal);
+  border-style: dashed;
+  color: var(--teal);
+  background: var(--white);
+}
+
 .progress-bubble.current {
   border-color: var(--teal);
   color: var(--teal-dark);

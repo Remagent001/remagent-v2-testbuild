@@ -2,6 +2,14 @@
 
 import { useState, useEffect } from "react";
 
+function formatPhone(value) {
+  if (!value) return "";
+  const digits = value.replace(/\D/g, "").slice(0, 10);
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
 export default function AdminBusinessesClient() {
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -102,7 +110,7 @@ export default function AdminBusinessesClient() {
                       <span>Website: {profile.website}</span>
                     )}
                     {profile.phone && (
-                      <span>Phone: {profile.phone}</span>
+                      <span>Phone: {formatPhone(profile.phone)}</span>
                     )}
                     {profile.fullAddress && (
                       <span>Address: {profile.fullAddress}</span>

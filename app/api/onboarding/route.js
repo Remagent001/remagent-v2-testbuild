@@ -2,6 +2,20 @@ import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
+// Geocode an address or zip to get lat/lng
+async function geocodeAddress(address) {
+  try {
+    const res = await fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${process.env.GOOGLE_PLACES_API_KEY || "AIzaSyD9OjFLNi_ho76XkhNb8ICF1-YdI5fhCVQ"}`
+    );
+    const data = await res.json();
+    if (data.results?.[0]?.geometry?.location) {
+      return data.results[0].geometry.location;
+    }
+  } catch {}
+  return null;
+}
+
 // GET — load all onboarding data for the current user
 export async function GET() {
   const session = await auth();
@@ -307,7 +321,18 @@ export async function PUT(request) {
     }
 
     case 11: {
-      // Location
+      // Location — geocode to get lat/lng for radius search
+      let latitude = null;
+      let longitude = null;
+      const geocodeQuery = data.fullAddress || (data.zip ? `${data.zip}, ${data.state || "US"}` : null);
+      if (geocodeQuery) {
+        const coords = await geocodeAddress(geocodeQuery);
+        if (coords) {
+          latitude = coords.lat;
+          longitude = coords.lng;
+        }
+      }
+
       await prisma.location.upsert({
         where: { userId },
         update: {
@@ -316,6 +341,8 @@ export async function PUT(request) {
           state: data.state || null,
           city: data.city || null,
           zip: data.zip || null,
+          latitude,
+          longitude,
           isPrimary: true,
           workAddress: data.workAddress || null,
           workCountry: data.workCountry || null,
@@ -330,6 +357,8 @@ export async function PUT(request) {
           state: data.state || null,
           city: data.city || null,
           zip: data.zip || null,
+          latitude,
+          longitude,
           isPrimary: true,
           workAddress: data.workAddress || null,
           workCountry: data.workCountry || null,

@@ -65,6 +65,7 @@ export async function POST(request) {
 
   // Build the create data by merging defaults from each step
   const createData = { userId: session.user.id, status: "draft" };
+  const prefilledSteps = Object.keys(stepDefaults).map(Number);
 
   // Step 1: Position Detail (title, description, numberOfHires)
   if (stepDefaults[1]) {
@@ -94,6 +95,11 @@ export async function POST(request) {
   // Step 8: Screening Questions
   if (stepDefaults[8]) {
     createData.screeningQuestions = stepDefaults[8].screeningQuestions;
+  }
+
+  // Track which steps were pre-filled from defaults so the submit dialog can differentiate
+  if (prefilledSteps.length > 0) {
+    createData.defaultSteps = JSON.stringify(prefilledSteps);
   }
 
   const position = await prisma.position.create({ data: createData });

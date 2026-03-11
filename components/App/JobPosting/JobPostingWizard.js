@@ -80,8 +80,13 @@ export default function JobPostingWizard({ positionId }) {
     } else {
       loadData(positionId).then((data) => {
         if (data?.position) {
-          const step = data.position.currentStep || 1;
-          setCurrentStep(Math.min(step, TOTAL));
+          // If position has admin notes requiring review, start at step 1
+          if (data.position.reviewRequired && data.position.adminNote) {
+            setCurrentStep(1);
+          } else {
+            const step = data.position.currentStep || 1;
+            setCurrentStep(Math.min(step, TOTAL));
+          }
         }
         setLoading(false);
       });
@@ -166,6 +171,9 @@ export default function JobPostingWizard({ positionId }) {
   const completedSteps = allData?.position?.completedSteps
     ? JSON.parse(allData.position.completedSteps)
     : [];
+  const defaultSteps = allData?.position?.defaultSteps
+    ? JSON.parse(allData.position.defaultSteps)
+    : [];
 
   return (
     <div className="onboarding">
@@ -192,6 +200,7 @@ export default function JobPostingWizard({ positionId }) {
         <div className="progress-bubbles">
           {STEPS.map((step, i) => {
             const isCompleted = completedSteps.includes(step.num);
+            const hasDefault = defaultSteps.includes(step.num) && !isCompleted;
             const isCurrent = step.num === currentStep;
             return (
               <div key={step.num} className="progress-bubble-wrap">
@@ -200,9 +209,9 @@ export default function JobPostingWizard({ positionId }) {
                 )}
                 <button
                   type="button"
-                  className={`progress-bubble ${isCurrent ? "current" : ""} ${isCompleted ? "completed" : ""} accessible`}
+                  className={`progress-bubble ${isCurrent ? "current" : ""} ${isCompleted ? "completed" : ""} ${hasDefault ? "has-default" : ""} accessible`}
                   onClick={() => handleStepClick(step.num)}
-                  title={step.label}
+                  title={step.label + (hasDefault ? " (using defaults)" : "")}
                 >
                   {isCompleted ? (
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -222,6 +231,19 @@ export default function JobPostingWizard({ positionId }) {
       </div>
 
       {error && <div className="form-error">{error}</div>}
+
+      {allData?.position?.reviewRequired && allData?.position?.adminNote && (
+        <div style={{
+          padding: "14px 20px",
+          marginBottom: 16,
+          background: "#fef2f2",
+          borderLeft: "4px solid #ef4444",
+          borderRadius: 6,
+        }}>
+          <strong style={{ color: "#dc2626", fontSize: "0.9rem" }}>Admin Feedback:</strong>
+          <p style={{ margin: "4px 0 0", color: "#7f1d1d", fontSize: "0.85rem" }}>{allData.position.adminNote}</p>
+        </div>
+      )}
 
       <div className="onboarding-body">
         <StepComponent
