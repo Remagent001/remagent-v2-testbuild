@@ -129,7 +129,17 @@ export default function JobPostingWizard({ positionId }) {
 
   const handleSaveExit = async (stepData) => {
     await saveStep(currentStep, stepData);
-    router.push("/positions");
+    // Redirect to positions page with the correct tab based on current status
+    const status = allData?.position?.status || "draft";
+    const tabMap = {
+      draft: "draft",
+      pending_approval: "pending_approval",
+      published: "published",
+      private: "private",
+      closed: "closed",
+    };
+    const tab = tabMap[status] || "draft";
+    router.push(`/positions?tab=${tab}`);
   };
 
   const handleSkip = () => {

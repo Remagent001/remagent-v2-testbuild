@@ -8,7 +8,9 @@ const EXP_OPTIONS = [
   "6-12 months",
   "1-2 years",
   "2-3 years",
-  "3+ years",
+  "3-5 years",
+  "5-10 years",
+  "10+ years",
 ];
 
 const ITEM_EXP = ["<1 year", "1-3 years", "3-5 years", "5-10 years", "10+ years"];
@@ -122,7 +124,7 @@ export default function StepExperience({ data, onNext, onBack, onSaveExit, onSki
       </p>
 
       <div className="form-group">
-        <label className="form-label">Overall Experience</label>
+        <label className="form-label">Overall Relevant Experience</label>
         <select
           className="form-input form-select"
           value={overallExperience}

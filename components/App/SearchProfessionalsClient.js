@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import InviteModal from "./InviteModal";
 
@@ -14,14 +14,32 @@ const LAST_LOGIN_OPTIONS = [
 ];
 
 const US_STATES = [
-  "Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut",
-  "Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa",
-  "Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan",
-  "Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire",
-  "New Jersey","New Mexico","New York","North Carolina","North Dakota","Ohio",
-  "Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","South Dakota",
-  "Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia",
-  "Wisconsin","Wyoming",
+  { abbr: "AL", name: "Alabama" }, { abbr: "AK", name: "Alaska" }, { abbr: "AZ", name: "Arizona" },
+  { abbr: "AR", name: "Arkansas" }, { abbr: "CA", name: "California" }, { abbr: "CO", name: "Colorado" },
+  { abbr: "CT", name: "Connecticut" }, { abbr: "DE", name: "Delaware" }, { abbr: "FL", name: "Florida" },
+  { abbr: "GA", name: "Georgia" }, { abbr: "HI", name: "Hawaii" }, { abbr: "ID", name: "Idaho" },
+  { abbr: "IL", name: "Illinois" }, { abbr: "IN", name: "Indiana" }, { abbr: "IA", name: "Iowa" },
+  { abbr: "KS", name: "Kansas" }, { abbr: "KY", name: "Kentucky" }, { abbr: "LA", name: "Louisiana" },
+  { abbr: "ME", name: "Maine" }, { abbr: "MD", name: "Maryland" }, { abbr: "MA", name: "Massachusetts" },
+  { abbr: "MI", name: "Michigan" }, { abbr: "MN", name: "Minnesota" }, { abbr: "MS", name: "Mississippi" },
+  { abbr: "MO", name: "Missouri" }, { abbr: "MT", name: "Montana" }, { abbr: "NE", name: "Nebraska" },
+  { abbr: "NV", name: "Nevada" }, { abbr: "NH", name: "New Hampshire" }, { abbr: "NJ", name: "New Jersey" },
+  { abbr: "NM", name: "New Mexico" }, { abbr: "NY", name: "New York" }, { abbr: "NC", name: "North Carolina" },
+  { abbr: "ND", name: "North Dakota" }, { abbr: "OH", name: "Ohio" }, { abbr: "OK", name: "Oklahoma" },
+  { abbr: "OR", name: "Oregon" }, { abbr: "PA", name: "Pennsylvania" }, { abbr: "RI", name: "Rhode Island" },
+  { abbr: "SC", name: "South Carolina" }, { abbr: "SD", name: "South Dakota" }, { abbr: "TN", name: "Tennessee" },
+  { abbr: "TX", name: "Texas" }, { abbr: "UT", name: "Utah" }, { abbr: "VT", name: "Vermont" },
+  { abbr: "VA", name: "Virginia" }, { abbr: "WA", name: "Washington" }, { abbr: "WV", name: "West Virginia" },
+  { abbr: "WI", name: "Wisconsin" }, { abbr: "WY", name: "Wyoming" },
+];
+
+const RADIUS_OPTIONS = [
+  { value: 0, label: "Any distance" },
+  { value: 10, label: "10 miles" },
+  { value: 25, label: "25 miles" },
+  { value: 50, label: "50 miles" },
+  { value: 100, label: "100 miles" },
+  { value: 200, label: "200 miles" },
 ];
 
 const DAY_LABELS = { monday: "Mon", tuesday: "Tue", wednesday: "Wed", thursday: "Thu", friday: "Fri", saturday: "Sat", sunday: "Sun" };
@@ -52,6 +70,20 @@ function stripHtml(html) {
   return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
 }
 
+// Geocode a zip code using Google Maps Geocoding
+async function geocodeZip(zip) {
+  try {
+    const res = await fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?address=${zip}&key=AIzaSyD9OjFLNi_ho76XkhNb8ICF1-YdI5fhCVQ`
+    );
+    const data = await res.json();
+    if (data.results?.[0]?.geometry?.location) {
+      return data.results[0].geometry.location;
+    }
+  } catch {}
+  return null;
+}
+
 export default function SearchProfessionalsClient() {
   const router = useRouter();
   const [results, setResults] = useState([]);
@@ -61,7 +93,11 @@ export default function SearchProfessionalsClient() {
   const [loading, setLoading] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
   const [filtersOpen, setFiltersOpen] = useState(true);
-  const [inviteTarget, setInviteTarget] = useState(null); // { id, name }
+  const [inviteTarget, setInviteTarget] = useState(null);
+  const [showMap, setShowMap] = useState(false);
+  const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const markersRef = useRef([]);
 
   // Filter data (lookups)
   const [allSkills, setAllSkills] = useState([]);
@@ -74,7 +110,9 @@ export default function SearchProfessionalsClient() {
   const [selectedChannels, setSelectedChannels] = useState([]);
   const [selectedApps, setSelectedApps] = useState([]);
   const [state, setState] = useState("");
-  const [city, setCity] = useState("");
+  const [zip, setZip] = useState("");
+  const [radius, setRadius] = useState(0);
+  const [centerCoords, setCenterCoords] = useState(null); // { lat, lng }
   const [minRate, setMinRate] = useState("");
   const [maxRate, setMaxRate] = useState("");
   const [lastLogin, setLastLogin] = useState(0);
@@ -91,18 +129,27 @@ export default function SearchProfessionalsClient() {
   }, []);
 
   // Search function
-  const doSearch = useCallback(async (pageNum = 1) => {
+  const doSearch = useCallback(async (pageNum = 1, overrideCoords = null) => {
     setLoading(true);
     const params = new URLSearchParams();
     if (keyword) params.set("keyword", keyword);
     if (state) params.set("state", state);
-    if (city) params.set("city", city);
     if (minRate) params.set("minRate", minRate);
     if (maxRate) params.set("maxRate", maxRate);
     if (lastLogin) params.set("lastLogin", lastLogin);
     selectedSkills.forEach((id) => params.append("skill", id));
     selectedChannels.forEach((id) => params.append("channel", id));
     selectedApps.forEach((id) => params.append("application", id));
+
+    // Zip + radius
+    const coords = overrideCoords || centerCoords;
+    if (zip && radius > 0 && coords) {
+      params.set("zip", zip);
+      params.set("radius", radius);
+      params.set("lat", coords.lat);
+      params.set("lng", coords.lng);
+    }
+
     params.set("page", pageNum);
 
     const res = await fetch(`/api/search/professionals?${params}`);
@@ -113,7 +160,12 @@ export default function SearchProfessionalsClient() {
     setTotalPages(data.totalPages || 1);
     setLoading(false);
     setInitialLoad(false);
-  }, [keyword, state, city, minRate, maxRate, lastLogin, selectedSkills, selectedChannels, selectedApps]);
+
+    // Update map if showing
+    if (showMap && coords) {
+      updateMap(data.professionals || [], coords);
+    }
+  }, [keyword, state, zip, radius, centerCoords, minRate, maxRate, lastLogin, selectedSkills, selectedChannels, selectedApps, showMap]);
 
   // Initial search on mount
   useEffect(() => { doSearch(1); }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -129,13 +181,136 @@ export default function SearchProfessionalsClient() {
     setSelectedChannels([]);
     setSelectedApps([]);
     setState("");
-    setCity("");
+    setZip("");
+    setRadius(0);
+    setCenterCoords(null);
     setMinRate("");
     setMaxRate("");
     setLastLogin(0);
+    setShowMap(false);
+    // Auto-search after clearing
+    setTimeout(() => {
+      // Need to trigger a search with empty filters
+      setLoading(true);
+      fetch("/api/search/professionals?page=1")
+        .then((r) => r.json())
+        .then((data) => {
+          setResults(data.professionals || []);
+          setTotal(data.total || 0);
+          setPage(1);
+          setTotalPages(data.totalPages || 1);
+          setLoading(false);
+        });
+    }, 0);
   };
 
-  const hasFilters = keyword || selectedSkills.length || selectedChannels.length || selectedApps.length || state || city || minRate || maxRate || lastLogin;
+  // Handle zip + radius search
+  const handleLocationSearch = async () => {
+    if (!zip || !radius) return;
+    const coords = await geocodeZip(zip);
+    if (coords) {
+      setCenterCoords(coords);
+      setShowMap(true);
+      doSearch(1, coords);
+    } else {
+      alert("Could not find that zip code. Please check and try again.");
+    }
+  };
+
+  // Initialize Google Map
+  const initMap = useCallback((center, pros) => {
+    if (!mapRef.current || !window.google) return;
+    const map = new window.google.maps.Map(mapRef.current, {
+      center,
+      zoom: 9,
+      disableDefaultUI: true,
+      zoomControl: true,
+      mapTypeControl: false,
+      streetViewControl: false,
+    });
+    mapInstanceRef.current = map;
+
+    // Add center marker (search location)
+    new window.google.maps.Marker({
+      position: center,
+      map,
+      icon: {
+        path: window.google.maps.SymbolPath.CIRCLE,
+        scale: 10,
+        fillColor: "#ef4444",
+        fillOpacity: 1,
+        strokeColor: "white",
+        strokeWeight: 2,
+      },
+      title: "Search center",
+    });
+
+    // Add radius circle
+    new window.google.maps.Circle({
+      map,
+      center,
+      radius: radius * 1609.34, // miles to meters
+      fillColor: "#0d9488",
+      fillOpacity: 0.08,
+      strokeColor: "#0d9488",
+      strokeOpacity: 0.3,
+      strokeWeight: 1,
+    });
+
+    updateMapMarkers(map, pros);
+  }, [radius]);
+
+  const updateMapMarkers = (map, pros) => {
+    // Clear old markers
+    markersRef.current.forEach((m) => m.setMap(null));
+    markersRef.current = [];
+
+    pros.forEach((pro) => {
+      if (!pro.location?.latitude || !pro.location?.longitude) return;
+      const marker = new window.google.maps.Marker({
+        position: { lat: pro.location.latitude, lng: pro.location.longitude },
+        map,
+        title: `${pro.firstName} ${pro.lastName}`,
+        icon: {
+          path: window.google.maps.SymbolPath.CIRCLE,
+          scale: 7,
+          fillColor: "#0d9488",
+          fillOpacity: 1,
+          strokeColor: "white",
+          strokeWeight: 2,
+        },
+      });
+
+      const info = new window.google.maps.InfoWindow({
+        content: `<div style="font-size:13px"><strong>${pro.firstName} ${pro.lastName}</strong>${pro._distance ? `<br>${pro._distance} mi away` : ""}</div>`,
+      });
+      marker.addListener("click", () => info.open(map, marker));
+      markersRef.current.push(marker);
+    });
+  };
+
+  const updateMap = (pros, center) => {
+    if (mapInstanceRef.current) {
+      updateMapMarkers(mapInstanceRef.current, pros);
+    }
+  };
+
+  // Load Google Maps script + init
+  useEffect(() => {
+    if (!showMap || !centerCoords) return;
+    if (window.google?.maps) {
+      initMap(centerCoords, results);
+      return;
+    }
+    // Load script
+    const script = document.createElement("script");
+    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyD9OjFLNi_ho76XkhNb8ICF1-YdI5fhCVQ`;
+    script.async = true;
+    script.onload = () => initMap(centerCoords, results);
+    document.head.appendChild(script);
+  }, [showMap, centerCoords, initMap, results]);
+
+  const hasFilters = keyword || selectedSkills.length || selectedChannels.length || selectedApps.length || state || zip || minRate || maxRate || lastLogin;
 
   return (
     <div className="positions-page">
@@ -174,7 +349,7 @@ export default function SearchProfessionalsClient() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <h3 style={{ fontSize: "0.95rem", fontWeight: 600, color: "var(--gray-700)" }}>Filters</h3>
               {hasFilters && (
-                <button className="btn-link" style={{ fontSize: "0.8rem", padding: 0 }} onClick={() => { clearFilters(); setTimeout(() => doSearch(1), 0); }}>
+                <button className="btn-link" style={{ fontSize: "0.8rem", padding: 0 }} onClick={clearFilters}>
                   Clear All
                 </button>
               )}
@@ -203,15 +378,36 @@ export default function SearchProfessionalsClient() {
                 style={{ fontSize: "0.85rem", marginBottom: 8 }}
               >
                 <option value="">Any State</option>
-                {US_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+                {US_STATES.map((s) => <option key={s.abbr} value={s.abbr}>{s.name}</option>)}
               </select>
-              <input
-                className="form-input"
-                placeholder="City"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                style={{ fontSize: "0.85rem" }}
-              />
+              <div style={{ display: "flex", gap: 6, marginBottom: 6 }}>
+                <input
+                  className="form-input"
+                  placeholder="Zip Code"
+                  value={zip}
+                  onChange={(e) => setZip(e.target.value.replace(/\D/g, "").slice(0, 5))}
+                  style={{ fontSize: "0.85rem", width: "50%" }}
+                />
+                <select
+                  className="form-input"
+                  value={radius}
+                  onChange={(e) => setRadius(parseInt(e.target.value))}
+                  style={{ fontSize: "0.85rem", width: "50%" }}
+                >
+                  {RADIUS_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
+              {zip.length === 5 && radius > 0 && (
+                <button
+                  className="btn-secondary"
+                  style={{ width: "100%", fontSize: "0.8rem", padding: "6px 0" }}
+                  onClick={handleLocationSearch}
+                >
+                  Search {radius} miles from {zip}
+                </button>
+              )}
             </FilterSection>
 
             {/* Hourly Rate */}
@@ -279,6 +475,17 @@ export default function SearchProfessionalsClient() {
 
         {/* Results */}
         <div style={{ flex: 1 }}>
+          {/* Map */}
+          {showMap && centerCoords && (
+            <div style={{ marginBottom: 16, borderRadius: 12, overflow: "hidden", border: "1px solid var(--gray-200)" }}>
+              <div ref={mapRef} style={{ height: 320, width: "100%" }} />
+              <div style={{ padding: "8px 12px", background: "var(--gray-50)", fontSize: "0.82rem", color: "var(--gray-500)", display: "flex", justifyContent: "space-between" }}>
+                <span>Showing professionals within {radius} miles of {zip}</span>
+                <button className="btn-link" style={{ fontSize: "0.8rem", padding: 0 }} onClick={() => setShowMap(false)}>Hide Map</button>
+              </div>
+            </div>
+          )}
+
           {/* Results count */}
           {!initialLoad && (
             <div style={{ marginBottom: 16, fontSize: "0.85rem", color: "var(--gray-500)" }}>
@@ -309,7 +516,7 @@ export default function SearchProfessionalsClient() {
           {!loading && results.length > 0 && (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {results.map((pro) => (
-                <ProfessionalCard key={pro.id} pro={pro} router={router} onInvite={setInviteTarget} />
+                <ProfessionalCard key={pro.id} pro={pro} router={router} onInvite={setInviteTarget} showDistance={!!(radius && centerCoords)} />
               ))}
             </div>
           )}
@@ -354,7 +561,7 @@ export default function SearchProfessionalsClient() {
 }
 
 // Professional result card
-function ProfessionalCard({ pro, router, onInvite }) {
+function ProfessionalCard({ pro, router, onInvite, showDistance }) {
   const profile = pro.professionalProfile || {};
   const loc = pro.location;
   const rate = pro.hourlyRate?.regularRate;
@@ -409,6 +616,11 @@ function ProfessionalCard({ pro, router, onInvite }) {
                       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
                     </svg>
                     {[loc.city, loc.state].filter(Boolean).join(", ")}
+                    {showDistance && pro._distance != null && (
+                      <span style={{ color: "var(--teal)", fontWeight: 600, marginLeft: 4 }}>
+                        ({pro._distance} mi)
+                      </span>
+                    )}
                   </span>
                 )}
                 <span style={{ display: "flex", alignItems: "center", gap: 4 }}>

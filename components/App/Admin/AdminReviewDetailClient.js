@@ -12,6 +12,13 @@ function safeParse(val) {
 const DAY_ORDER = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 const DAY_LABELS = { monday: "Mon", tuesday: "Tue", wednesday: "Wed", thursday: "Thu", friday: "Fri", saturday: "Sat", sunday: "Sun" };
 
+function to12hr(time24) {
+  if (!time24) return "";
+  const [h, m] = time24.split(":");
+  const hr = parseInt(h, 10);
+  return `${hr === 0 ? 12 : hr > 12 ? hr - 12 : hr}:${m} ${hr >= 12 ? "PM" : "AM"}`;
+}
+
 export default function AdminReviewDetailClient({ positionId }) {
   const router = useRouter();
   const [position, setPosition] = useState(null);
@@ -96,7 +103,14 @@ export default function AdminReviewDetailClient({ positionId }) {
           <div>
             <h1 style={{ fontSize: "1.4rem", marginBottom: 4 }}>{pos.title || "Untitled Position"}</h1>
             <p style={{ color: "var(--gray-500)", fontSize: "0.9rem" }}>
-              Submitted by <strong>{businessName}</strong> · {pos.user?.email}
+              Submitted by <strong>{businessName}</strong>
+              {" · "}<a href={`mailto:${pos.user?.email}`} style={{ color: "var(--teal)", textDecoration: "none" }} onClick={(e) => e.stopPropagation()}>{pos.user?.email}</a>
+              {pos.user?.phone && (
+                <>{" · "}<a href={`tel:${pos.user.phone}`} style={{ color: "var(--teal)", textDecoration: "none" }} onClick={(e) => e.stopPropagation()}>{pos.user.phone}</a></>
+              )}
+              {!pos.user?.phone && pos.user?.businessProfile?.phone && (
+                <>{" · "}<a href={`tel:${pos.user.businessProfile.phone}`} style={{ color: "var(--teal)", textDecoration: "none" }} onClick={(e) => e.stopPropagation()}>{pos.user.businessProfile.phone}</a></>
+              )}
             </p>
             <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
               <span style={{
@@ -243,14 +257,14 @@ export default function AdminReviewDetailClient({ positionId }) {
 
         {/* Schedule */}
         {schedule.length > 0 && (
-          <Section title="Availability / Schedule">
+          <Section title={`Availability / Schedule${pos.timezone ? ` (${pos.timezone})` : ""}`}>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {schedule.map((s) => (
                 <span key={s.id} style={{
                   padding: "6px 14px", borderRadius: 20, fontSize: "0.82rem",
                   background: "var(--gray-100)", color: "var(--gray-600)",
                 }}>
-                  {DAY_LABELS[s.day] || s.day}: {s.startTime} - {s.endTime}
+                  {DAY_LABELS[s.day] || s.day}: {to12hr(s.startTime)} - {to12hr(s.endTime)}
                 </span>
               ))}
             </div>

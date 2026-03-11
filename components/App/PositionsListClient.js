@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const TABS = [
   { key: "published", label: "Public", color: "#10b981" },
@@ -135,10 +135,12 @@ function ExperienceTags({ skills, channels, positionApps }) {
 
 export default function PositionsListClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlTab = searchParams.get("tab");
   const [positions, setPositions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(null);
-  const [activeTab, setActiveTab] = useState("published");
+  const [activeTab, setActiveTab] = useState(urlTab || "published");
   const [updatingStatus, setUpdatingStatus] = useState(null);
 
   const loadPositions = () => {
@@ -158,8 +160,13 @@ export default function PositionsListClient() {
   });
 
   // Auto-select first tab that has items, fallback to "published"
+  // But respect URL tab if provided
   useEffect(() => {
     if (!loading && positions.length > 0) {
+      if (urlTab && counts[urlTab] > 0) {
+        setActiveTab(urlTab);
+        return;
+      }
       const hasItemsInActive = counts[activeTab] > 0;
       if (!hasItemsInActive) {
         const firstWithItems = TABS.find((t) => counts[t.key] > 0);
@@ -352,8 +359,8 @@ export default function PositionsListClient() {
                     updating={updatingStatus === pos.id}
                   />
                   <button
-                    className="btn-secondary"
-                    style={{ padding: "6px 12px", fontSize: "0.8rem" }}
+                    className={pos.reviewRequired ? "btn-primary" : "btn-secondary"}
+                    style={{ padding: "6px 12px", fontSize: "0.8rem", ...(pos.reviewRequired ? { width: "auto" } : {}) }}
                     onClick={() => router.push(`/positions/${pos.id}`)}
                   >
                     Edit
@@ -467,9 +474,9 @@ function StatusActions({ pos, onStatusChange, updating }) {
     case "pending_approval":
       if (pos.reviewRequired) {
         return (
-          <button className="btn-primary" style={{ ...btnStyle, width: "auto" }} disabled={disabled}
+          <button className="btn-secondary" style={btnStyle} disabled={disabled}
             onClick={() => onStatusChange(pos.id, "resubmit")}>
-            Resubmit for Approval
+            Resubmit
           </button>
         );
       }
