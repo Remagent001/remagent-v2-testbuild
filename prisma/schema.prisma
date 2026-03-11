@@ -112,6 +112,8 @@ model BusinessProfile {
   agreementSignedAt DateTime?
   adminMarkup     Float   @default(10)
   autoApprove     Boolean @default(false)
+  archived        Boolean @default(false)
+  archivedAt      DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

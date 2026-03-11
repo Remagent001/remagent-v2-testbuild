@@ -25,6 +25,7 @@ export async function GET() {
       lastName: true,
       email: true,
       createdAt: true,
+      lastLogin: true,
       businessProfile: true,
       _count: {
         select: { positions: true },
@@ -51,15 +52,22 @@ export async function PUT(request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { businessProfileId, autoApprove } = await request.json();
+  const { businessProfileId, autoApprove, archived } = await request.json();
 
   if (!businessProfileId) {
     return NextResponse.json({ error: "Missing businessProfileId" }, { status: 400 });
   }
 
+  const updateData = {};
+  if (autoApprove !== undefined) updateData.autoApprove = autoApprove;
+  if (archived !== undefined) {
+    updateData.archived = archived;
+    updateData.archivedAt = archived ? new Date() : null;
+  }
+
   await prisma.businessProfile.update({
     where: { id: businessProfileId },
-    data: { autoApprove },
+    data: updateData,
   });
 
   return NextResponse.json({ success: true });

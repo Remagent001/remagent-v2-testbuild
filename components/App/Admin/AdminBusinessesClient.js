@@ -10,10 +10,24 @@ function formatPhone(value) {
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
 }
 
+function timeAgo(dateStr) {
+  if (!dateStr) return "Never";
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return `${days}d ago`;
+  if (days < 30) return `${Math.floor(days / 7)}w ago`;
+  return `${Math.floor(days / 30)}mo ago`;
+}
+
 export default function AdminBusinessesClient() {
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState(null);
+  const [showArchived, setShowArchived] = useState(false);
 
   const loadBusinesses = () => {
     fetch("/api/admin/businesses")
@@ -35,6 +49,23 @@ export default function AdminBusinessesClient() {
     setToggling(null);
   };
 
+  const handleArchiveToggle = async (businessProfileId, currentValue) => {
+    const msg = currentValue ? "Unarchive this business?" : "Archive this business? They will be hidden from the active list.";
+    if (!confirm(msg)) return;
+    setToggling(businessProfileId);
+    await fetch("/api/admin/businesses", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ businessProfileId, archived: !currentValue }),
+    });
+    loadBusinesses();
+    setToggling(null);
+  };
+
+  const activeBiz = businesses.filter((b) => !b.businessProfile?.archived);
+  const archivedBiz = businesses.filter((b) => b.businessProfile?.archived);
+  const displayList = showArchived ? archivedBiz : activeBiz;
+
   if (loading) {
     return (
       <div className="onboarding-loading">
@@ -51,13 +82,43 @@ export default function AdminBusinessesClient() {
         <p className="page-subtitle">View and manage business accounts.</p>
       </div>
 
-      {businesses.length === 0 ? (
+      {/* Active / Archived toggle */}
+      {archivedBiz.length > 0 && (
+        <div style={{ display: "flex", gap: 0, borderBottom: "2px solid var(--gray-200)", marginBottom: 24 }}>
+          <button
+            onClick={() => setShowArchived(false)}
+            style={{
+              padding: "12px 20px", fontSize: "0.9rem", fontWeight: showArchived ? 400 : 600,
+              color: showArchived ? "var(--gray-500)" : "var(--gray-700)", background: "none", border: "none",
+              borderBottom: showArchived ? "3px solid transparent" : "3px solid var(--gray-700)",
+              cursor: "pointer", marginBottom: -2,
+            }}
+          >
+            Active ({activeBiz.length})
+          </button>
+          <button
+            onClick={() => setShowArchived(true)}
+            style={{
+              padding: "12px 20px", fontSize: "0.9rem", fontWeight: showArchived ? 600 : 400,
+              color: showArchived ? "#94a3b8" : "var(--gray-500)", background: "none", border: "none",
+              borderBottom: showArchived ? "3px solid #94a3b8" : "3px solid transparent",
+              cursor: "pointer", marginBottom: -2,
+            }}
+          >
+            Archived ({archivedBiz.length})
+          </button>
+        </div>
+      )}
+
+      {displayList.length === 0 ? (
         <div className="card" style={{ textAlign: "center", padding: "48px 24px" }}>
-          <p style={{ color: "var(--gray-400)", fontSize: "0.9rem" }}>No businesses registered yet.</p>
+          <p style={{ color: "var(--gray-400)", fontSize: "0.9rem" }}>
+            {showArchived ? "No archived businesses." : "No businesses registered yet."}
+          </p>
         </div>
       ) : (
         <div className="positions-list">
-          {businesses.map((biz) => {
+          {displayList.map((biz) => {
             const profile = biz.businessProfile;
             const hasProfile = profile && profile.businessName;
             return (
@@ -80,26 +141,41 @@ export default function AdminBusinessesClient() {
                       {hasProfile && profile.city ? ` · ${profile.city}${profile.state ? `, ${profile.state}` : ""}` : ""}
                       {` · ${biz._count.positions} posting${biz._count.positions !== 1 ? "s" : ""}`}
                       {` · Joined ${new Date(biz.createdAt).toLocaleDateString()}`}
+                      {` · Last active: ${timeAgo(biz.lastLogin)}`}
                     </p>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     {hasProfile && (
-                      <label style={{
-                        display: "flex", alignItems: "center", gap: 8,
-                        fontSize: "0.82rem", color: "var(--gray-600)", cursor: "pointer",
-                        padding: "6px 14px", borderRadius: 8,
-                        background: profile.autoApprove ? "#10b98118" : "var(--gray-50)",
-                        border: `1px solid ${profile.autoApprove ? "#10b981" : "var(--gray-200)"}`,
-                      }}>
-                        <input
-                          type="checkbox"
-                          checked={profile.autoApprove || false}
-                          onChange={() => handleAutoApproveToggle(profile.id, profile.autoApprove)}
+                      <>
+                        <label style={{
+                          display: "flex", alignItems: "center", gap: 8,
+                          fontSize: "0.82rem", color: "var(--gray-600)", cursor: "pointer",
+                          padding: "6px 14px", borderRadius: 8,
+                          background: profile.autoApprove ? "#10b98118" : "var(--gray-50)",
+                          border: `1px solid ${profile.autoApprove ? "#10b981" : "var(--gray-200)"}`,
+                        }}>
+                          <input
+                            type="checkbox"
+                            checked={profile.autoApprove || false}
+                            onChange={() => handleAutoApproveToggle(profile.id, profile.autoApprove)}
+                            disabled={toggling === profile.id}
+                            style={{ accentColor: "var(--teal)" }}
+                          />
+                          Auto-Approve
+                        </label>
+                        <button
+                          className="btn-secondary"
+                          style={{
+                            width: "auto", fontSize: "0.82rem", padding: "6px 14px",
+                            color: profile.archived ? "var(--teal)" : "#94a3b8",
+                            borderColor: profile.archived ? "var(--teal)" : "#94a3b8",
+                          }}
+                          onClick={() => handleArchiveToggle(profile.id, profile.archived)}
                           disabled={toggling === profile.id}
-                          style={{ accentColor: "var(--teal)" }}
-                        />
-                        Auto-Approve
-                      </label>
+                        >
+                          {profile.archived ? "Unarchive" : "Archive"}
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>

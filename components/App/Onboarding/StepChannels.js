@@ -60,8 +60,13 @@ export default function StepChannels({ data, onNext, onBack, onSaveExit, onSkip,
         {allChannels.map((ch) => {
           const selected = channels[ch.id] !== undefined;
           return (
-            <div key={ch.id} className={`channel-item ${selected ? "active" : ""}`}>
-              <label className="channel-check">
+            <div
+              key={ch.id}
+              className={`channel-item ${selected ? "active" : ""}`}
+              onClick={() => toggleChannel(ch.id)}
+              style={{ cursor: "pointer" }}
+            >
+              <label className="channel-check" onClick={(e) => e.stopPropagation()}>
                 <input
                   type="checkbox"
                   checked={selected}

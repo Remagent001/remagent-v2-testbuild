@@ -35,6 +35,7 @@ export default function InvitesListClient() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("");
   const [withdrawing, setWithdrawing] = useState(null);
+  const [filterPosition, setFilterPosition] = useState("");
 
   const loadInvites = () => {
     fetch("/api/invites")
@@ -64,7 +65,13 @@ export default function InvitesListClient() {
     if (counts[inv.status] !== undefined) counts[inv.status]++;
   });
 
-  const filtered = activeTab ? invites.filter((inv) => inv.status === activeTab) : invites;
+  // Get unique position titles for filter dropdown
+  const positionTitles = [...new Set(invites.map((inv) => inv.position?.title).filter(Boolean))].sort();
+
+  let filtered = activeTab ? invites.filter((inv) => inv.status === activeTab) : invites;
+  if (filterPosition) {
+    filtered = filtered.filter((inv) => inv.position?.title === filterPosition);
+  }
 
   if (loading) {
     return (
@@ -117,6 +124,23 @@ export default function InvitesListClient() {
           );
         })}
       </div>
+
+      {/* Filter by JP */}
+      {positionTitles.length > 1 && (
+        <div style={{ marginBottom: 16 }}>
+          <select
+            className="form-input form-select"
+            value={filterPosition}
+            onChange={(e) => setFilterPosition(e.target.value)}
+            style={{ width: "auto", fontSize: "0.85rem", padding: "6px 12px" }}
+          >
+            <option value="">All Job Postings</option>
+            {positionTitles.map((title) => (
+              <option key={title} value={title}>{title}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* Empty state */}
       {invites.length === 0 ? (

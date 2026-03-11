@@ -92,6 +92,7 @@ export default function SearchProfessionalsClient() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
+  const [profileComplete, setProfileComplete] = useState(null); // null = loading, true/false
   const [filtersOpen, setFiltersOpen] = useState(true);
   const [inviteTarget, setInviteTarget] = useState(null);
   const [showMap, setShowMap] = useState(false);
@@ -123,6 +124,19 @@ export default function SearchProfessionalsClient() {
   const [degree, setDegree] = useState("");
   const [experience, setExperience] = useState("");
   const [environment, setEnvironment] = useState("");
+  const [skillMode, setSkillMode] = useState("and"); // "and" or "or"
+  const [channelMode, setChannelMode] = useState("and");
+  const [industryMode, setIndustryMode] = useState("and");
+
+  // Check if business profile is complete
+  useEffect(() => {
+    fetch("/api/business/profile")
+      .then((r) => r.json())
+      .then((data) => {
+        setProfileComplete(!!(data.profile?.businessName));
+      })
+      .catch(() => setProfileComplete(true)); // Non-business users pass through
+  }, []);
 
   // Load lookup data
   useEffect(() => {
@@ -146,9 +160,12 @@ export default function SearchProfessionalsClient() {
     if (maxRate) params.set("maxRate", maxRate);
     if (lastLogin) params.set("lastLogin", lastLogin);
     selectedSkills.forEach((id) => params.append("skill", id));
+    if (selectedSkills.length > 1) params.set("skillMode", skillMode);
     selectedChannels.forEach((id) => params.append("channel", id));
+    if (selectedChannels.length > 1) params.set("channelMode", channelMode);
     selectedApps.forEach((id) => params.append("application", id));
     selectedIndustries.forEach((id) => params.append("industry", id));
+    if (selectedIndustries.length > 1) params.set("industryMode", industryMode);
     selectedDays.forEach((d) => params.append("day", d));
     if (language) params.set("language", language);
     if (degree) params.set("degree", degree);
@@ -179,7 +196,7 @@ export default function SearchProfessionalsClient() {
     if (showMap && coords) {
       updateMap(data.professionals || [], coords);
     }
-  }, [keyword, state, zip, radius, centerCoords, minRate, maxRate, lastLogin, selectedSkills, selectedChannels, selectedApps, selectedIndustries, selectedDays, language, degree, experience, environment, showMap]);
+  }, [keyword, state, zip, radius, centerCoords, minRate, maxRate, lastLogin, selectedSkills, selectedChannels, selectedApps, selectedIndustries, selectedDays, language, degree, experience, environment, skillMode, channelMode, industryMode, showMap]);
 
   // Auto-apply: search whenever any filter changes (debounced)
   const debounceRef = useRef(null);
@@ -189,7 +206,7 @@ export default function SearchProfessionalsClient() {
       doSearch(1);
     }, initialLoad ? 0 : 400);
     return () => clearTimeout(debounceRef.current);
-  }, [keyword, state, minRate, maxRate, lastLogin, selectedSkills, selectedChannels, selectedApps, selectedIndustries, selectedDays, language, degree, experience, environment]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [keyword, state, minRate, maxRate, lastLogin, selectedSkills, selectedChannels, selectedApps, selectedIndustries, selectedDays, language, degree, experience, environment, skillMode, channelMode, industryMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -207,6 +224,9 @@ export default function SearchProfessionalsClient() {
     setDegree("");
     setExperience("");
     setEnvironment("");
+    setSkillMode("and");
+    setChannelMode("and");
+    setIndustryMode("and");
     setState("");
     setZip("");
     setRadius(0);
@@ -355,6 +375,27 @@ export default function SearchProfessionalsClient() {
 
   const hasFilters = !!(keyword || selectedSkills.length || selectedChannels.length || selectedApps.length || selectedIndustries.length || selectedDays.length || language || degree || experience || environment || state || zip || minRate || maxRate || lastLogin);
 
+  // Gate: require completed company profile
+  if (profileComplete === false) {
+    return (
+      <div className="positions-page">
+        <div className="card" style={{ textAlign: "center", padding: "48px 24px", maxWidth: 520, margin: "40px auto" }}>
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--gray-300)" strokeWidth="1.5" style={{ margin: "0 auto 16px" }}>
+            <rect x="4" y="2" width="16" height="20" rx="2" /><path d="M9 22v-4h6v4" />
+            <path d="M8 6h.01" /><path d="M16 6h.01" /><path d="M8 10h.01" /><path d="M16 10h.01" />
+          </svg>
+          <h3 style={{ color: "var(--gray-600)", marginBottom: 8 }}>Complete Your Company Profile First</h3>
+          <p style={{ color: "var(--gray-400)", fontSize: "0.9rem", marginBottom: 20 }}>
+            You need to fill out your company profile before you can search for professionals.
+          </p>
+          <button className="btn-primary" style={{ width: "auto" }} onClick={() => router.push("/company-profile")}>
+            Go to Company Profile
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="positions-page">
       <div className="page-header">
@@ -480,6 +521,9 @@ export default function SearchProfessionalsClient() {
                 onChange={setSelectedSkills}
                 placeholder="Select skills..."
               />
+              {selectedSkills.length > 1 && (
+                <AndOrToggle value={skillMode} onChange={setSkillMode} />
+              )}
             </FilterSection>
 
             {/* Channels */}
@@ -490,6 +534,9 @@ export default function SearchProfessionalsClient() {
                 onChange={setSelectedChannels}
                 placeholder="Select channels..."
               />
+              {selectedChannels.length > 1 && (
+                <AndOrToggle value={channelMode} onChange={setChannelMode} />
+              )}
             </FilterSection>
 
             {/* Applications */}
@@ -510,6 +557,9 @@ export default function SearchProfessionalsClient() {
                 onChange={setSelectedIndustries}
                 placeholder="Select industries..."
               />
+              {selectedIndustries.length > 1 && (
+                <AndOrToggle value={industryMode} onChange={setIndustryMode} />
+              )}
             </FilterSection>
 
             {/* Availability */}
@@ -1027,6 +1077,34 @@ function MultiSelect({ items, selected, onChange, placeholder }) {
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+// AND/OR toggle for multi-select filters
+function AndOrToggle({ value, onChange }) {
+  return (
+    <div style={{ display: "flex", gap: 4, marginTop: 6 }}>
+      {["and", "or"].map((mode) => (
+        <button
+          key={mode}
+          type="button"
+          onClick={() => onChange(mode)}
+          style={{
+            padding: "3px 12px",
+            borderRadius: 6,
+            fontSize: "0.72rem",
+            fontWeight: 700,
+            textTransform: "uppercase",
+            cursor: "pointer",
+            border: value === mode ? "1px solid var(--teal)" : "1px solid var(--gray-200)",
+            background: value === mode ? "var(--teal-dim)" : "white",
+            color: value === mode ? "var(--teal)" : "var(--gray-400)",
+          }}
+        >
+          {mode === "and" ? "Match All" : "Match Any"}
+        </button>
+      ))}
     </div>
   );
 }

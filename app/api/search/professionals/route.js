@@ -36,6 +36,9 @@ export async function GET(request) {
   const maxRate = parseFloat(searchParams.get("maxRate")) || 0;
   const lastLoginDays = parseInt(searchParams.get("lastLogin")) || 0;
   const industryIds = searchParams.getAll("industry");
+  const skillMode = searchParams.get("skillMode") || "and";
+  const channelMode = searchParams.get("channelMode") || "and";
+  const industryMode = searchParams.get("industryMode") || "and";
   const availableDays = searchParams.getAll("day");
   const language = searchParams.get("language") || "";
   const degree = searchParams.get("degree") || "";
@@ -79,24 +82,32 @@ export async function GET(request) {
     where.lastLogin = { gte: cutoff };
   }
 
-  // Skills filter — must have ALL selected skills
+  // Skills filter — AND (must have ALL) or OR (must have at least one)
   if (skillIds.length > 0) {
-    where.AND = [
-      ...(where.AND || []),
-      ...skillIds.map((id) => ({
-        skills: { some: { skillId: id } },
-      })),
-    ];
+    if (skillMode === "or") {
+      where.skills = { some: { skillId: { in: skillIds } } };
+    } else {
+      where.AND = [
+        ...(where.AND || []),
+        ...skillIds.map((id) => ({
+          skills: { some: { skillId: id } },
+        })),
+      ];
+    }
   }
 
-  // Channels filter — must have ALL selected channels
+  // Channels filter — AND or OR
   if (channelIds.length > 0) {
-    where.AND = [
-      ...(where.AND || []),
-      ...channelIds.map((id) => ({
-        channels: { some: { channelId: id } },
-      })),
-    ];
+    if (channelMode === "or") {
+      where.channels = { some: { channelId: { in: channelIds } } };
+    } else {
+      where.AND = [
+        ...(where.AND || []),
+        ...channelIds.map((id) => ({
+          channels: { some: { channelId: id } },
+        })),
+      ];
+    }
   }
 
   // Applications filter — must have ALL selected applications
@@ -109,14 +120,18 @@ export async function GET(request) {
     ];
   }
 
-  // Industries filter — must have ALL selected industries
+  // Industries filter — AND or OR
   if (industryIds.length > 0) {
-    where.AND = [
-      ...(where.AND || []),
-      ...industryIds.map((id) => ({
-        industries: { some: { industryId: id } },
-      })),
-    ];
+    if (industryMode === "or") {
+      where.industries = { some: { industryId: { in: industryIds } } };
+    } else {
+      where.AND = [
+        ...(where.AND || []),
+        ...industryIds.map((id) => ({
+          industries: { some: { industryId: id } },
+        })),
+      ];
+    }
   }
 
   // Availability filter — must be available on ALL selected days

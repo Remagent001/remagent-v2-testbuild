@@ -147,6 +147,7 @@ export default function PositionsListClient() {
   const [deleting, setDeleting] = useState(null);
   const [activeTab, setActiveTab] = useState(urlTab || "published");
   const [updatingStatus, setUpdatingStatus] = useState(null);
+  const [profileComplete, setProfileComplete] = useState(null);
 
   const loadPositions = () => {
     fetch("/api/positions")
@@ -156,6 +157,14 @@ export default function PositionsListClient() {
   };
 
   useEffect(() => { loadPositions(); }, []);
+
+  // Check if business profile is complete
+  useEffect(() => {
+    fetch("/api/business/profile")
+      .then((r) => r.json())
+      .then((data) => setProfileComplete(!!(data.profile?.businessName)))
+      .catch(() => setProfileComplete(true));
+  }, []);
 
   // Count positions per tab + count those needing attention
   const counts = {};
@@ -215,6 +224,27 @@ export default function PositionsListClient() {
     loadPositions();
     setUpdatingStatus(null);
   };
+
+  // Gate: require completed company profile
+  if (profileComplete === false) {
+    return (
+      <div className="positions-page">
+        <div className="card" style={{ textAlign: "center", padding: "48px 24px", maxWidth: 520, margin: "40px auto" }}>
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--gray-300)" strokeWidth="1.5" style={{ margin: "0 auto 16px" }}>
+            <rect x="4" y="2" width="16" height="20" rx="2" /><path d="M9 22v-4h6v4" />
+            <path d="M8 6h.01" /><path d="M16 6h.01" /><path d="M8 10h.01" /><path d="M16 10h.01" />
+          </svg>
+          <h3 style={{ color: "var(--gray-600)", marginBottom: 8 }}>Complete Your Company Profile First</h3>
+          <p style={{ color: "var(--gray-400)", fontSize: "0.9rem", marginBottom: 20 }}>
+            You need to fill out your company profile before you can create job postings.
+          </p>
+          <button className="btn-primary" style={{ width: "auto" }} onClick={() => router.push("/company-profile")}>
+            Go to Company Profile
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
