@@ -8,6 +8,7 @@ export default function DashboardClient() {
   const { data: session } = useSession();
   const user = session?.user;
   const isBusiness = user?.role === "BUSINESS";
+  const isAdmin = user?.role === "ADMIN";
 
   // Professional state
   const [profileStatus, setProfileStatus] = useState("new");
@@ -17,12 +18,33 @@ export default function DashboardClient() {
 
   // Business state
   const [bizProfile, setBizProfile] = useState(null);
+  const [positionAlerts, setPositionAlerts] = useState([]);
+  const [positionCounts, setPositionCounts] = useState({ total: 0, invites: 0, applicants: 0, hires: 0 });
 
   useEffect(() => {
-    if (isBusiness) {
+    if (isBusiness || isAdmin) {
       fetch("/api/business/profile")
         .then((r) => r.json())
         .then((data) => setBizProfile(data.profile))
+        .catch(() => {});
+
+      // Load positions to get counts and check for admin notes
+      fetch("/api/positions")
+        .then((r) => r.json())
+        .then((data) => {
+          const positions = data.positions || [];
+          // Find positions with admin notes that need attention
+          const alerts = positions.filter((p) => p.reviewRequired && p.adminNote);
+          setPositionAlerts(alerts);
+          // Calculate real counts
+          let invites = 0, applicants = 0, hires = 0;
+          positions.forEach((p) => {
+            invites += p._count?.offers || 0;
+            applicants += p._count?.applications || 0;
+            hires += p._count?.hires || 0;
+          });
+          setPositionCounts({ total: positions.length, invites, applicants, hires });
+        })
         .catch(() => {});
     } else {
       fetch("/api/onboarding/load")
@@ -41,9 +63,9 @@ export default function DashboardClient() {
         })
         .catch(() => {});
     }
-  }, [isBusiness]);
+  }, [isBusiness, isAdmin]);
 
-  if (isBusiness) {
+  if (isBusiness || isAdmin) {
     const hasProfile = bizProfile && bizProfile.businessName;
     return (
       <div>
@@ -52,22 +74,52 @@ export default function DashboardClient() {
           <p className="page-subtitle">Manage your job postings and find professionals.</p>
         </div>
 
+        {/* Admin note alerts */}
+        {positionAlerts.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
+            {positionAlerts.map((pos) => (
+              <Link key={pos.id} href={`/positions/${pos.id}`} style={{ textDecoration: "none" }}>
+                <div style={{
+                  padding: "14px 18px",
+                  marginBottom: 8,
+                  background: "#fef2f2",
+                  borderLeft: "4px solid #ef4444",
+                  borderRadius: 6,
+                  cursor: "pointer",
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div>
+                      <strong style={{ color: "#dc2626", fontSize: "0.9rem" }}>
+                        Action Required: {pos.title || "Untitled Position"}
+                      </strong>
+                      <p style={{ margin: "4px 0 0", color: "#7f1d1d", fontSize: "0.85rem" }}>{pos.adminNote}</p>
+                    </div>
+                    <span style={{ color: "#dc2626", fontSize: "0.8rem", fontWeight: 600, whiteSpace: "nowrap", marginLeft: 16 }}>
+                      Review &rarr;
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+
         <div className="stat-grid">
           <div className="stat-card">
             <div className="stat-card-label">Job Postings</div>
-            <div className="stat-card-value">0</div>
+            <div className="stat-card-value">{positionCounts.total}</div>
           </div>
           <div className="stat-card">
             <div className="stat-card-label">Invites Sent</div>
-            <div className="stat-card-value">0</div>
+            <div className="stat-card-value">{positionCounts.invites}</div>
           </div>
           <div className="stat-card">
             <div className="stat-card-label">Applicants</div>
-            <div className="stat-card-value">0</div>
+            <div className="stat-card-value">{positionCounts.applicants}</div>
           </div>
           <div className="stat-card">
             <div className="stat-card-label">Active Hires</div>
-            <div className="stat-card-value">0</div>
+            <div className="stat-card-value">{positionCounts.hires}</div>
           </div>
         </div>
 

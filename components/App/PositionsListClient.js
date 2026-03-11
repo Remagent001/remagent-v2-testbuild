@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 const TABS = [
-  { key: "published", label: "Published", color: "#10b981" },
+  { key: "published", label: "Public", color: "#10b981" },
   { key: "private", label: "Private", color: "#6366f1" },
   { key: "pending_approval", label: "Pending", color: "#f59e0b" },
   { key: "draft", label: "Drafts", color: "#94a3b8" },
@@ -14,7 +14,7 @@ const TABS = [
 const STATUS_LABELS = {
   draft: "Draft",
   pending_approval: "Pending Approval",
-  published: "Published",
+  published: "Public",
   private: "Private",
   closed: "Closed",
 };
@@ -29,7 +29,7 @@ const STATUS_COLORS = {
 
 const WIZARD_STEPS = [
   { num: 1, short: "Detail" },
-  { num: 2, short: "Context" },
+  { num: 2, short: "Exp" },
   { num: 3, short: "Enviro" },
   { num: 4, short: "Avail" },
   { num: 5, short: "Rate" },
@@ -77,6 +77,58 @@ function MiniProgressBubbles({ completedSteps }) {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+// Experience tags — show Desired and Required separately
+function ExperienceTags({ skills, channels, positionApps }) {
+  const desired = [];
+  const required = [];
+
+  (skills || []).forEach((s) => {
+    const name = s.skill?.name || "Skill";
+    if (s.requirement === "required") required.push(name);
+    else desired.push(name);
+  });
+  (channels || []).forEach((c) => {
+    const name = c.channel?.name || "Channel";
+    if (c.requirement === "required") required.push(name);
+    else desired.push(name);
+  });
+  (positionApps || []).forEach((a) => {
+    const name = a.application?.name || "App";
+    if (a.requirement === "required") required.push(name);
+    else desired.push(name);
+  });
+
+  if (desired.length === 0 && required.length === 0) return null;
+
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+      {required.length > 0 && (
+        <>
+          <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--teal)", textTransform: "uppercase", alignSelf: "center", marginRight: 2 }}>Required:</span>
+          {required.map((name, i) => (
+            <span key={`r-${i}`} style={{
+              padding: "3px 10px", borderRadius: 14, fontSize: "0.75rem", fontWeight: 600,
+              background: "var(--teal)", color: "white",
+            }}>{name}</span>
+          ))}
+        </>
+      )}
+      {desired.length > 0 && (
+        <>
+          <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--gray-500)", textTransform: "uppercase", alignSelf: "center", marginRight: 2, marginLeft: required.length > 0 ? 8 : 0 }}>Desired:</span>
+          {desired.map((name, i) => (
+            <span key={`d-${i}`} style={{
+              padding: "3px 10px", borderRadius: 14, fontSize: "0.75rem",
+              background: "var(--gray-100)", color: "var(--gray-600)",
+              border: "1px solid var(--teal)",
+            }}>{name}</span>
+          ))}
+        </>
+      )}
     </div>
   );
 }
@@ -132,6 +184,19 @@ export default function PositionsListClient() {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: newStatus }),
+    });
+    loadPositions();
+    setUpdatingStatus(null);
+  };
+
+  // Toggle visibility for pending positions
+  const handleVisibilityToggle = async (posId, currentVisibility) => {
+    const newVis = currentVisibility === "public" ? "private" : "public";
+    setUpdatingStatus(posId);
+    await fetch(`/api/positions/${posId}/visibility`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ visibility: newVis }),
     });
     loadPositions();
     setUpdatingStatus(null);
@@ -256,13 +321,22 @@ export default function PositionsListClient() {
                         Needs Changes
                       </span>
                     )}
-                    {(pos.status === "published" || pos.status === "private") && (
-                      <span className="position-visibility-badge" style={{
-                        backgroundColor: pos.visibility === "public" ? "var(--teal-light)" : "var(--gray-100)",
-                        color: pos.visibility === "public" ? "var(--teal)" : "var(--gray-500)",
-                      }}>
-                        {pos.visibility === "public" ? "Public" : "Private"}
-                      </span>
+                    {/* For pending postings: show which visibility it will become, clickable to toggle */}
+                    {pos.status === "pending_approval" && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleVisibilityToggle(pos.id, pos.visibility); }}
+                        disabled={updatingStatus === pos.id}
+                        style={{
+                          padding: "3px 10px", borderRadius: 14, fontSize: "0.75rem", fontWeight: 600, cursor: "pointer",
+                          border: "1px dashed",
+                          backgroundColor: pos.visibility === "public" ? "var(--teal-light)" : "var(--gray-100)",
+                          color: pos.visibility === "public" ? "var(--teal)" : "var(--gray-500)",
+                          borderColor: pos.visibility === "public" ? "var(--teal)" : "var(--gray-400)",
+                        }}
+                        title="Click to toggle between Public and Private"
+                      >
+                        {pos.visibility === "public" ? "Will be Public" : "Will be Private"}
+                      </button>
                     )}
                   </div>
                   <p className="position-card-meta">
@@ -333,13 +407,10 @@ export default function PositionsListClient() {
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                   {pos._count.hires} {pos._count.hires === 1 ? "hire" : "hires"}
                 </span>
-                {pos.skills?.length > 0 && (
-                  <span className="position-card-skills">
-                    {pos.skills.slice(0, 3).map((s) => s.skill.name).join(", ")}
-                    {pos.skills.length > 3 && ` +${pos.skills.length - 3} more`}
-                  </span>
-                )}
               </div>
+
+              {/* Experience items — split by Desired vs Required */}
+              <ExperienceTags skills={pos.skills} channels={pos.channels} positionApps={pos.positionApps} />
             </div>
           ))}
         </div>

@@ -14,7 +14,7 @@ import StepComplete from "./StepComplete";
 
 const STEPS = [
   { num: 1, label: "Position Detail", short: "Detail", full: "Position Detail" },
-  { num: 2, label: "Context", short: "Context", full: "Context" },
+  { num: 2, label: "Experience", short: "Exp", full: "Experience" },
   { num: 3, label: "Environment", short: "Enviro", full: "Environment" },
   { num: 4, label: "Availability", short: "Avail", full: "Availability" },
   { num: 5, label: "Hourly Rate", short: "Rate", full: "Hourly Rate" },

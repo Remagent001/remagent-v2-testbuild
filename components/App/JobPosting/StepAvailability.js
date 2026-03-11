@@ -25,12 +25,7 @@ for (let h = 6; h <= 23; h++) {
 }
 
 const TIMEZONES = [
-  "US/Eastern", "US/Central", "US/Mountain", "US/Pacific", "US/Alaska", "US/Hawaii",
-  "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles",
-  "America/Phoenix", "America/Anchorage", "America/Toronto", "America/Vancouver",
-  "America/Mexico_City", "America/Bogota", "America/Sao_Paulo",
-  "Europe/London", "Europe/Berlin", "Europe/Paris", "Asia/Tokyo", "Asia/Shanghai",
-  "Asia/Kolkata", "Australia/Sydney",
+  "Americas/Eastern", "Americas/Central", "Americas/Mountain", "Americas/Pacific",
 ];
 
 function detectTimezone() {
@@ -49,7 +44,9 @@ function to12hr(time24) {
 export default function StepAvailability({ data, onNext, onBack, onSaveExit, onSkip, saving }) {
   const pos = data?.position;
   const savedTz = pos?.timezone;
-  const [timezone, setTimezone] = useState(savedTz || detectTimezone());
+  // Default to company profile timezone, then detect, then Eastern
+  const companyTz = data?.businessTimezone;
+  const [timezone, setTimezone] = useState(savedTz || companyTz || "Americas/Eastern");
 
   const [schedule, setSchedule] = useState(() => {
     const saved = {};

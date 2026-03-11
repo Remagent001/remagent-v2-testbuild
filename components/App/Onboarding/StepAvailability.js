@@ -27,12 +27,7 @@ for (let h = 6; h <= 23; h++) {
 }
 
 const TIMEZONES = [
-  "US/Eastern", "US/Central", "US/Mountain", "US/Pacific", "US/Alaska", "US/Hawaii",
-  "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles",
-  "America/Phoenix", "America/Anchorage", "America/Toronto", "America/Vancouver",
-  "America/Mexico_City", "America/Bogota", "America/Sao_Paulo",
-  "Europe/London", "Europe/Berlin", "Europe/Paris", "Asia/Tokyo", "Asia/Shanghai",
-  "Asia/Kolkata", "Australia/Sydney",
+  "Americas/Eastern", "Americas/Central", "Americas/Mountain", "Americas/Pacific",
 ];
 
 function detectTimezone() {

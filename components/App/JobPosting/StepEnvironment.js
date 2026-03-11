@@ -35,7 +35,7 @@ export default function StepEnvironment({ data, onNext, onBack, onSaveExit, onSk
       </p>
 
       <div className="form-group">
-        <label className="form-label">Work Location</label>
+        <label className="form-label">Work Location *</label>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {WORK_LOCATIONS.map((loc) => (
             <label key={loc.value} className="form-checkbox">

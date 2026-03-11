@@ -29,7 +29,7 @@ export default function StepPositionDetail({ data, onNext, onBack, onSaveExit, o
       </div>
 
       <div className="form-group">
-        <label className="form-label">Description</label>
+        <label className="form-label">Description *</label>
         <p className="form-hint">Describe the role, responsibilities, and what you're looking for.</p>
         <textarea
           className="form-input form-textarea"

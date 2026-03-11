@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 const AddressAutocomplete = dynamic(() => import("@/components/App/AddressAutocomplete"), { ssr: false });
 
 const TIMEZONES = [
-  "US/Eastern", "US/Central", "US/Mountain", "US/Pacific", "US/Alaska", "US/Hawaii",
+  "Americas/Eastern", "Americas/Central", "Americas/Mountain", "Americas/Pacific",
 ];
 
 const STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];

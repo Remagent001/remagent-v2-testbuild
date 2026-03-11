@@ -20,6 +20,7 @@ export async function GET() {
     include: {
       skills: { include: { skill: true } },
       channels: { include: { channel: true } },
+      positionApps: { include: { application: true } },
       _count: { select: { applications: true, offers: true, hires: true } },
     },
     orderBy: { createdAt: "desc" },

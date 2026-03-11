@@ -7,13 +7,34 @@ export default function AdminReviewListClient() {
   const router = useRouter();
   const [positions, setPositions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [approving, setApproving] = useState(null);
 
-  useEffect(() => {
+  // Filters
+  const [sortBy, setSortBy] = useState("newest"); // newest, oldest
+  const [filterBusiness, setFilterBusiness] = useState("all");
+  const [filterResubmitted, setFilterResubmitted] = useState(false);
+
+  const loadPositions = () => {
     fetch("/api/admin/positions")
       .then((r) => r.json())
       .then((data) => setPositions(data.positions || []))
       .finally(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(() => { loadPositions(); }, []);
+
+  // Quick approve from list
+  const handleQuickApprove = async (posId, e) => {
+    e.stopPropagation();
+    setApproving(posId);
+    await fetch(`/api/admin/positions/${posId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "approve" }),
+    });
+    loadPositions();
+    setApproving(null);
+  };
 
   if (loading) {
     return (
@@ -24,8 +45,31 @@ export default function AdminReviewListClient() {
     );
   }
 
-  const needsReview = positions.filter((p) => !p.reviewRequired);
-  const sentBack = positions.filter((p) => p.reviewRequired);
+  // Get unique business names for filter
+  const businessNames = [...new Set(positions.map((p) => {
+    return p.user?.businessProfile?.businessName || `${p.user?.firstName} ${p.user?.lastName}`;
+  }))].sort();
+
+  // Apply filters
+  let filtered = [...positions];
+  if (filterBusiness !== "all") {
+    filtered = filtered.filter((p) => {
+      const name = p.user?.businessProfile?.businessName || `${p.user?.firstName} ${p.user?.lastName}`;
+      return name === filterBusiness;
+    });
+  }
+  if (filterResubmitted) {
+    filtered = filtered.filter((p) => p.resubmittedAt);
+  }
+
+  // Apply sort
+  filtered.sort((a, b) => {
+    if (sortBy === "newest") return new Date(b.createdAt) - new Date(a.createdAt);
+    return new Date(a.createdAt) - new Date(b.createdAt);
+  });
+
+  const needsReview = filtered.filter((p) => !p.reviewRequired);
+  const sentBack = filtered.filter((p) => p.reviewRequired);
 
   return (
     <div className="positions-page">
@@ -33,6 +77,42 @@ export default function AdminReviewListClient() {
         <h1 className="page-title">Review Job Postings</h1>
         <p className="page-subtitle">Approve or send back job postings submitted by businesses.</p>
       </div>
+
+      {/* Sort & Filter controls */}
+      {positions.length > 0 && (
+        <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
+          <select
+            className="form-input form-select"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            style={{ width: "auto", fontSize: "0.85rem", padding: "6px 12px" }}
+          >
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+          </select>
+          {businessNames.length > 1 && (
+            <select
+              className="form-input form-select"
+              value={filterBusiness}
+              onChange={(e) => setFilterBusiness(e.target.value)}
+              style={{ width: "auto", fontSize: "0.85rem", padding: "6px 12px" }}
+            >
+              <option value="all">All Businesses</option>
+              {businessNames.map((name) => (
+                <option key={name} value={name}>{name}</option>
+              ))}
+            </select>
+          )}
+          <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.85rem", color: "var(--gray-600)", cursor: "pointer" }}>
+            <input
+              type="checkbox"
+              checked={filterResubmitted}
+              onChange={(e) => setFilterResubmitted(e.target.checked)}
+            />
+            Resubmitted only
+          </label>
+        </div>
+      )}
 
       {positions.length === 0 ? (
         <div className="card" style={{ textAlign: "center", padding: "48px 24px" }}>
@@ -55,7 +135,13 @@ export default function AdminReviewListClient() {
               </h2>
               <div className="positions-list">
                 {needsReview.map((pos) => (
-                  <ReviewCard key={pos.id} pos={pos} router={router} />
+                  <ReviewCard
+                    key={pos.id}
+                    pos={pos}
+                    router={router}
+                    onQuickApprove={handleQuickApprove}
+                    approving={approving}
+                  />
                 ))}
               </div>
             </div>
@@ -69,7 +155,14 @@ export default function AdminReviewListClient() {
               </h2>
               <div className="positions-list">
                 {sentBack.map((pos) => (
-                  <ReviewCard key={pos.id} pos={pos} router={router} isSentBack />
+                  <ReviewCard
+                    key={pos.id}
+                    pos={pos}
+                    router={router}
+                    isSentBack
+                    onQuickApprove={handleQuickApprove}
+                    approving={approving}
+                  />
                 ))}
               </div>
             </div>
@@ -80,14 +173,17 @@ export default function AdminReviewListClient() {
   );
 }
 
-function ReviewCard({ pos, router, isSentBack }) {
+function ReviewCard({ pos, router, isSentBack, onQuickApprove, approving }) {
   const businessName = pos.user?.businessProfile?.businessName || `${pos.user?.firstName} ${pos.user?.lastName}`;
+  const submittedDate = new Date(pos.createdAt).toLocaleDateString();
+  const isResubmitted = !!pos.resubmittedAt;
+
   return (
     <div className="card position-card" style={{ cursor: "pointer" }}
       onClick={() => router.push(`/admin/review-postings/${pos.id}`)}>
       <div className="position-card-header">
         <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4, flexWrap: "wrap" }}>
             <h3 className="position-card-title">{pos.title || "Untitled Position"}</h3>
             <span
               className="position-status-badge"
@@ -104,21 +200,40 @@ function ReviewCard({ pos, router, isSentBack }) {
             }}>
               {pos.visibility === "public" ? "Will be Public" : "Will be Private"}
             </span>
+            {isResubmitted && (
+              <span
+                className="position-status-badge"
+                style={{ backgroundColor: "#3b82f618", color: "#3b82f6" }}
+              >
+                Resubmitted
+              </span>
+            )}
           </div>
           <p className="position-card-meta">
             Submitted by <strong>{businessName}</strong>
             {" · "}{pos.user?.email}
+            {" · "}{submittedDate}
             {pos.regularRate ? ` · $${pos.regularRate}/hr` : ""}
             {pos.numberOfHires > 1 ? ` · ${pos.numberOfHires} hires` : ""}
           </p>
         </div>
-        <button
-          className="btn-primary"
-          style={{ width: "auto", padding: "8px 16px", fontSize: "0.85rem" }}
-          onClick={(e) => { e.stopPropagation(); router.push(`/admin/review-postings/${pos.id}`); }}
-        >
-          Review
-        </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            className="btn-primary"
+            style={{ width: "auto", padding: "8px 16px", fontSize: "0.85rem", background: "#10b981" }}
+            onClick={(e) => onQuickApprove(pos.id, e)}
+            disabled={approving === pos.id}
+          >
+            {approving === pos.id ? "..." : "Approve"}
+          </button>
+          <button
+            className="btn-secondary"
+            style={{ width: "auto", padding: "8px 16px", fontSize: "0.85rem" }}
+            onClick={(e) => { e.stopPropagation(); router.push(`/admin/review-postings/${pos.id}`); }}
+          >
+            Review
+          </button>
+        </div>
       </div>
 
       {isSentBack && pos.adminNote && (

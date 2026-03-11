@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
+import { useState, useEffect } from "react";
 
 // Simple inline SVG icons to avoid extra dependencies
 const icons = {
@@ -66,6 +67,12 @@ const icons = {
       <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
     </svg>
   ),
+  building: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="4" y="2" width="16" height="20" rx="2" /><path d="M9 22v-4h6v4" />
+      <path d="M8 6h.01" /><path d="M16 6h.01" /><path d="M8 10h.01" /><path d="M16 10h.01" /><path d="M8 14h.01" /><path d="M16 14h.01" />
+    </svg>
+  ),
 };
 
 // Navigation config — different links for professional vs business
@@ -87,7 +94,7 @@ const bizNav = [
     { href: "/dashboard", label: "Dashboard", icon: "dashboard" },
     { href: "/company-profile", label: "Company Profile", icon: "profile" },
     { href: "/search", label: "Search Professionals", icon: "search" },
-    { href: "/positions", label: "Job Postings", icon: "briefcase" },
+    { href: "/positions", label: "Job Postings", icon: "briefcase", badgeKey: "positions" },
   ]},
   { section: "Manage", links: [
     { href: "/invites", label: "Invites", icon: "clipboard" },
@@ -102,7 +109,8 @@ const bizNav = [
 
 const adminNav = [
   { section: "Admin", links: [
-    { href: "/admin/review-postings", label: "Review Postings", icon: "clipboard" },
+    { href: "/admin/review-postings", label: "Review Postings", icon: "clipboard", badgeKey: "adminReview" },
+    { href: "/admin/businesses", label: "Businesses", icon: "building" },
   ]},
 ];
 
@@ -111,6 +119,37 @@ export default function Sidebar({ isOpen, onClose, role = "professional", user =
   const isAdmin = role === "admin";
   const baseNav = isAdmin ? bizNav : (role === "business" ? bizNav : proNav);
   const nav = isAdmin ? [...adminNav, ...baseNav] : baseNav;
+
+  // Fetch badge counts
+  const [badges, setBadges] = useState({});
+
+  useEffect(() => {
+    if (role === "business" || isAdmin) {
+      // Get positions needing attention (admin notes)
+      fetch("/api/positions")
+        .then((r) => r.json())
+        .then((data) => {
+          const positions = data.positions || [];
+          const needsAttention = positions.filter((p) => p.reviewRequired && p.adminNote).length;
+          if (needsAttention > 0) {
+            setBadges((prev) => ({ ...prev, positions: needsAttention }));
+          }
+        })
+        .catch(() => {});
+    }
+    if (isAdmin) {
+      // Get pending review count
+      fetch("/api/admin/positions")
+        .then((r) => r.json())
+        .then((data) => {
+          const count = (data.positions || []).length;
+          if (count > 0) {
+            setBadges((prev) => ({ ...prev, adminReview: count }));
+          }
+        })
+        .catch(() => {});
+    }
+  }, [role, isAdmin]);
 
   return (
     <aside className={`sidebar ${isOpen ? "open" : ""}`}>
@@ -128,9 +167,25 @@ export default function Sidebar({ isOpen, onClose, role = "professional", user =
                 href={link.href}
                 className={`sidebar-link ${pathname === link.href || pathname.startsWith(link.href + "/") ? "active" : ""}`}
                 onClick={onClose}
+                style={{ position: "relative" }}
               >
                 {icons[link.icon]}
                 {link.label}
+                {link.badgeKey && badges[link.badgeKey] > 0 && (
+                  <span style={{
+                    marginLeft: "auto",
+                    background: "#ef4444",
+                    color: "white",
+                    fontSize: "0.65rem",
+                    fontWeight: 700,
+                    padding: "2px 7px",
+                    borderRadius: 10,
+                    minWidth: 18,
+                    textAlign: "center",
+                  }}>
+                    {badges[link.badgeKey]}
+                  </span>
+                )}
               </Link>
             ))}
           </div>

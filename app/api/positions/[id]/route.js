@@ -11,7 +11,7 @@ export async function GET(request, { params }) {
 
   const { id } = await params;
 
-  const [position, allSkills, allChannels, allApplications] = await Promise.all([
+  const [position, allSkills, allChannels, allApplications, businessProfile] = await Promise.all([
     prisma.position.findUnique({
       where: { id, userId: session.user.id },
       include: {
@@ -26,13 +26,21 @@ export async function GET(request, { params }) {
     prisma.skill.findMany({ orderBy: { name: "asc" } }),
     prisma.channel.findMany({ orderBy: { name: "asc" } }),
     prisma.application.findMany({ orderBy: { name: "asc" } }),
+    prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { timezone: true },
+    }),
   ]);
 
   if (!position) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ position, allSkills, allChannels, allApplications });
+  // Pass business timezone so Availability step can default to it
+  const businessTimezone = businessProfile?.timezone || null;
+  // businessProfile here is actually the user record (for timezone)
+
+  return NextResponse.json({ position, allSkills, allChannels, allApplications, businessTimezone });
 }
 
 // PUT — update position

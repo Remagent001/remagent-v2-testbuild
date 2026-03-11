@@ -11,9 +11,9 @@ function safeParse(val) {
 // Decide if a step has meaningful data filled in
 function isStepComplete(step, data) {
   switch (step) {
-    case 1: return !!(data.title && data.title.trim());
+    case 1: return !!(data.title && data.title.trim() && data.description && data.description.trim());
     case 2: return !!(data.channels?.length || data.skills?.length || data.applications?.length);
-    case 3: return !!(data.workLocation?.length || data.equipmentPolicy);
+    case 3: return !!(data.workLocation?.length);
     case 4: return !!(data.schedule?.length);
     case 5: return !!(data.regularRate && parseFloat(data.regularRate) > 0);
     case 6: return !!(data.contractType || data.startOption);
@@ -255,15 +255,33 @@ export async function PUT(request, { params }) {
     }
 
     case 9: {
-      const newStatus = data.status === "pending_approval" ? "pending_approval" : position.status;
+      let newStatus = data.status === "pending_approval" ? "pending_approval" : position.status;
+      const updateData = {
+        visibility: data.visibility || position.visibility,
+        status: newStatus,
+        completedSteps: JSON.stringify(completedSteps),
+        currentStep: nextStep,
+      };
+
+      // Check if this business has auto-approve enabled
+      if (newStatus === "pending_approval") {
+        const bizProfile = await prisma.businessProfile.findUnique({
+          where: { userId: session.user.id },
+          select: { autoApprove: true },
+        });
+        if (bizProfile?.autoApprove) {
+          const vis = data.visibility || position.visibility;
+          updateData.status = vis === "private" ? "private" : "published";
+          updateData.approvedAt = new Date();
+          updateData.approvedBy = "auto";
+          updateData.reviewRequired = false;
+          updateData.adminNote = null;
+        }
+      }
+
       await prisma.position.update({
         where: { id },
-        data: {
-          visibility: data.visibility || position.visibility,
-          status: newStatus,
-          completedSteps: JSON.stringify(completedSteps),
-          currentStep: nextStep,
-        },
+        data: updateData,
       });
       break;
     }

@@ -41,6 +41,7 @@ export async function PUT(request, { params }) {
       data: {
         reviewRequired: false,
         adminNote: null,
+        resubmittedAt: new Date(),
       },
     });
     return NextResponse.json({ success: true });
