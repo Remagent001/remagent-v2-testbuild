@@ -290,5 +290,11 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: "Invalid step" }, { status: 400 });
   }
 
+  // For step 9, return the final status so the client knows where to redirect
+  if (step === 9) {
+    const updated = await prisma.position.findUnique({ where: { id }, select: { status: true } });
+    return NextResponse.json({ success: true, status: updated?.status });
+  }
+
   return NextResponse.json({ success: true });
 }

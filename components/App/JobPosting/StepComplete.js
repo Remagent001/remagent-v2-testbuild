@@ -10,7 +10,7 @@ function safeParse(val) {
 
 const STEP_NAMES = {
   1: "Position Detail",
-  2: "Context (Channels/Skills/Apps)",
+  2: "Experience (Channels/Skills/Apps)",
   3: "Environment",
   4: "Availability",
   5: "Hourly Rate",
@@ -25,7 +25,10 @@ export default function StepComplete({ data, onNext, onBack, onSaveExit, saving 
   const [showConfirm, setShowConfirm] = useState(false);
 
   const completedSteps = safeParse(pos?.completedSteps);
+  const defaultSteps = safeParse(pos?.defaultSteps);
   const incompleteSteps = [1, 2, 3, 4, 5, 6, 7, 8].filter((n) => !completedSteps.includes(n));
+  const trulyIncomplete = incompleteSteps.filter((n) => !defaultSteps.includes(n));
+  const usingDefaults = incompleteSteps.filter((n) => defaultSteps.includes(n));
 
   const getData = () => ({ visibility, status: "pending_approval" });
 
@@ -147,15 +150,40 @@ export default function StepComplete({ data, onNext, onBack, onSaveExit, saving 
             padding: "28px 32px", maxWidth: 460, width: "90%",
             background: "white", borderRadius: 12,
           }}>
-            <h3 style={{ marginBottom: 12, color: "var(--gray-800)" }}>Incomplete Sections</h3>
-            <p style={{ fontSize: "0.9rem", color: "var(--gray-600)", marginBottom: 16 }}>
-              The following sections have not been filled out:
-            </p>
-            <ul style={{ margin: "0 0 20px 20px", fontSize: "0.85rem", color: "var(--gray-500)" }}>
-              {incompleteSteps.map((n) => (
-                <li key={n} style={{ marginBottom: 4 }}>{STEP_NAMES[n]}</li>
-              ))}
-            </ul>
+            <h3 style={{ marginBottom: 12, color: "var(--gray-800)" }}>Review Before Submitting</h3>
+
+            {trulyIncomplete.length > 0 && (
+              <>
+                <p style={{ fontSize: "0.9rem", color: "var(--gray-600)", marginBottom: 8 }}>
+                  The following sections have not been filled out:
+                </p>
+                <ul style={{ margin: "0 0 16px 20px", fontSize: "0.85rem", color: "#ef4444" }}>
+                  {trulyIncomplete.map((n) => (
+                    <li key={n} style={{ marginBottom: 4 }}>{STEP_NAMES[n]}</li>
+                  ))}
+                </ul>
+              </>
+            )}
+
+            {usingDefaults.length > 0 && (
+              <div style={{
+                padding: "12px 16px",
+                background: "var(--blue-50, #eff6ff)",
+                borderRadius: 8,
+                marginBottom: 16,
+                borderLeft: "3px solid var(--blue-500, #3b82f6)",
+              }}>
+                <p style={{ fontSize: "0.85rem", color: "var(--gray-600)", marginBottom: 6 }}>
+                  These sections are using your saved defaults:
+                </p>
+                <ul style={{ margin: "0 0 0 16px", fontSize: "0.85rem", color: "var(--gray-500)" }}>
+                  {usingDefaults.map((n) => (
+                    <li key={n} style={{ marginBottom: 2 }}>{STEP_NAMES[n]}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             <p style={{ fontSize: "0.9rem", color: "var(--gray-600)", marginBottom: 20 }}>
               Are you sure you want to submit this posting for approval?
             </p>

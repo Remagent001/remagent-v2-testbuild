@@ -167,8 +167,15 @@ export default function SearchProfessionalsClient() {
     }
   }, [keyword, state, zip, radius, centerCoords, minRate, maxRate, lastLogin, selectedSkills, selectedChannels, selectedApps, showMap]);
 
-  // Initial search on mount
-  useEffect(() => { doSearch(1); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Auto-apply: search whenever any filter changes (debounced)
+  const debounceRef = useRef(null);
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      doSearch(1);
+    }, initialLoad ? 0 : 400);
+    return () => clearTimeout(debounceRef.current);
+  }, [keyword, state, minRate, maxRate, lastLogin, selectedSkills, selectedChannels, selectedApps]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -204,25 +211,39 @@ export default function SearchProfessionalsClient() {
     }, 0);
   };
 
-  // Handle zip + radius search
-  const handleLocationSearch = async () => {
-    if (!zip || !radius) return;
-    const coords = await geocodeZip(zip);
-    if (coords) {
-      setCenterCoords(coords);
-      setShowMap(true);
-      doSearch(1, coords);
-    } else {
-      alert("Could not find that zip code. Please check and try again.");
+  // Auto-trigger zip+radius search when both are filled
+  const zipSearchRef = useRef(null);
+  useEffect(() => {
+    if (zipSearchRef.current) clearTimeout(zipSearchRef.current);
+    if (zip.length === 5 && radius > 0) {
+      zipSearchRef.current = setTimeout(async () => {
+        const coords = await geocodeZip(zip);
+        if (coords) {
+          setCenterCoords(coords);
+          setShowMap(true);
+          doSearch(1, coords);
+        }
+      }, 500);
+    } else if (!zip && !radius) {
+      // Cleared — hide map and search without location
+      setCenterCoords(null);
+      setShowMap(false);
     }
-  };
+    return () => clearTimeout(zipSearchRef.current);
+  }, [zip, radius]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Initialize Google Map
+  const circleRef = useRef(null);
   const initMap = useCallback((center, pros) => {
     if (!mapRef.current || !window.google) return;
+
+    // Zoom level based on radius
+    const zoomForRadius = { 10: 11, 25: 10, 50: 9, 100: 8, 200: 7 };
+    const zoom = zoomForRadius[radius] || 9;
+
     const map = new window.google.maps.Map(mapRef.current, {
       center,
-      zoom: 9,
+      zoom,
       disableDefaultUI: true,
       zoomControl: true,
       mapTypeControl: false,
@@ -246,15 +267,17 @@ export default function SearchProfessionalsClient() {
     });
 
     // Add radius circle
-    new window.google.maps.Circle({
+    if (circleRef.current) circleRef.current.setMap(null);
+    const radiusMeters = radius * 1609.34;
+    circleRef.current = new window.google.maps.Circle({
       map,
       center,
-      radius: radius * 1609.34, // miles to meters
+      radius: radiusMeters,
       fillColor: "#0d9488",
-      fillOpacity: 0.08,
+      fillOpacity: 0.1,
       strokeColor: "#0d9488",
-      strokeOpacity: 0.3,
-      strokeWeight: 1,
+      strokeOpacity: 0.4,
+      strokeWeight: 2,
     });
 
     updateMapMarkers(map, pros);
@@ -310,7 +333,7 @@ export default function SearchProfessionalsClient() {
     document.head.appendChild(script);
   }, [showMap, centerCoords, initMap, results]);
 
-  const hasFilters = keyword || selectedSkills.length || selectedChannels.length || selectedApps.length || state || zip || minRate || maxRate || lastLogin;
+  const hasFilters = !!(keyword || selectedSkills.length || selectedChannels.length || selectedApps.length || state || zip || minRate || maxRate || lastLogin);
 
   return (
     <div className="positions-page">
@@ -399,14 +422,10 @@ export default function SearchProfessionalsClient() {
                   ))}
                 </select>
               </div>
-              {zip.length === 5 && radius > 0 && (
-                <button
-                  className="btn-secondary"
-                  style={{ width: "100%", fontSize: "0.8rem", padding: "6px 0" }}
-                  onClick={handleLocationSearch}
-                >
-                  Search {radius} miles from {zip}
-                </button>
+              {zip.length === 5 && radius > 0 && centerCoords && (
+                <p style={{ fontSize: "0.75rem", color: "var(--teal)", marginTop: 4 }}>
+                  Showing within {radius} mi of {zip}
+                </p>
               )}
             </FilterSection>
 
@@ -463,13 +482,6 @@ export default function SearchProfessionalsClient() {
               />
             </FilterSection>
 
-            <button
-              className="btn-primary"
-              style={{ width: "100%", marginTop: 16 }}
-              onClick={() => doSearch(1)}
-            >
-              Apply Filters
-            </button>
           </div>
         )}
 

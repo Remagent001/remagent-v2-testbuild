@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
+
+const RichTextEditor = dynamic(() => import("@/components/App/RichTextEditor"), { ssr: false });
 
 export default function StepPositionDetail({ data, onNext, onBack, onSaveExit, onSkip, saving, isFirst }) {
   const pos = data?.position;
@@ -31,12 +34,11 @@ export default function StepPositionDetail({ data, onNext, onBack, onSaveExit, o
       <div className="form-group">
         <label className="form-label">Description *</label>
         <p className="form-hint">Describe the role, responsibilities, and what you're looking for.</p>
-        <textarea
-          className="form-input form-textarea"
+        <RichTextEditor
+          content={description}
+          onChange={setDescription}
           placeholder="Tell professionals about this position..."
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={6}
+          maxLength={5000}
         />
       </div>
 

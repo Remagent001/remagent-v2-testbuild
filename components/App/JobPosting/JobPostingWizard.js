@@ -89,7 +89,7 @@ export default function JobPostingWizard({ positionId }) {
   }, [isNew, positionId, loadData]);
 
   const saveStep = async (stepNum, stepData) => {
-    if (!posId) return false;
+    if (!posId) return null;
     setSaving(true);
     setError("");
     try {
@@ -102,21 +102,24 @@ export default function JobPostingWizard({ positionId }) {
         const err = await res.json();
         throw new Error(err.error || "Save failed");
       }
+      const result = await res.json();
       await loadData(posId);
-      return true;
+      return result;
     } catch (e) {
       setError(e.message);
-      return false;
+      return null;
     } finally {
       setSaving(false);
     }
   };
 
   const handleNext = async (stepData) => {
-    const ok = await saveStep(currentStep, stepData);
-    if (ok) {
+    const result = await saveStep(currentStep, stepData);
+    if (result) {
       if (currentStep === TOTAL) {
-        router.push("/positions");
+        // Redirect to the correct tab based on the position's final status
+        const tab = result.status || "pending_approval";
+        router.push(`/positions?tab=${tab}`);
       } else {
         setCurrentStep(currentStep + 1);
       }

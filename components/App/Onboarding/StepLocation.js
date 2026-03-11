@@ -46,7 +46,7 @@ export default function StepLocation({ data, onNext, onBack, onSaveExit, onSkip,
   return (
     <div className="onboarding-step">
       <p className="onboarding-step-desc">
-        Where are you located? Your address will only be shared upon agreed upon employment.
+        Where are you located? Your address will only be shared after agreed upon employment.
       </p>
 
       <div className="form-group">
