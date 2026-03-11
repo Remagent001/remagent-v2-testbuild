@@ -102,3 +102,38 @@ export async function GET(request) {
 
   return NextResponse.json({ invites });
 }
+
+// PUT — update invite status (withdraw)
+export async function PUT(request) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { inviteId, status } = await request.json();
+
+  if (!inviteId || !status) {
+    return NextResponse.json({ error: "Missing inviteId or status" }, { status: 400 });
+  }
+
+  // Verify the invite belongs to one of this user's positions
+  const invite = await prisma.jobOffer.findUnique({
+    where: { id: inviteId },
+    include: { position: { select: { userId: true } } },
+  });
+
+  if (!invite || invite.position.userId !== session.user.id) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  if (status === "withdrawn" && invite.status !== "pending") {
+    return NextResponse.json({ error: "Can only withdraw pending invites" }, { status: 400 });
+  }
+
+  await prisma.jobOffer.update({
+    where: { id: inviteId },
+    data: { status },
+  });
+
+  return NextResponse.json({ success: true });
+}
