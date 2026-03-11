@@ -948,6 +948,19 @@ function FilterSection({ title, children }) {
 function MultiSelect({ items, selected, onChange, placeholder }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const containerRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    if (!open) return;
+    const handleClick = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
 
   const filtered = search
     ? items.filter((i) => i.name.toLowerCase().includes(search.toLowerCase()))
@@ -958,7 +971,7 @@ function MultiSelect({ items, selected, onChange, placeholder }) {
   };
 
   return (
-    <div style={{ position: "relative" }}>
+    <div style={{ position: "relative" }} ref={containerRef}>
       <div
         onClick={() => setOpen(!open)}
         style={{
@@ -1041,6 +1054,21 @@ function MultiSelect({ items, selected, onChange, placeholder }) {
                 No matches
               </div>
             )}
+          </div>
+          <div
+            style={{ padding: "6px 12px", borderTop: "1px solid var(--gray-100)", textAlign: "right" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              style={{
+                background: "none", border: "none", cursor: "pointer",
+                fontSize: "0.8rem", fontWeight: 600, color: "var(--teal)", padding: "4px 8px",
+              }}
+            >
+              Done
+            </button>
           </div>
         </div>
       )}
