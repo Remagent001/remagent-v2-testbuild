@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import InviteModal from "./InviteModal";
 
 function safeParse(val, fallback = []) {
@@ -43,6 +43,8 @@ function formatPhone(phone) {
 
 export default function ViewProfessionalClient({ professionalId }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const fromPage = searchParams.get("from");
   const [pro, setPro] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showInvite, setShowInvite] = useState(false);
@@ -79,9 +81,14 @@ export default function ViewProfessionalClient({ professionalId }) {
       <button
         className="btn-link"
         style={{ padding: 0, fontSize: "0.85rem", marginBottom: 12 }}
-        onClick={() => router.back()}
+        onClick={() => {
+          if (fromPage === "invites") router.push("/invites");
+          else if (fromPage === "applicants") router.push("/applicants");
+          else if (fromPage === "hires") router.push("/hires");
+          else router.back();
+        }}
       >
-        &larr; Back to Search
+        &larr; {fromPage === "invites" ? "Back to Invites Sent" : fromPage === "applicants" ? "Back to Applicants" : fromPage === "hires" ? "Back to Hires" : "Back to Search"}
       </button>
 
       {/* Hero card */}
@@ -185,12 +192,14 @@ export default function ViewProfessionalClient({ professionalId }) {
           )}
         </div>
 
-        {/* Invite button */}
-        <div style={{ marginTop: 20 }}>
-          <button className="btn-primary" style={{ width: "auto" }} onClick={() => setShowInvite(true)}>
-            Invite to Apply
-          </button>
-        </div>
+        {/* Invite button — hide when coming from invites/applicants/hires */}
+        {!fromPage && (
+          <div style={{ marginTop: 20 }}>
+            <button className="btn-primary" style={{ width: "auto" }} onClick={() => setShowInvite(true)}>
+              Invite to Apply
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Sections */}

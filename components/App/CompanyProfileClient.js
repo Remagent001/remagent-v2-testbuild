@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 
 const AddressAutocomplete = dynamic(() => import("@/components/App/AddressAutocomplete"), { ssr: false });
@@ -20,6 +21,7 @@ function formatPhone(value) {
 }
 
 export default function CompanyProfileClient() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -141,7 +143,9 @@ export default function CompanyProfileClient() {
         }),
       });
       setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 800);
     } catch {}
     setSaving(false);
   };

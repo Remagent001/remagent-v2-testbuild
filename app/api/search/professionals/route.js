@@ -35,6 +35,12 @@ export async function GET(request) {
   const minRate = parseFloat(searchParams.get("minRate")) || 0;
   const maxRate = parseFloat(searchParams.get("maxRate")) || 0;
   const lastLoginDays = parseInt(searchParams.get("lastLogin")) || 0;
+  const industryIds = searchParams.getAll("industry");
+  const availableDays = searchParams.getAll("day");
+  const language = searchParams.get("language") || "";
+  const degree = searchParams.get("degree") || "";
+  const experience = searchParams.get("experience") || "";
+  const environment = searchParams.get("environment") || "";
   const page = parseInt(searchParams.get("page")) || 1;
   const limit = 20;
 
@@ -103,6 +109,52 @@ export async function GET(request) {
     ];
   }
 
+  // Industries filter — must have ALL selected industries
+  if (industryIds.length > 0) {
+    where.AND = [
+      ...(where.AND || []),
+      ...industryIds.map((id) => ({
+        industries: { some: { industryId: id } },
+      })),
+    ];
+  }
+
+  // Availability filter — must be available on ALL selected days
+  if (availableDays.length > 0) {
+    where.AND = [
+      ...(where.AND || []),
+      ...availableDays.map((day) => ({
+        availability: { some: { day } },
+      })),
+    ];
+  }
+
+  // Language filter — must speak this language
+  if (language) {
+    where.languages = { some: { language: { contains: language } } };
+  }
+
+  // Degree filter — must have this degree level
+  if (degree) {
+    where.education = { some: { degree: { contains: degree } } };
+  }
+
+  // Overall experience filter
+  if (experience) {
+    where.professionalProfile = {
+      ...where.professionalProfile,
+      isNot: null,
+      overallExperience: experience,
+    };
+  }
+
+  // Environment filter — work from home or office
+  if (environment === "wfh") {
+    where.environment = { ...where.environment, workFromHome: true };
+  } else if (environment === "office") {
+    where.environment = { ...where.environment, workFromOffice: true };
+  }
+
   // For radius search, we need to get location coordinates too
   const locationSelect = { city: true, state: true, zip: true, latitude: true, longitude: true };
 
@@ -134,8 +186,20 @@ export async function GET(request) {
       applications: {
         select: { application: { select: { id: true, name: true } }, experience: true },
       },
+      industries: {
+        select: { industry: { select: { id: true, name: true } }, experience: true },
+      },
       availability: {
         select: { day: true, startTime: true, endTime: true },
+      },
+      languages: {
+        select: { language: true, proficiency: true },
+      },
+      education: {
+        select: { degree: true, institution: true, areaOfStudy: true },
+      },
+      environment: {
+        select: { workFromHome: true, workFromOffice: true },
       },
     },
     orderBy: [

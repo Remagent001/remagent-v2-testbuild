@@ -250,11 +250,14 @@ function ReviewCard({ pos, router, isSentBack, onQuickApprove, approving }) {
         </div>
       )}
 
-      {pos.description && (
-        <p className="position-card-desc" style={{ marginTop: 8 }}>
-          {pos.description.length > 200 ? pos.description.slice(0, 200) + "..." : pos.description}
-        </p>
-      )}
+      {pos.description && (() => {
+        const text = pos.description.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
+        return text ? (
+          <p className="position-card-desc" style={{ marginTop: 8 }}>
+            {text.length > 200 ? text.slice(0, 200) + "..." : text}
+          </p>
+        ) : null;
+      })()}
     </div>
   );
 }

@@ -9,11 +9,12 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const [allSkills, allChannels, allApplications] = await Promise.all([
+  const [allSkills, allChannels, allApplications, allIndustries] = await Promise.all([
     prisma.skill.findMany({ orderBy: { name: "asc" } }),
     prisma.channel.findMany({ orderBy: { name: "asc" } }),
     prisma.application.findMany({ orderBy: { name: "asc" } }),
+    prisma.industry.findMany({ orderBy: { name: "asc" } }),
   ]);
 
-  return NextResponse.json({ allSkills, allChannels, allApplications });
+  return NextResponse.json({ allSkills, allChannels, allApplications, allIndustries });
 }

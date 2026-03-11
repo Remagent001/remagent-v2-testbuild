@@ -103,6 +103,7 @@ export default function SearchProfessionalsClient() {
   const [allSkills, setAllSkills] = useState([]);
   const [allChannels, setAllChannels] = useState([]);
   const [allApplications, setAllApplications] = useState([]);
+  const [allIndustries, setAllIndustries] = useState([]);
 
   // Filter values
   const [keyword, setKeyword] = useState("");
@@ -116,6 +117,12 @@ export default function SearchProfessionalsClient() {
   const [minRate, setMinRate] = useState("");
   const [maxRate, setMaxRate] = useState("");
   const [lastLogin, setLastLogin] = useState(0);
+  const [selectedIndustries, setSelectedIndustries] = useState([]);
+  const [selectedDays, setSelectedDays] = useState([]);
+  const [language, setLanguage] = useState("");
+  const [degree, setDegree] = useState("");
+  const [experience, setExperience] = useState("");
+  const [environment, setEnvironment] = useState("");
 
   // Load lookup data
   useEffect(() => {
@@ -125,6 +132,7 @@ export default function SearchProfessionalsClient() {
         setAllSkills(data.allSkills || []);
         setAllChannels(data.allChannels || []);
         setAllApplications(data.allApplications || []);
+        setAllIndustries(data.allIndustries || []);
       });
   }, []);
 
@@ -140,6 +148,12 @@ export default function SearchProfessionalsClient() {
     selectedSkills.forEach((id) => params.append("skill", id));
     selectedChannels.forEach((id) => params.append("channel", id));
     selectedApps.forEach((id) => params.append("application", id));
+    selectedIndustries.forEach((id) => params.append("industry", id));
+    selectedDays.forEach((d) => params.append("day", d));
+    if (language) params.set("language", language);
+    if (degree) params.set("degree", degree);
+    if (experience) params.set("experience", experience);
+    if (environment) params.set("environment", environment);
 
     // Zip + radius
     const coords = overrideCoords || centerCoords;
@@ -165,7 +179,7 @@ export default function SearchProfessionalsClient() {
     if (showMap && coords) {
       updateMap(data.professionals || [], coords);
     }
-  }, [keyword, state, zip, radius, centerCoords, minRate, maxRate, lastLogin, selectedSkills, selectedChannels, selectedApps, showMap]);
+  }, [keyword, state, zip, radius, centerCoords, minRate, maxRate, lastLogin, selectedSkills, selectedChannels, selectedApps, selectedIndustries, selectedDays, language, degree, experience, environment, showMap]);
 
   // Auto-apply: search whenever any filter changes (debounced)
   const debounceRef = useRef(null);
@@ -175,7 +189,7 @@ export default function SearchProfessionalsClient() {
       doSearch(1);
     }, initialLoad ? 0 : 400);
     return () => clearTimeout(debounceRef.current);
-  }, [keyword, state, minRate, maxRate, lastLogin, selectedSkills, selectedChannels, selectedApps]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [keyword, state, minRate, maxRate, lastLogin, selectedSkills, selectedChannels, selectedApps, selectedIndustries, selectedDays, language, degree, experience, environment]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -187,6 +201,12 @@ export default function SearchProfessionalsClient() {
     setSelectedSkills([]);
     setSelectedChannels([]);
     setSelectedApps([]);
+    setSelectedIndustries([]);
+    setSelectedDays([]);
+    setLanguage("");
+    setDegree("");
+    setExperience("");
+    setEnvironment("");
     setState("");
     setZip("");
     setRadius(0);
@@ -333,7 +353,7 @@ export default function SearchProfessionalsClient() {
     document.head.appendChild(script);
   }, [showMap, centerCoords, initMap, results]);
 
-  const hasFilters = !!(keyword || selectedSkills.length || selectedChannels.length || selectedApps.length || state || zip || minRate || maxRate || lastLogin);
+  const hasFilters = !!(keyword || selectedSkills.length || selectedChannels.length || selectedApps.length || selectedIndustries.length || selectedDays.length || language || degree || experience || environment || state || zip || minRate || maxRate || lastLogin);
 
   return (
     <div className="positions-page">
@@ -480,6 +500,106 @@ export default function SearchProfessionalsClient() {
                 onChange={setSelectedApps}
                 placeholder="Select applications..."
               />
+            </FilterSection>
+
+            {/* Industries */}
+            <FilterSection title="Industries">
+              <MultiSelect
+                items={allIndustries}
+                selected={selectedIndustries}
+                onChange={setSelectedIndustries}
+                placeholder="Select industries..."
+              />
+            </FilterSection>
+
+            {/* Availability */}
+            <FilterSection title="Availability">
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                {DAY_ORDER.map((day) => {
+                  const selected = selectedDays.includes(day);
+                  return (
+                    <button
+                      key={day}
+                      type="button"
+                      onClick={() => {
+                        setSelectedDays((prev) =>
+                          prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+                        );
+                      }}
+                      style={{
+                        padding: "4px 10px",
+                        borderRadius: 6,
+                        fontSize: "0.78rem",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        border: selected ? "1px solid var(--teal)" : "1px solid var(--gray-200)",
+                        background: selected ? "var(--teal-dim)" : "white",
+                        color: selected ? "var(--teal)" : "var(--gray-500)",
+                      }}
+                    >
+                      {DAY_LABELS[day]}
+                    </button>
+                  );
+                })}
+              </div>
+            </FilterSection>
+
+            {/* Language */}
+            <FilterSection title="Language">
+              <input
+                className="form-input"
+                placeholder="e.g. Spanish"
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                style={{ fontSize: "0.85rem" }}
+              />
+            </FilterSection>
+
+            {/* Education */}
+            <FilterSection title="Education">
+              <select
+                className="form-input"
+                value={degree}
+                onChange={(e) => setDegree(e.target.value)}
+                style={{ fontSize: "0.85rem" }}
+              >
+                <option value="">Any Degree</option>
+                <option value="High School">High School</option>
+                <option value="Associate">Associate</option>
+                <option value="Bachelor">Bachelor's</option>
+                <option value="Master">Master's</option>
+                <option value="Doctorate">Doctorate</option>
+              </select>
+            </FilterSection>
+
+            {/* Experience */}
+            <FilterSection title="Experience Level">
+              <select
+                className="form-input"
+                value={experience}
+                onChange={(e) => setExperience(e.target.value)}
+                style={{ fontSize: "0.85rem" }}
+              >
+                <option value="">Any Experience</option>
+                <option value="entry">Entry Level (0-2 years)</option>
+                <option value="mid">Mid Level (3-5 years)</option>
+                <option value="senior">Senior (6-10 years)</option>
+                <option value="expert">Expert (10+ years)</option>
+              </select>
+            </FilterSection>
+
+            {/* Environment */}
+            <FilterSection title="Work Environment">
+              <select
+                className="form-input"
+                value={environment}
+                onChange={(e) => setEnvironment(e.target.value)}
+                style={{ fontSize: "0.85rem" }}
+              >
+                <option value="">Any</option>
+                <option value="wfh">Work from Home</option>
+                <option value="office">Work from Office</option>
+              </select>
             </FilterSection>
 
           </div>

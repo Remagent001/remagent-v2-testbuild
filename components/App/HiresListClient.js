@@ -218,7 +218,7 @@ export default function HiresListClient() {
                     <button
                       className="btn-secondary"
                       style={{ width: "auto", fontSize: "0.82rem", padding: "6px 14px" }}
-                      onClick={() => router.push(`/search/${pro?.id}`)}
+                      onClick={() => router.push(`/search/${pro?.id}?from=hires`)}
                     >
                       View Profile
                     </button>

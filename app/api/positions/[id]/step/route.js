@@ -270,12 +270,19 @@ export async function PUT(request, { params }) {
           select: { autoApprove: true },
         });
         if (bizProfile?.autoApprove) {
-          const vis = data.visibility || position.visibility;
-          updateData.status = vis === "private" ? "private" : "published";
-          updateData.approvedAt = new Date();
-          updateData.approvedBy = "auto";
-          updateData.reviewRequired = false;
-          updateData.adminNote = null;
+          // Enforce: required steps (1-6) must all be complete
+          const requiredSteps = [1, 2, 3, 4, 5, 6];
+          const missing = requiredSteps.filter((s) => !completedSteps.includes(s));
+
+          if (missing.length === 0) {
+            const vis = data.visibility || position.visibility;
+            updateData.status = vis === "private" ? "private" : "published";
+            updateData.approvedAt = new Date();
+            updateData.approvedBy = "auto";
+            updateData.reviewRequired = false;
+            updateData.adminNote = null;
+          }
+          // If required steps are missing, it stays pending_approval for manual review
         }
       }
 

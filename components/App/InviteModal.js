@@ -1,12 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function InviteModal({ professionalId, professionalName, onClose }) {
+  const router = useRouter();
   const [positions, setPositions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(null);
   const [sent, setSent] = useState({});
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     fetch(`/api/invites/check?professionalId=${professionalId}`)
@@ -71,13 +74,31 @@ export default function InviteModal({ professionalId, professionalName, onClose 
             <p style={{ fontSize: "0.9rem", color: "var(--gray-500)", marginBottom: 8 }}>
               You don't have any active job postings yet.
             </p>
-            <p style={{ fontSize: "0.82rem", color: "var(--gray-400)" }}>
+            <p style={{ fontSize: "0.82rem", color: "var(--gray-400)", marginBottom: 16 }}>
               Create and publish a posting first, then you can invite professionals.
             </p>
+            <button
+              className="btn-primary"
+              style={{ width: "auto" }}
+              onClick={() => { onClose(); router.push("/positions/new"); }}
+            >
+              Create Job Posting
+            </button>
           </div>
         ) : (
           <div style={{ overflow: "auto", flex: 1 }}>
-            {positions.map((pos) => {
+            {positions.length > 4 && (
+              <div style={{ marginBottom: 12 }}>
+                <input
+                  className="form-input"
+                  placeholder="Search by job title..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  style={{ fontSize: "0.85rem", padding: "8px 12px" }}
+                />
+              </div>
+            )}
+            {positions.filter((pos) => !search || pos.title?.toLowerCase().includes(search.toLowerCase())).map((pos) => {
               const alreadyInvited = pos.inviteStatus || sent[pos.id];
               const justSent = sent[pos.id] === true;
               const wasPrevious = pos.inviteStatus;

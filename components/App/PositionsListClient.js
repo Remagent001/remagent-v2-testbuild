@@ -45,6 +45,11 @@ function safeParse(val) {
   try { return JSON.parse(val); } catch { return []; }
 }
 
+function stripHtml(html) {
+  if (!html) return "";
+  return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
+}
+
 function MiniProgressBubbles({ completedSteps }) {
   const completed = safeParse(completedSteps);
   return (
@@ -395,11 +400,14 @@ export default function PositionsListClient() {
                 </div>
               )}
 
-              {pos.description && (
-                <p className="position-card-desc">
-                  {pos.description.length > 150 ? pos.description.slice(0, 150) + "..." : pos.description}
-                </p>
-              )}
+              {pos.description && (() => {
+                const text = stripHtml(pos.description);
+                return text ? (
+                  <p className="position-card-desc">
+                    {text.length > 150 ? text.slice(0, 150) + "..." : text}
+                  </p>
+                ) : null;
+              })()}
 
               {pos.status === "draft" && (
                 <MiniProgressBubbles completedSteps={pos.completedSteps} />
