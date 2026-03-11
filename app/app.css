@@ -803,8 +803,7 @@
 }
 
 .progress-bubble.has-default {
-  border-color: var(--teal);
-  border-style: dashed;
+  border: 1.5px solid var(--teal);
   color: var(--teal);
   background: var(--white);
 }
