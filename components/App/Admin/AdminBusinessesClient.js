@@ -28,6 +28,8 @@ export default function AdminBusinessesClient() {
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState(null);
   const [showArchived, setShowArchived] = useState(false);
+  const [lastActiveDays, setLastActiveDays] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
 
   const loadBusinesses = () => {
     fetch("/api/admin/businesses")
@@ -64,7 +66,32 @@ export default function AdminBusinessesClient() {
 
   const activeBiz = businesses.filter((b) => !b.businessProfile?.archived);
   const archivedBiz = businesses.filter((b) => b.businessProfile?.archived);
-  const displayList = showArchived ? archivedBiz : activeBiz;
+  let displayList = showArchived ? archivedBiz : activeBiz;
+
+  // Filter by last active timeframe
+  if (lastActiveDays) {
+    const cutoff = Date.now() - parseInt(lastActiveDays) * 86400000;
+    displayList = displayList.filter((b) => {
+      if (!b.lastLogin) return false;
+      return new Date(b.lastLogin).getTime() >= cutoff;
+    });
+  }
+
+  // Sort
+  if (sortBy === "mostJPs") {
+    displayList = [...displayList].sort((a, b) => (b._count?.positions || 0) - (a._count?.positions || 0));
+  } else if (sortBy === "fewestJPs") {
+    displayList = [...displayList].sort((a, b) => (a._count?.positions || 0) - (b._count?.positions || 0));
+  } else if (sortBy === "recentActive") {
+    displayList = [...displayList].sort((a, b) => {
+      const aTime = a.lastLogin ? new Date(a.lastLogin).getTime() : 0;
+      const bTime = b.lastLogin ? new Date(b.lastLogin).getTime() : 0;
+      return bTime - aTime;
+    });
+  } else if (sortBy === "oldest") {
+    displayList = [...displayList].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  }
+  // "newest" is default from API (createdAt desc)
 
   if (loading) {
     return (
@@ -109,6 +136,49 @@ export default function AdminBusinessesClient() {
           </button>
         </div>
       )}
+
+      {/* Filters */}
+      <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
+        <select
+          className="form-input form-select"
+          value={lastActiveDays}
+          onChange={(e) => setLastActiveDays(e.target.value)}
+          style={{ width: "auto", fontSize: "0.85rem", padding: "6px 12px" }}
+        >
+          <option value="">Last Active: Any</option>
+          <option value="1">Last 24 hours</option>
+          <option value="7">Last 7 days</option>
+          <option value="30">Last 30 days</option>
+          <option value="90">Last 90 days</option>
+        </select>
+        <select
+          className="form-input form-select"
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          style={{ width: "auto", fontSize: "0.85rem", padding: "6px 12px" }}
+        >
+          <option value="newest">Sort: Newest First</option>
+          <option value="oldest">Sort: Oldest First</option>
+          <option value="recentActive">Sort: Recently Active</option>
+          <option value="mostJPs">Sort: Most Job Postings</option>
+          <option value="fewestJPs">Sort: Fewest Job Postings</option>
+        </select>
+        {(lastActiveDays || sortBy !== "newest") && (
+          <button
+            type="button"
+            onClick={() => { setLastActiveDays(""); setSortBy("newest"); }}
+            style={{
+              background: "none", border: "none", cursor: "pointer",
+              fontSize: "0.82rem", color: "var(--gray-400)", textDecoration: "underline",
+            }}
+          >
+            Clear filters
+          </button>
+        )}
+        <span style={{ fontSize: "0.82rem", color: "var(--gray-400)", marginLeft: "auto" }}>
+          {displayList.length} business{displayList.length !== 1 ? "es" : ""}
+        </span>
+      </div>
 
       {displayList.length === 0 ? (
         <div className="card" style={{ textAlign: "center", padding: "48px 24px" }}>
