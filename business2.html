@@ -64,6 +64,27 @@
       font-size: 0.85rem; font-weight: 700;
     }
 
+    /* ── PAGE HERO ── */
+    .page-hero {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+      padding: 72px 24px 64px; text-align: center; position: relative; overflow: hidden;
+    }
+    .page-hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse 70% 80% at 50% 120%, rgba(15,212,176,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .page-hero-inner { max-width: 720px; margin: 0 auto; position: relative; z-index: 1; }
+    .page-hero h1 {
+      font-size: clamp(1.75rem, 4vw, 3rem); font-weight: 900; color: #fff;
+      line-height: 1.15; letter-spacing: -0.03em; margin-bottom: 16px;
+    }
+    .page-hero h1 span {
+      background: linear-gradient(90deg, var(--teal) 0%, #06b6d4 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .page-hero p { font-size: 1.05rem; color: rgba(255,255,255,0.7); line-height: 1.75; }
+
     /* ── SHARED ── */
     .wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
     .section { padding: 96px 24px; }
@@ -248,57 +269,14 @@
   </div>
 </nav>
 
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-grid">
-    <div>
-      <div class="badge">For Contact Center Teams</div>
-      <h1 class="hero-title">Find the Talent<br><span class="highlight">You've Been Looking For.</span></h1>
-      <p class="hero-desc">Stop sorting through unqualified resumes. Search a pool of pre-vetted remote contact center professionals, filter by exactly what you need, and invite them directly — in hours, not weeks.</p>
-      <div class="hero-ctas">
-        <a href="app-preview.html" class="btn-hero-primary">Start Hiring Free &#8594;</a>
-        <a href="how-it-works-business.html" class="btn-hero-outline">See How It Works</a>
-      </div>
-      <div class="hero-stats">
-        <div>
-          <div class="stat-num">100+</div>
-          <div class="stat-label">Vetted professionals<br>ready to work</div>
-        </div>
-        <div class="stat-divider"></div>
-        <div>
-          <div class="stat-num">&lt; 2 hrs</div>
-          <div class="stat-label">Average time to<br>first hire</div>
-        </div>
-        <div class="stat-divider"></div>
-        <div>
-          <div class="stat-num">$0</div>
-          <div class="stat-label">No agency fees,<br>ever</div>
-        </div>
-      </div>
-    </div>
-    <div class="hero-img-wrap">
-      <img
-        src="images/business-hero.png"
-        alt="Business hiring manager shaking hands through screen"
-        class="hero-img-main"
-      />
-      <div class="float-card float-card-1">
-        <span style="font-size:1.3rem;">&#128269;</span>
-        <div>
-          <div class="float-val">24 Matching Professionals</div>
-          <div class="float-sub">For your French support role</div>
-        </div>
-      </div>
-      <div class="float-card float-card-2">
-        <span style="font-size:1.3rem;">&#9989;</span>
-        <div>
-          <div class="float-val">Invitation Accepted</div>
-          <div class="float-sub">Jenny J. · Healthcare Claims</div>
-        </div>
-      </div>
-    </div>
+<!-- PAGE HERO -->
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <span class="section-label" style="background:rgba(15,212,176,0.15);border-color:rgba(15,212,176,0.3);color:var(--teal);">For Businesses</span>
+    <h1>Why Businesses Choose <span>Remagent</span></h1>
+    <p>Traditional recruiting wasn't built for remote contact center hiring. Remagent was built for nothing else.</p>
   </div>
-</section>
+</div>
 
 <!-- WHY REMAGENT — 6 BENEFITS -->
 <section class="section">
@@ -306,7 +284,7 @@
     <div style="text-align:center; margin-bottom:16px;">
       <span class="section-label">Why Remagent</span>
       <h2 class="section-title">Built Specifically for <span class="accent">Contact Center Teams</span></h2>
-      <p class="section-subtitle" style="margin:0 auto;">Every feature on Remagent was designed around one problem: finding the right remote contact center professional, fast.</p>
+      <p class="section-subtitle" style="margin:0 auto;">Every feature on Remagent was designed around one problem: finding the right contact center professional, fast.</p>
     </div>
     <div class="benefits-grid">
       <div class="benefit-card">
