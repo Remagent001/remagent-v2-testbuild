@@ -45,6 +45,18 @@ const RADIUS_OPTIONS = [
 const DAY_LABELS = { monday: "Mon", tuesday: "Tue", wednesday: "Wed", thursday: "Thu", friday: "Fri", saturday: "Sat", sunday: "Sun" };
 const DAY_ORDER = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
+// 30-minute time options for availability filter
+const TIME_OPTIONS = [];
+for (let h = 0; h < 24; h++) {
+  for (let m = 0; m < 60; m += 30) {
+    const hh24 = String(h).padStart(2, "0");
+    const mm = String(m).padStart(2, "0");
+    const period = h < 12 ? "AM" : "PM";
+    const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    TIME_OPTIONS.push({ value: `${hh24}:${mm}`, label: `${h12}:${mm} ${period}` });
+  }
+}
+
 function to12hr(time24) {
   if (!time24) return "";
   const [h, m] = time24.split(":");
@@ -120,6 +132,8 @@ export default function SearchProfessionalsClient() {
   const [lastLogin, setLastLogin] = useState(0);
   const [selectedIndustries, setSelectedIndustries] = useState([]);
   const [selectedDays, setSelectedDays] = useState([]);
+  const [dayTimes, setDayTimes] = useState({}); // { monday: { start: "09:00", end: "17:00" }, ... }
+  const [applyToAll, setApplyToAll] = useState(false);
   const [language, setLanguage] = useState("");
   const [degree, setDegree] = useState("");
   const [experience, setExperience] = useState("");
@@ -166,7 +180,12 @@ export default function SearchProfessionalsClient() {
     selectedApps.forEach((id) => params.append("application", id));
     selectedIndustries.forEach((id) => params.append("industry", id));
     if (selectedIndustries.length > 1) params.set("industryMode", industryMode);
-    selectedDays.forEach((d) => params.append("day", d));
+    selectedDays.forEach((d) => {
+      params.append("day", d);
+      const times = dayTimes[d];
+      if (times?.start) params.append("dayStart", `${d}:${times.start}`);
+      if (times?.end) params.append("dayEnd", `${d}:${times.end}`);
+    });
     if (language) params.set("language", language);
     if (degree) params.set("degree", degree);
     if (experience) params.set("experience", experience);
@@ -196,7 +215,7 @@ export default function SearchProfessionalsClient() {
     if (showMap && coords) {
       updateMap(data.professionals || [], coords);
     }
-  }, [keyword, state, zip, radius, centerCoords, minRate, maxRate, lastLogin, selectedSkills, selectedChannels, selectedApps, selectedIndustries, selectedDays, language, degree, experience, environment, skillMode, channelMode, industryMode, showMap]);
+  }, [keyword, state, zip, radius, centerCoords, minRate, maxRate, lastLogin, selectedSkills, selectedChannels, selectedApps, selectedIndustries, selectedDays, dayTimes, language, degree, experience, environment, skillMode, channelMode, industryMode, showMap]);
 
   // Auto-apply: search whenever any filter changes (debounced)
   const debounceRef = useRef(null);
@@ -206,7 +225,7 @@ export default function SearchProfessionalsClient() {
       doSearch(1);
     }, initialLoad ? 0 : 400);
     return () => clearTimeout(debounceRef.current);
-  }, [keyword, state, minRate, maxRate, lastLogin, selectedSkills, selectedChannels, selectedApps, selectedIndustries, selectedDays, language, degree, experience, environment, skillMode, channelMode, industryMode]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [keyword, state, minRate, maxRate, lastLogin, selectedSkills, selectedChannels, selectedApps, selectedIndustries, selectedDays, dayTimes, language, degree, experience, environment, skillMode, channelMode, industryMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -220,6 +239,8 @@ export default function SearchProfessionalsClient() {
     setSelectedApps([]);
     setSelectedIndustries([]);
     setSelectedDays([]);
+    setDayTimes({});
+    setApplyToAll(false);
     setLanguage("");
     setDegree("");
     setExperience("");
@@ -564,7 +585,7 @@ export default function SearchProfessionalsClient() {
 
             {/* Availability */}
             <FilterSection title="Availability">
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: selectedDays.length > 0 ? 8 : 0 }}>
                 {DAY_ORDER.map((day) => {
                   const selected = selectedDays.includes(day);
                   return (
@@ -572,9 +593,21 @@ export default function SearchProfessionalsClient() {
                       key={day}
                       type="button"
                       onClick={() => {
-                        setSelectedDays((prev) =>
-                          prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
-                        );
+                        setSelectedDays((prev) => {
+                          const next = prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day];
+                          // Add default times for newly selected day
+                          if (!prev.includes(day)) {
+                            const firstDay = prev[0];
+                            const defaultTimes = applyToAll && firstDay && dayTimes[firstDay]
+                              ? { start: dayTimes[firstDay].start, end: dayTimes[firstDay].end }
+                              : { start: "09:00", end: "17:00" };
+                            setDayTimes((dt) => ({ ...dt, [day]: defaultTimes }));
+                          } else {
+                            // Remove times for deselected day
+                            setDayTimes((dt) => { const n = { ...dt }; delete n[day]; return n; });
+                          }
+                          return next;
+                        });
                       }}
                       style={{
                         padding: "4px 10px",
@@ -592,6 +625,70 @@ export default function SearchProfessionalsClient() {
                   );
                 })}
               </div>
+              {selectedDays.length > 0 && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {selectedDays.length > 1 && (
+                    <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.78rem", color: "var(--gray-600)", cursor: "pointer", marginBottom: 2 }}>
+                      <input
+                        type="checkbox"
+                        checked={applyToAll}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setApplyToAll(checked);
+                          if (checked && selectedDays.length > 0) {
+                            const firstTimes = dayTimes[selectedDays[0]] || { start: "09:00", end: "17:00" };
+                            const synced = {};
+                            selectedDays.forEach((d) => { synced[d] = { ...firstTimes }; });
+                            setDayTimes(synced);
+                          }
+                        }}
+                        style={{ accentColor: "var(--teal)" }}
+                      />
+                      Same time for all days
+                    </label>
+                  )}
+                  {selectedDays.map((day) => (
+                    <div key={day} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--teal)", width: 32, flexShrink: 0 }}>{DAY_LABELS[day]}</span>
+                      <select
+                        className="form-input"
+                        value={dayTimes[day]?.start || "09:00"}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (applyToAll) {
+                            const synced = {};
+                            selectedDays.forEach((d) => { synced[d] = { ...(dayTimes[d] || { start: "09:00", end: "17:00" }), start: val }; });
+                            setDayTimes(synced);
+                          } else {
+                            setDayTimes((dt) => ({ ...dt, [day]: { ...(dt[day] || { start: "09:00", end: "17:00" }), start: val } }));
+                          }
+                        }}
+                        style={{ fontSize: "0.78rem", padding: "3px 6px", flex: 1, minWidth: 0 }}
+                      >
+                        {TIME_OPTIONS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                      </select>
+                      <span style={{ fontSize: "0.75rem", color: "var(--gray-400)" }}>to</span>
+                      <select
+                        className="form-input"
+                        value={dayTimes[day]?.end || "17:00"}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (applyToAll) {
+                            const synced = {};
+                            selectedDays.forEach((d) => { synced[d] = { ...(dayTimes[d] || { start: "09:00", end: "17:00" }), end: val }; });
+                            setDayTimes(synced);
+                          } else {
+                            setDayTimes((dt) => ({ ...dt, [day]: { ...(dt[day] || { start: "09:00", end: "17:00" }), end: val } }));
+                          }
+                        }}
+                        style={{ fontSize: "0.78rem", padding: "3px 6px", flex: 1, minWidth: 0 }}
+                      >
+                        {TIME_OPTIONS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                      </select>
+                    </div>
+                  ))}
+                </div>
+              )}
             </FilterSection>
 
             {/* Language */}

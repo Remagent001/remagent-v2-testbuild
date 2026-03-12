@@ -40,6 +40,25 @@ export async function GET(request) {
   const channelMode = searchParams.get("channelMode") || "and";
   const industryMode = searchParams.get("industryMode") || "and";
   const availableDays = searchParams.getAll("day");
+  const dayStartParams = searchParams.getAll("dayStart"); // format: "monday:09:00"
+  const dayEndParams = searchParams.getAll("dayEnd");     // format: "monday:17:00"
+
+  // Build a map of day -> { start, end } for time-range filtering
+  const dayTimeMap = {};
+  dayStartParams.forEach((param) => {
+    const idx = param.indexOf(":");
+    const day = param.substring(0, idx);
+    const time = param.substring(idx + 1);
+    if (!dayTimeMap[day]) dayTimeMap[day] = {};
+    dayTimeMap[day].start = time;
+  });
+  dayEndParams.forEach((param) => {
+    const idx = param.indexOf(":");
+    const day = param.substring(0, idx);
+    const time = param.substring(idx + 1);
+    if (!dayTimeMap[day]) dayTimeMap[day] = {};
+    dayTimeMap[day].end = time;
+  });
   const language = searchParams.get("language") || "";
   const degree = searchParams.get("degree") || "";
   const experience = searchParams.get("experience") || "";
@@ -135,12 +154,26 @@ export async function GET(request) {
   }
 
   // Availability filter — must be available on ALL selected days
+  // Time overlap: professional's window must overlap with the search window
   if (availableDays.length > 0) {
     where.AND = [
       ...(where.AND || []),
-      ...availableDays.map((day) => ({
-        availability: { some: { day } },
-      })),
+      ...availableDays.map((day) => {
+        const times = dayTimeMap[day];
+        if (times?.start && times?.end) {
+          // Overlap: pro.start < search.end AND pro.end > search.start
+          return {
+            availability: {
+              some: {
+                day,
+                startTime: { lt: times.end },
+                endTime: { gt: times.start },
+              },
+            },
+          };
+        }
+        return { availability: { some: { day } } };
+      }),
     ];
   }
 
