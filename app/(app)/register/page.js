@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -14,6 +15,14 @@ export default function RegisterPage() {
     password: "",
     role: "PROFESSIONAL",
   });
+
+  // Pre-select role from ?role=business or ?role=professional
+  useEffect(() => {
+    const roleParam = searchParams.get("role")?.toUpperCase();
+    if (roleParam === "BUSINESS" || roleParam === "PROFESSIONAL") {
+      setForm((prev) => ({ ...prev, role: roleParam }));
+    }
+  }, [searchParams]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
