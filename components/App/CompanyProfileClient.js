@@ -281,6 +281,9 @@ export default function CompanyProfileClient() {
           <div className="form-group form-half">
             <label className="form-label">Phone</label>
             <input className="form-input" type="tel" placeholder="(555) 123-4567" value={phone} onChange={handlePhoneChange} />
+            <p style={{ fontSize: "0.75rem", color: "var(--gray-400)", marginTop: 4, lineHeight: 1.4 }}>
+              Please enter your phone number so that Remagent can reach you if there are any questions. We will never give out your phone number to anyone and will never spam you.
+            </p>
           </div>
           <div className="form-group form-half">
             <label className="form-label">Timezone</label>

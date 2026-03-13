@@ -105,22 +105,22 @@ export default function DashboardClient() {
         )}
 
         <div className="stat-grid">
-          <div className="stat-card">
+          <Link href="/positions" className="stat-card" style={{ textDecoration: "none", color: "inherit" }}>
             <div className="stat-card-label">Job Postings</div>
             <div className="stat-card-value">{positionCounts.total}</div>
-          </div>
-          <div className="stat-card">
+          </Link>
+          <Link href="/invites" className="stat-card" style={{ textDecoration: "none", color: "inherit" }}>
             <div className="stat-card-label">Invites Sent</div>
             <div className="stat-card-value">{positionCounts.invites}</div>
-          </div>
-          <div className="stat-card">
+          </Link>
+          <Link href="/applicants" className="stat-card" style={{ textDecoration: "none", color: "inherit" }}>
             <div className="stat-card-label">Applicants</div>
             <div className="stat-card-value">{positionCounts.applicants}</div>
-          </div>
-          <div className="stat-card">
+          </Link>
+          <Link href="/hires" className="stat-card" style={{ textDecoration: "none", color: "inherit" }}>
             <div className="stat-card-label">Active Hires</div>
             <div className="stat-card-value">{positionCounts.hires}</div>
-          </div>
+          </Link>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: hasProfile ? "1fr 1fr" : "1fr", gap: 16, marginBottom: 16 }}>

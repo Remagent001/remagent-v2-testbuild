@@ -526,7 +526,7 @@ export default function SearchProfessionalsClient() {
                   ))}
                 </select>
               </div>
-              {zip.length === 5 && radius > 0 && centerCoords && (
+              {locationMode === "zip" && zip.length === 5 && radius > 0 && centerCoords && (
                 <p style={{ fontSize: "0.75rem", color: "var(--teal)", marginTop: 4 }}>
                   Showing within {radius} mi of {zip}
                 </p>
