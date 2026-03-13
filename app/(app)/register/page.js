@@ -73,7 +73,7 @@ export default function RegisterPage() {
       {/* Left panel */}
       <div className="login-left">
         <div className="login-left-content">
-          <div className="login-logo">Remag<span>ent</span></div>
+          <div className="login-logo"><span className="login-logo-mark">R</span> rem<span>agent</span></div>
           <h1 className="login-tagline">
             Build Your <span className="t">Future</span> With Us.
           </h1>
