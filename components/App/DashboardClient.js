@@ -123,31 +123,33 @@ export default function DashboardClient() {
           </div>
         </div>
 
-        <div className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <div>
-            <div className="card-title">{hasProfile ? "Company Profile" : "Set Up Your Company"}</div>
-            <div className="card-subtitle">
-              {hasProfile
-                ? `${bizProfile.businessName}${bizProfile.industry ? ` · ${bizProfile.industry}` : ""}`
-                : "Complete your company profile to start posting jobs and finding professionals."}
+        <div style={{ display: "grid", gridTemplateColumns: hasProfile ? "1fr 1fr" : "1fr", gap: 16, marginBottom: 16 }}>
+          <div className="card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", margin: 0 }}>
+            <div style={{ marginBottom: 16 }}>
+              <div className="card-title">{hasProfile ? "Company Profile" : "Set Up Your Company"}</div>
+              <div className="card-subtitle">
+                {hasProfile
+                  ? `${bizProfile.businessName}${bizProfile.industry ? ` · ${bizProfile.industry}` : ""}`
+                  : "Complete your company profile to start posting jobs and finding professionals."}
+              </div>
             </div>
-          </div>
-          <Link href="/company-profile" className="btn-primary" style={{ width: "auto", whiteSpace: "nowrap", textDecoration: "none" }}>
-            {hasProfile ? "Edit Profile" : "Get Started"}
-          </Link>
-        </div>
-
-        {hasProfile && (
-          <div className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <div>
-              <div className="card-title">Find Professionals</div>
-              <div className="card-subtitle">Search and filter from our network of qualified professionals.</div>
-            </div>
-            <Link href="/search" className="btn-secondary" style={{ whiteSpace: "nowrap", textDecoration: "none" }}>
-              Search Now
+            <Link href="/company-profile" className="btn-primary" style={{ width: "auto", whiteSpace: "nowrap", textDecoration: "none", alignSelf: "flex-start" }}>
+              {hasProfile ? "Edit Profile" : "Get Started"}
             </Link>
           </div>
-        )}
+
+          {hasProfile && (
+            <div className="card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", margin: 0 }}>
+              <div style={{ marginBottom: 16 }}>
+                <div className="card-title">Find Professionals</div>
+                <div className="card-subtitle">Search and filter from our network of qualified professionals.</div>
+              </div>
+              <Link href="/search" className="btn-secondary" style={{ whiteSpace: "nowrap", textDecoration: "none", alignSelf: "flex-start" }}>
+                Search Now
+              </Link>
+            </div>
+          )}
+        </div>
 
         <div className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
@@ -195,32 +197,44 @@ export default function DashboardClient() {
         </div>
       </div>
 
-      <div className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <div>
-          <div className="card-title">{cardTitle}</div>
-          <div className="card-subtitle">{cardSubtitle}</div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+        <div className="card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", margin: 0 }}>
+          <div style={{ marginBottom: 16 }}>
+            <div className="card-title">{cardTitle}</div>
+            <div className="card-subtitle">{cardSubtitle}</div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            {profileStatus !== "new" && (
+              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                {Array.from({ length: TOTAL_STEPS }, (_, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      background: i < completedCount ? "var(--teal)" : "var(--gray-200)",
+                    }}
+                  />
+                ))}
+                <span style={{ fontSize: "0.75rem", color: "var(--gray-500)", marginLeft: 4, whiteSpace: "nowrap" }}>
+                  {completedCount}/{TOTAL_STEPS}
+                </span>
+              </div>
+            )}
+            <Link href={firstIncompleteStep ? `/onboarding?step=${firstIncompleteStep}` : "/onboarding"} className="btn-primary" style={{ width: "auto", whiteSpace: "nowrap", textDecoration: "none" }}>
+              {buttonText}
+            </Link>
+          </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
-          {profileStatus !== "new" && (
-            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              {Array.from({ length: TOTAL_STEPS }, (_, i) => (
-                <div
-                  key={i}
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: "50%",
-                    background: i < completedCount ? "var(--teal)" : "var(--gray-200)",
-                  }}
-                />
-              ))}
-              <span style={{ fontSize: "0.75rem", color: "var(--gray-500)", marginLeft: 4, whiteSpace: "nowrap" }}>
-                {completedCount}/{TOTAL_STEPS}
-              </span>
-            </div>
-          )}
-          <Link href={firstIncompleteStep ? `/onboarding?step=${firstIncompleteStep}` : "/onboarding"} className="btn-primary" style={{ width: "auto", whiteSpace: "nowrap", textDecoration: "none" }}>
-            {buttonText}
+
+        <div className="card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", margin: 0 }}>
+          <div style={{ marginBottom: 16 }}>
+            <div className="card-title">Browse Jobs</div>
+            <div className="card-subtitle">Find opportunities that match your skills and experience.</div>
+          </div>
+          <Link href="/jobs" className="btn-secondary" style={{ whiteSpace: "nowrap", textDecoration: "none", alignSelf: "flex-start" }}>
+            View Jobs
           </Link>
         </div>
       </div>

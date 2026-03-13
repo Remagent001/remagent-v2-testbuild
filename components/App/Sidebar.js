@@ -154,7 +154,7 @@ export default function Sidebar({ isOpen, onClose, role = "professional", user =
   return (
     <aside className={`sidebar ${isOpen ? "open" : ""}`}>
       <div className="sidebar-logo">
-        <Link href="/">
+        <Link href="/dashboard">
           <span className="sidebar-logo-mark">R</span>
           rem<span>agent</span>
         </Link>
