@@ -36,7 +36,7 @@ export default function LoginPage() {
       {/* Left panel */}
       <div className="login-left">
         <div className="login-left-content">
-          <div className="login-logo"><span className="login-logo-mark">R</span> rem<span>agent</span></div>
+          <div className="login-logo"><span className="login-logo-mark">R</span><span className="login-logo-text">rem<span>agent</span></span></div>
           <h1 className="login-tagline">
             Your Next Great <span className="t">Hire</span> Starts Here.
           </h1>

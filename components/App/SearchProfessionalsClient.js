@@ -127,6 +127,7 @@ export default function SearchProfessionalsClient() {
   const [zip, setZip] = useState("");
   const [radius, setRadius] = useState(0);
   const [centerCoords, setCenterCoords] = useState(null); // { lat, lng }
+  const [locationMode, setLocationMode] = useState(""); // "state" or "zip" — whichever was last used
   const [minRate, setMinRate] = useState("");
   const [maxRate, setMaxRate] = useState("");
   const [lastLogin, setLastLogin] = useState(0);
@@ -169,7 +170,22 @@ export default function SearchProfessionalsClient() {
     setLoading(true);
     const params = new URLSearchParams();
     if (keyword) params.set("keyword", keyword);
-    if (state) params.set("state", state);
+    // Location — only send the last-used mode
+    if (locationMode === "state" && state) {
+      params.set("state", state);
+    } else if (locationMode === "zip") {
+      const coords = overrideCoords || centerCoords;
+      if (zip && radius > 0 && coords) {
+        params.set("zip", zip);
+        params.set("radius", radius);
+        params.set("lat", coords.lat);
+        params.set("lng", coords.lng);
+      }
+    } else if (state) {
+      // Fallback: if no explicit mode set yet, use state if present
+      params.set("state", state);
+    }
+
     if (minRate) params.set("minRate", minRate);
     if (maxRate) params.set("maxRate", maxRate);
     if (lastLogin) params.set("lastLogin", lastLogin);
@@ -191,15 +207,6 @@ export default function SearchProfessionalsClient() {
     if (experience) params.set("experience", experience);
     if (environment) params.set("environment", environment);
 
-    // Zip + radius
-    const coords = overrideCoords || centerCoords;
-    if (zip && radius > 0 && coords) {
-      params.set("zip", zip);
-      params.set("radius", radius);
-      params.set("lat", coords.lat);
-      params.set("lng", coords.lng);
-    }
-
     params.set("page", pageNum);
 
     const res = await fetch(`/api/search/professionals?${params}`);
@@ -215,7 +222,7 @@ export default function SearchProfessionalsClient() {
     if (showMap && coords) {
       updateMap(data.professionals || [], coords);
     }
-  }, [keyword, state, zip, radius, centerCoords, minRate, maxRate, lastLogin, selectedSkills, selectedChannels, selectedApps, selectedIndustries, selectedDays, dayTimes, language, degree, experience, environment, skillMode, channelMode, industryMode, showMap]);
+  }, [keyword, state, zip, radius, centerCoords, locationMode, minRate, maxRate, lastLogin, selectedSkills, selectedChannels, selectedApps, selectedIndustries, selectedDays, dayTimes, language, degree, experience, environment, skillMode, channelMode, industryMode, showMap]);
 
   // Auto-apply: search whenever any filter changes (debounced)
   const debounceRef = useRef(null);
@@ -225,7 +232,7 @@ export default function SearchProfessionalsClient() {
       doSearch(1);
     }, initialLoad ? 0 : 400);
     return () => clearTimeout(debounceRef.current);
-  }, [keyword, state, minRate, maxRate, lastLogin, selectedSkills, selectedChannels, selectedApps, selectedIndustries, selectedDays, dayTimes, language, degree, experience, environment, skillMode, channelMode, industryMode]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [keyword, state, locationMode, minRate, maxRate, lastLogin, selectedSkills, selectedChannels, selectedApps, selectedIndustries, selectedDays, dayTimes, language, degree, experience, environment, skillMode, channelMode, industryMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -252,6 +259,7 @@ export default function SearchProfessionalsClient() {
     setZip("");
     setRadius(0);
     setCenterCoords(null);
+    setLocationMode("");
     setMinRate("");
     setMaxRate("");
     setLastLogin(0);
@@ -479,7 +487,15 @@ export default function SearchProfessionalsClient() {
               <select
                 className="form-input"
                 value={state}
-                onChange={(e) => setState(e.target.value)}
+                onChange={(e) => {
+                  setState(e.target.value);
+                  if (e.target.value) {
+                    setLocationMode("state");
+                    setShowMap(false);
+                  } else {
+                    setLocationMode("");
+                  }
+                }}
                 style={{ fontSize: "0.85rem", marginBottom: 8 }}
               >
                 <option value="">Any State</option>
@@ -490,13 +506,19 @@ export default function SearchProfessionalsClient() {
                   className="form-input"
                   placeholder="Zip Code"
                   value={zip}
-                  onChange={(e) => setZip(e.target.value.replace(/\D/g, "").slice(0, 5))}
+                  onChange={(e) => {
+                    setZip(e.target.value.replace(/\D/g, "").slice(0, 5));
+                    if (e.target.value) setLocationMode("zip");
+                  }}
                   style={{ fontSize: "0.85rem", width: "50%" }}
                 />
                 <select
                   className="form-input"
                   value={radius}
-                  onChange={(e) => setRadius(parseInt(e.target.value))}
+                  onChange={(e) => {
+                    setRadius(parseInt(e.target.value));
+                    if (parseInt(e.target.value) > 0) setLocationMode("zip");
+                  }}
                   style={{ fontSize: "0.85rem", width: "50%" }}
                 >
                   {RADIUS_OPTIONS.map((opt) => (

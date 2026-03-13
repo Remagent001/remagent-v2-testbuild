@@ -156,7 +156,7 @@ export default function Sidebar({ isOpen, onClose, role = "professional", user =
       <div className="sidebar-logo">
         <Link href="/dashboard">
           <span className="sidebar-logo-mark">R</span>
-          rem<span>agent</span>
+          <span className="sidebar-logo-text">rem<span>agent</span></span>
         </Link>
       </div>
 
