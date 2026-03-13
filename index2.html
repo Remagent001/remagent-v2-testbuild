@@ -95,6 +95,19 @@
       display: grid; grid-template-columns: 1fr 1fr; gap: 0;
       max-width: 1160px; margin: 64px auto 0; padding: 0 24px;
     }
+    .panel-biz, .panel-pro {
+      display: flex; flex-direction: column;
+    }
+    .panel-actions {
+      margin-top: auto; padding-top: 8px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .why-link {
+      font-size: 0.88rem; font-weight: 600; transition: opacity 0.2s;
+    }
+    .why-link:hover { opacity: 0.8; }
+    .panel-biz .why-link { color: rgba(255,255,255,0.6); }
+    .panel-pro .why-link { color: var(--gray-600); }
 
     /* Business panel (dark) */
     .panel-biz {
@@ -248,12 +261,12 @@
 
   <!-- BUSINESS PANEL -->
   <div class="panel-biz">
-    <div class="panel-badge">&#127970; For Businesses</div>
+    <a href="business.html" class="panel-badge">&#127970; For Businesses</a>
     <h2 class="panel-title">Find the Talent <em>You've Been Looking For</em></h2>
     <div class="panel-callout">
       &#9989; Every candidate personally vetted by our team of HUMANS.
     </div>
-    <p class="panel-desc">Search a pool of pre-vetted remote contact center professionals, filter by exactly what you need, and invite them directly — in hours, not weeks.</p>
+    <p class="panel-desc">Search a pool of pre-vetted contact center professionals, filter by exactly what you need, and invite them directly — in minutes, not weeks.</p>
     <div class="panel-stats">
       <div>
         <div class="pstat-num">100+</div>
@@ -265,16 +278,19 @@
       </div>
       <div>
         <div class="pstat-num">$0</div>
-        <div class="pstat-label">Agency fees,<br>ever</div>
+        <div class="pstat-label">Job Posting<br>fees</div>
       </div>
     </div>
-    <a href="/register" class="btn-teal-lg">Search Our Talent Pool &#8594;</a>
+    <div class="panel-actions">
+      <a href="/register" class="btn-teal-lg">Search Our Talent Pool &#8594;</a>
+      <a href="business.html" class="why-link">Why Remagent &#8594;</a>
+    </div>
   </div>
 
   <!-- PROFESSIONAL PANEL -->
   <div class="panel-pro">
-    <div class="panel-badge">&#128100; For Professionals</div>
-    <h2 class="panel-title">Get Discovered by Employers <em>Looking for Your Skills</em></h2>
+    <a href="professional.html" class="panel-badge">&#128100; For Professionals</a>
+    <h2 class="panel-title">Get Discovered by Employers <em>Looking for You</em></h2>
     <div class="panel-callout">
       &#9989; Every application is personally reviewed by a Remagent manager.
     </div>
@@ -293,7 +309,10 @@
         <div class="pstat-label">Your rate<br>&amp; schedule</div>
       </div>
     </div>
-    <a href="/register" class="btn-navy-lg">Build My Profile &#8594;</a>
+    <div class="panel-actions">
+      <a href="/register" class="btn-navy-lg">Build My Profile &#8594;</a>
+      <a href="professional.html" class="why-link">Why Remagent &#8594;</a>
+    </div>
   </div>
 
 </div>
