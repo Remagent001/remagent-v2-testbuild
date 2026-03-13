@@ -531,6 +531,11 @@ export default function SearchProfessionalsClient() {
                   Showing within {radius} mi of {zip}
                 </p>
               )}
+              {locationMode === "state" && state && (
+                <p style={{ fontSize: "0.75rem", color: "var(--teal)", marginTop: 4 }}>
+                  Showing within the state of {US_STATES.find((s) => s.abbr === state)?.name || state}
+                </p>
+              )}
             </FilterSection>
 
             {/* Hourly Rate */}
