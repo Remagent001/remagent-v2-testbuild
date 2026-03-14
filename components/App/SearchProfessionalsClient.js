@@ -143,6 +143,10 @@ export default function SearchProfessionalsClient() {
   const [channelMode, setChannelMode] = useState("and");
   const [industryMode, setIndustryMode] = useState("and");
 
+  // Job postings for availability shortcut
+  const [positions, setPositions] = useState([]);
+  const [selectedPosition, setSelectedPosition] = useState("");
+
   // Check if business profile is complete
   useEffect(() => {
     fetch("/api/business/profile")
@@ -153,7 +157,7 @@ export default function SearchProfessionalsClient() {
       .catch(() => setProfileComplete(true)); // Non-business users pass through
   }, []);
 
-  // Load lookup data
+  // Load lookup data + positions
   useEffect(() => {
     fetch("/api/positions/lookup")
       .then((r) => r.json())
@@ -163,6 +167,13 @@ export default function SearchProfessionalsClient() {
         setAllApplications(data.allApplications || []);
         setAllIndustries(data.allIndustries || []);
       });
+    fetch("/api/positions")
+      .then((r) => r.json())
+      .then((data) => {
+        const active = (data.positions || []).filter((p) => p.status === "published" || p.status === "private");
+        setPositions(active);
+      })
+      .catch(() => {});
   }, []);
 
   // Search function
@@ -614,6 +625,40 @@ export default function SearchProfessionalsClient() {
 
             {/* Availability */}
             <FilterSection title="Availability">
+              {positions.length > 0 && (
+                <div style={{ marginBottom: 10 }}>
+                  <select
+                    className="form-input"
+                    value={selectedPosition}
+                    onChange={(e) => {
+                      const posId = e.target.value;
+                      setSelectedPosition(posId);
+                      if (!posId) return;
+                      const pos = positions.find((p) => p.id === posId);
+                      if (pos?.availability?.length) {
+                        const days = [];
+                        const times = {};
+                        DAY_ORDER.forEach((d) => {
+                          const a = pos.availability.find((av) => av.day === d);
+                          if (a) {
+                            days.push(d);
+                            times[d] = { start: a.startTime, end: a.endTime };
+                          }
+                        });
+                        setSelectedDays(days);
+                        setDayTimes(times);
+                        setApplyToAll(false);
+                      }
+                    }}
+                    style={{ fontSize: "0.8rem" }}
+                  >
+                    <option value="">Load from Job Posting.</option>
+                    {positions.map((p) => (
+                      <option key={p.id} value={p.id}>{p.title || "Untitled"}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: selectedDays.length > 0 ? 8 : 0 }}>
                 {DAY_ORDER.map((day) => {
                   const selected = selectedDays.includes(day);
