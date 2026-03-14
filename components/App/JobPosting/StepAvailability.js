@@ -7,7 +7,7 @@ const DAY_LABELS = { sunday: "Sun", monday: "Mon", tuesday: "Tue", wednesday: "W
 
 const TIMES = [];
 for (let h = 0; h < 24; h++) {
-  for (let m = 0; m < 60; m += 15) {
+  for (let m = 0; m < 60; m += 30) {
     const hh24 = String(h).padStart(2, "0");
     const mm = String(m).padStart(2, "0");
     const period = h < 12 ? "AM" : "PM";
