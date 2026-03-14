@@ -1612,6 +1612,7 @@
 .rich-editor-content .tiptap {
   padding: 12px 14px;
   min-height: 120px;
+  max-height: 400px;
   overflow-y: auto;
   resize: vertical;
   font-size: 0.9rem;
