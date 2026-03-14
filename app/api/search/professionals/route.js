@@ -59,6 +59,7 @@ export async function GET(request) {
     if (!dayTimeMap[day]) dayTimeMap[day] = {};
     dayTimeMap[day].end = time;
   });
+  const availMode = searchParams.get("availMode") || "overlap"; // "overlap" or "full"
   const language = searchParams.get("language") || "";
   const degree = searchParams.get("degree") || "";
   const experience = searchParams.get("experience") || "";
@@ -154,13 +155,24 @@ export async function GET(request) {
   }
 
   // Availability filter — must be available on ALL selected days
-  // Time overlap: professional's window must overlap with the search window
   if (availableDays.length > 0) {
     where.AND = [
       ...(where.AND || []),
       ...availableDays.map((day) => {
         const times = dayTimeMap[day];
         if (times?.start && times?.end) {
+          if (availMode === "full") {
+            // Full coverage: pro.start <= search.start AND pro.end >= search.end
+            return {
+              availability: {
+                some: {
+                  day,
+                  startTime: { lte: times.start },
+                  endTime: { gte: times.end },
+                },
+              },
+            };
+          }
           // Overlap: pro.start < search.end AND pro.end > search.start
           return {
             availability: {

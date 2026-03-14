@@ -135,6 +135,7 @@ export default function SearchProfessionalsClient() {
   const [selectedDays, setSelectedDays] = useState([]);
   const [dayTimes, setDayTimes] = useState({}); // { monday: { start: "09:00", end: "17:00" }, ... }
   const [applyToAll, setApplyToAll] = useState(false);
+  const [availMode, setAvailMode] = useState("overlap"); // "overlap" or "full"
   const [language, setLanguage] = useState("");
   const [degree, setDegree] = useState("");
   const [experience, setExperience] = useState("");
@@ -213,6 +214,7 @@ export default function SearchProfessionalsClient() {
       if (times?.start) params.append("dayStart", `${d}:${times.start}`);
       if (times?.end) params.append("dayEnd", `${d}:${times.end}`);
     });
+    if (selectedDays.length > 0) params.set("availMode", availMode);
     if (language) params.set("language", language);
     if (degree) params.set("degree", degree);
     if (experience) params.set("experience", experience);
@@ -233,7 +235,7 @@ export default function SearchProfessionalsClient() {
     if (showMap && coords) {
       updateMap(data.professionals || [], coords);
     }
-  }, [keyword, state, zip, radius, centerCoords, locationMode, minRate, maxRate, lastLogin, selectedSkills, selectedChannels, selectedApps, selectedIndustries, selectedDays, dayTimes, language, degree, experience, environment, skillMode, channelMode, industryMode, showMap]);
+  }, [keyword, state, zip, radius, centerCoords, locationMode, minRate, maxRate, lastLogin, selectedSkills, selectedChannels, selectedApps, selectedIndustries, selectedDays, dayTimes, availMode, language, degree, experience, environment, skillMode, channelMode, industryMode, showMap]);
 
   // Auto-apply: search whenever any filter changes (debounced)
   const debounceRef = useRef(null);
@@ -243,7 +245,7 @@ export default function SearchProfessionalsClient() {
       doSearch(1);
     }, initialLoad ? 0 : 400);
     return () => clearTimeout(debounceRef.current);
-  }, [keyword, state, locationMode, minRate, maxRate, lastLogin, selectedSkills, selectedChannels, selectedApps, selectedIndustries, selectedDays, dayTimes, language, degree, experience, environment, skillMode, channelMode, industryMode]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [keyword, state, locationMode, minRate, maxRate, lastLogin, selectedSkills, selectedChannels, selectedApps, selectedIndustries, selectedDays, dayTimes, availMode, language, degree, experience, environment, skillMode, channelMode, industryMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -761,6 +763,35 @@ export default function SearchProfessionalsClient() {
                       </select>
                     </div>
                   ))}
+                  {/* Overlap vs Full Coverage toggle */}
+                  <div style={{ display: "flex", gap: 0, marginTop: 8, borderRadius: 6, overflow: "hidden", border: "1px solid var(--gray-200)" }}>
+                    <button
+                      type="button"
+                      onClick={() => setAvailMode("overlap")}
+                      style={{
+                        flex: 1, padding: "5px 8px", fontSize: "0.72rem", fontWeight: 600, cursor: "pointer", border: "none",
+                        background: availMode === "overlap" ? "var(--teal)" : "white",
+                        color: availMode === "overlap" ? "white" : "var(--gray-500)",
+                      }}
+                    >
+                      Shift Overlap
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAvailMode("full")}
+                      style={{
+                        flex: 1, padding: "5px 8px", fontSize: "0.72rem", fontWeight: 600, cursor: "pointer", border: "none",
+                        borderLeft: "1px solid var(--gray-200)",
+                        background: availMode === "full" ? "var(--teal)" : "white",
+                        color: availMode === "full" ? "white" : "var(--gray-500)",
+                      }}
+                    >
+                      Full Coverage
+                    </button>
+                  </div>
+                  <p style={{ fontSize: "0.7rem", color: "var(--gray-400)", marginTop: 4 }}>
+                    {availMode === "overlap" ? "Any time overlap with your schedule" : "Must cover your full schedule"}
+                  </p>
                 </div>
               )}
             </FilterSection>
