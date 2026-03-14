@@ -30,11 +30,21 @@ const TIMEZONES = [
   "Americas/Eastern", "Americas/Central", "Americas/Mountain", "Americas/Pacific",
 ];
 
+// Map browser IANA timezone to our dropdown values
+const IANA_TO_TZ = {
+  "America/New_York": "Americas/Eastern", "America/Detroit": "Americas/Eastern", "America/Indiana/Indianapolis": "Americas/Eastern",
+  "America/Chicago": "Americas/Central", "America/Indiana/Knox": "Americas/Central", "America/Menominee": "Americas/Central",
+  "America/Denver": "Americas/Mountain", "America/Boise": "Americas/Mountain", "America/Phoenix": "Americas/Mountain",
+  "America/Los_Angeles": "Americas/Pacific", "America/Anchorage": "Americas/Pacific",
+  "US/Eastern": "Americas/Eastern", "US/Central": "Americas/Central", "US/Mountain": "Americas/Mountain", "US/Pacific": "Americas/Pacific",
+};
+
 function detectTimezone() {
   try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const iana = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return IANA_TO_TZ[iana] || "Americas/Eastern";
   } catch {
-    return "US/Eastern";
+    return "Americas/Eastern";
   }
 }
 

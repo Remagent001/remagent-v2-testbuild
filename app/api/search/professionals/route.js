@@ -2,6 +2,23 @@ import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
+// UTC offsets in hours for our timezone values
+const TZ_OFFSETS = {
+  "Americas/Eastern": -5, "Americas/Central": -6, "Americas/Mountain": -7, "Americas/Pacific": -8,
+  // IANA fallbacks (in case old data exists)
+  "America/New_York": -5, "America/Chicago": -6, "America/Denver": -7, "America/Los_Angeles": -8,
+  "America/Detroit": -5, "America/Boise": -7, "America/Phoenix": -7, "America/Anchorage": -9,
+  "US/Eastern": -5, "US/Central": -6, "US/Mountain": -7, "US/Pacific": -8,
+};
+
+// Convert a time string like "09:00" to minutes since midnight in UTC, given a timezone
+function toUtcMinutes(timeStr, tz) {
+  const [h, m] = timeStr.split(":").map(Number);
+  const localMin = h * 60 + m;
+  const offset = (TZ_OFFSETS[tz] || -5) * 60; // default to Eastern
+  return localMin - offset; // subtract offset to get UTC (e.g., 9AM Eastern = 9*60 - (-5*60) = 540+300 = 840 UTC min)
+}
+
 // Haversine distance in miles between two lat/lng points
 function haversineDistance(lat1, lon1, lat2, lon2) {
   const R = 3959; // Earth radius in miles
@@ -60,6 +77,7 @@ export async function GET(request) {
     dayTimeMap[day].end = time;
   });
   const availMode = searchParams.get("availMode") || "overlap"; // "overlap" or "full"
+  const searchTz = searchParams.get("searchTz") || "Americas/Eastern";
   const language = searchParams.get("language") || "";
   const degree = searchParams.get("degree") || "";
   const experience = searchParams.get("experience") || "";
@@ -154,38 +172,11 @@ export async function GET(request) {
     }
   }
 
-  // Availability filter — must be available on ALL selected days
+  // Availability filter — day-level in Prisma, time+timezone comparison in JS post-query
   if (availableDays.length > 0) {
     where.AND = [
       ...(where.AND || []),
-      ...availableDays.map((day) => {
-        const times = dayTimeMap[day];
-        if (times?.start && times?.end) {
-          if (availMode === "full") {
-            // Full coverage: pro.start <= search.start AND pro.end >= search.end
-            return {
-              availability: {
-                some: {
-                  day,
-                  startTime: { lte: times.start },
-                  endTime: { gte: times.end },
-                },
-              },
-            };
-          }
-          // Overlap: pro.start < search.end AND pro.end > search.start
-          return {
-            availability: {
-              some: {
-                day,
-                startTime: { lt: times.end },
-                endTime: { gt: times.start },
-              },
-            },
-          };
-        }
-        return { availability: { some: { day } } };
-      }),
+      ...availableDays.map((day) => ({ availability: { some: { day } } })),
     ];
   }
 
@@ -227,6 +218,7 @@ export async function GET(request) {
       lastName: true,
       image: true,
       lastLogin: true,
+      timezone: true,
       professionalProfile: {
         select: {
           title: true,
@@ -280,6 +272,39 @@ export async function GET(request) {
     });
     // Sort by distance
     filtered.sort((a, b) => (a._distance || 999) - (b._distance || 999));
+  }
+
+  // Apply timezone-aware availability time filter in memory
+  if (availableDays.length > 0) {
+    const hasTimeFilters = availableDays.some((d) => dayTimeMap[d]?.start && dayTimeMap[d]?.end);
+    if (hasTimeFilters) {
+      filtered = filtered.filter((pro) => {
+        const proTz = pro.timezone || "Americas/Eastern";
+        return availableDays.every((day) => {
+          const searchTimes = dayTimeMap[day];
+          if (!searchTimes?.start || !searchTimes?.end) {
+            // No time filter for this day, just check day exists (already filtered by Prisma)
+            return true;
+          }
+          // Find pro's availability for this day
+          const proAvail = pro.availability?.find((a) => a.day === day);
+          if (!proAvail) return false;
+
+          // Convert both to UTC minutes for comparison
+          const searchStartUtc = toUtcMinutes(searchTimes.start, searchTz);
+          const searchEndUtc = toUtcMinutes(searchTimes.end, searchTz);
+          const proStartUtc = toUtcMinutes(proAvail.startTime, proTz);
+          const proEndUtc = toUtcMinutes(proAvail.endTime, proTz);
+
+          if (availMode === "full") {
+            // Pro must fully cover the search window
+            return proStartUtc <= searchStartUtc && proEndUtc >= searchEndUtc;
+          }
+          // Overlap: pro.start < search.end AND pro.end > search.start
+          return proStartUtc < searchEndUtc && proEndUtc > searchStartUtc;
+        });
+      });
+    }
   }
 
   // Paginate

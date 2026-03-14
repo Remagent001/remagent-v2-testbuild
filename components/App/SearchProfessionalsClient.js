@@ -147,13 +147,15 @@ export default function SearchProfessionalsClient() {
   // Job postings for availability shortcut
   const [positions, setPositions] = useState([]);
   const [selectedPosition, setSelectedPosition] = useState("");
+  const [searchTimezone, setSearchTimezone] = useState("Americas/Eastern");
 
-  // Check if business profile is complete
+  // Check if business profile is complete + get business timezone
   useEffect(() => {
     fetch("/api/business/profile")
       .then((r) => r.json())
       .then((data) => {
         setProfileComplete(!!(data.profile?.businessName));
+        if (data.user?.timezone) setSearchTimezone(data.user.timezone);
       })
       .catch(() => setProfileComplete(true)); // Non-business users pass through
   }, []);
@@ -214,7 +216,10 @@ export default function SearchProfessionalsClient() {
       if (times?.start) params.append("dayStart", `${d}:${times.start}`);
       if (times?.end) params.append("dayEnd", `${d}:${times.end}`);
     });
-    if (selectedDays.length > 0) params.set("availMode", availMode);
+    if (selectedDays.length > 0) {
+      params.set("availMode", availMode);
+      params.set("searchTz", searchTimezone);
+    }
     if (language) params.set("language", language);
     if (degree) params.set("degree", degree);
     if (experience) params.set("experience", experience);
@@ -650,6 +655,7 @@ export default function SearchProfessionalsClient() {
                         setSelectedDays(days);
                         setDayTimes(times);
                         setApplyToAll(false);
+                        if (pos.timezone) setSearchTimezone(pos.timezone);
                       }
                     }}
                     style={{ fontSize: "0.8rem" }}
