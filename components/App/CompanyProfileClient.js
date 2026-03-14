@@ -74,7 +74,21 @@ export default function CompanyProfileClient() {
           }
         }
         if (u?.phone && !p?.phone) setPhone(formatPhone(u.phone));
-        if (u?.timezone) setTimezone(u.timezone);
+        if (u?.timezone) {
+          setTimezone(u.timezone);
+        } else {
+          // Auto-detect from browser
+          try {
+            const iana = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const map = {
+              "America/New_York": "Americas/Eastern", "America/Detroit": "Americas/Eastern",
+              "America/Chicago": "Americas/Central", "America/Menominee": "Americas/Central",
+              "America/Denver": "Americas/Mountain", "America/Boise": "Americas/Mountain", "America/Phoenix": "Americas/Mountain",
+              "America/Los_Angeles": "Americas/Pacific", "America/Anchorage": "Americas/Pacific",
+            };
+            setTimezone(map[iana] || "Americas/Eastern");
+          } catch { setTimezone("Americas/Eastern"); }
+        }
       })
       .finally(() => setLoading(false));
   }, []);
