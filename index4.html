@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Remagent — Remote Contact Center Talent Marketplace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', system-ui, sans-serif; background: #fff; color: #1a2b45; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    img { display: block; max-width: 100%; }
+    a { text-decoration: none; color: inherit; }
+
+    :root {
+      --navy:      #0b1f3a;
+      --navy-mid:  #132d50;
+      --teal:      #0fd4b0;
+      --teal-dark: #0ab398;
+      --teal-deep: #0a9e88;
+      --teal-pale: #e6faf6;
+      --white:     #ffffff;
+      --gray-100:  #f5f7fa;
+      --gray-200:  #e8ecf1;
+      --gray-600:  #5a7080;
+      --gray-800:  #2d3f50;
+      --radius:    12px;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(11,31,58,0.97);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .nav-inner {
+      max-width: 1160px; margin: 0 auto; padding: 0 24px;
+      height: 68px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; }
+    .nav-logo-mark {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--teal) 0%, #06b6d4 100%);
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 1rem; color: var(--navy);
+    }
+    .nav-logo-text { font-size: 1.2rem; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
+    .nav-logo-text span { color: var(--teal); }
+    .nav-links { display: flex; gap: 28px; list-style: none; }
+    .nav-links a { color: rgba(255,255,255,0.7); font-size: 0.88rem; font-weight: 500; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--teal); }
+    .nav-actions { display: flex; gap: 12px; align-items: center; }
+    .nav-login { color: rgba(255,255,255,0.8); font-size: 0.88rem; font-weight: 600; padding: 8px 16px; border-radius: 8px; }
+    .btn-teal-nav { background: var(--teal); color: var(--navy); font-weight: 700; font-size: 0.88rem; padding: 9px 20px; border-radius: 10px; display: inline-block; transition: background 0.2s; }
+    .btn-teal-nav:hover { background: var(--teal-dark); }
+
+    /* ── HERO ── */
+    .hero {
+      background: #fff;
+      padding: 120px 24px 100px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-inner { max-width: 800px; margin: 0 auto; position: relative; z-index: 1; }
+
+    /* ── PARALLAX & ANIMATIONS ── */
+    .panel-biz, .panel-pro {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .panel-biz.visible, .panel-pro.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .panel-pro { transition-delay: 0.15s; }
+    .hero-badge {
+      display: inline-block;
+      color: var(--teal-dark);
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+    .hero-title {
+      font-size: clamp(2.25rem, 5vw, 3.5rem); font-weight: 900; color: var(--navy);
+      line-height: 1.15; letter-spacing: -0.03em; margin-bottom: 20px;
+    }
+    .hero-title .highlight {
+      color: var(--navy);
+      font-style: italic;
+      background: linear-gradient(90deg, #0b4f8a 0%, #0a3d6b 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero-sub {
+      font-size: 1.05rem; color: var(--gray-600); line-height: 1.7; max-width: 600px; margin: 0 auto;
+    }
+
+    /* ── SPLIT PANELS ── */
+    .split {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+      max-width: 1160px; margin: 64px auto 0; padding: 0 24px;
+    }
+    .panel-biz, .panel-pro {
+      display: flex; flex-direction: column;
+    }
+    .panel-actions {
+      margin-top: auto; padding-top: 8px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .why-link {
+      font-size: 0.88rem; font-weight: 600; transition: opacity 0.2s;
+    }
+    .why-link:hover { opacity: 0.8; }
+    .panel-biz .why-link { color: rgba(255,255,255,0.6); }
+    .panel-pro .why-link { color: rgba(255,255,255,0.6); }
+
+    /* Business panel (dark navy) */
+    .panel-biz {
+      background: var(--navy);
+      border-radius: 20px 0 0 20px;
+      padding: 48px 44px;
+      color: #fff;
+    }
+    .panel-biz .panel-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.9);
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 7px 16px; border-radius: 100px; margin-bottom: 24px;
+    }
+    .panel-biz .panel-title {
+      font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 900; color: #fff;
+      line-height: 1.2; margin-bottom: 20px;
+    }
+    .panel-biz .panel-title em {
+      font-style: italic; color: var(--teal);
+    }
+    .panel-biz .panel-callout {
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px; padding: 12px 16px; margin-bottom: 20px;
+      font-size: 0.85rem; font-weight: 600; color: rgba(255,255,255,0.9);
+    }
+    .panel-biz .panel-desc {
+      font-size: 0.92rem; color: rgba(255,255,255,0.65); line-height: 1.7; margin-bottom: 32px;
+    }
+    .panel-biz .panel-stats {
+      display: flex; margin-bottom: 36px; justify-content: space-evenly; text-align: center;
+    }
+    .panel-biz .pstat-num {
+      font-size: 1.5rem; font-weight: 900; color: var(--teal); line-height: 1;
+    }
+    .panel-biz .pstat-label {
+      font-size: 0.75rem; color: rgba(255,255,255,0.45); line-height: 1.3; margin-top: 4px;
+    }
+    .btn-teal-lg {
+      display: inline-block; background: var(--teal); color: var(--navy);
+      font-weight: 700; font-size: 0.95rem; padding: 14px 28px; border-radius: 10px;
+      transition: background 0.2s;
+    }
+    .btn-teal-lg:hover { background: var(--teal-dark); }
+
+    /* Professional panel (TEAL) */
+    .panel-pro {
+      background: linear-gradient(160deg, #0ab398 0%, #089e85 50%, #07876f 100%);
+      border-radius: 0 20px 20px 0;
+      padding: 48px 44px;
+      color: #fff;
+    }
+    .panel-pro .panel-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+      color: #fff;
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 7px 16px; border-radius: 100px; margin-bottom: 24px;
+    }
+    .panel-pro .panel-title {
+      font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 900; color: #fff;
+      line-height: 1.2; margin-bottom: 20px;
+    }
+    .panel-pro .panel-title em {
+      font-style: italic; color: #d4f7ef;
+    }
+    .panel-pro .panel-callout {
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 10px; padding: 12px 16px; margin-bottom: 20px;
+      font-size: 0.85rem; font-weight: 600; color: #fff;
+    }
+    .panel-pro .panel-desc {
+      font-size: 0.92rem; color: rgba(255,255,255,0.75); line-height: 1.7; margin-bottom: 32px;
+    }
+    .panel-pro .panel-stats {
+      display: flex; margin-bottom: 36px; justify-content: space-evenly; text-align: center;
+    }
+    .panel-pro .pstat-num {
+      font-size: 1.5rem; font-weight: 900; color: #fff; line-height: 1;
+    }
+    .panel-pro .pstat-label {
+      font-size: 0.75rem; color: rgba(255,255,255,0.55); line-height: 1.3; margin-top: 4px;
+    }
+    .btn-white-lg {
+      display: inline-block; background: #fff; color: var(--teal-deep);
+      font-weight: 700; font-size: 0.95rem; padding: 14px 28px; border-radius: 10px;
+      transition: background 0.2s;
+    }
+    .btn-white-lg:hover { background: #f0faf7; }
+
+    /* ── FOOTER ── */
+    footer { background: #070f1c; padding: 48px 0 24px; }
+    .footer-inner { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 40px; padding-bottom: 40px; border-bottom: 1px solid rgba(255,255,255,0.07); margin-bottom: 24px; }
+    .footer-brand p { font-size: 0.85rem; color: rgba(255,255,255,0.45); line-height: 1.7; margin-top: 14px; max-width: 280px; }
+    .footer-col-title { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #fff; margin-bottom: 14px; }
+    .footer-links { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .footer-links a { font-size: 0.85rem; color: rgba(255,255,255,0.45); transition: color 0.2s; }
+    .footer-links a:hover { color: var(--teal); }
+    .footer-bottom { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .footer-bottom p { font-size: 0.78rem; color: rgba(255,255,255,0.35); }
+
+    @media (max-width: 900px) {
+      .split { grid-template-columns: 1fr; gap: 0; }
+      .panel-biz { border-radius: 20px 20px 0 0; }
+      .panel-pro { border-radius: 0 0 20px 20px; }
+      .panel-biz .panel-stats, .panel-pro .panel-stats { flex-wrap: wrap; gap: 20px; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="index4.html" class="nav-logo">
+      <div class="nav-logo-mark">R</div>
+      <span class="nav-logo-text">rem<span>agent</span></span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="business.html">For Businesses</a></li>
+      <li><a href="professional.html">For Professionals</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="/login" class="nav-login">Sign In</a>
+      <a href="/register" class="btn-teal-nav">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">Remote Contact Center Talent Marketplace</div>
+    <h1 class="hero-title">
+      Remagent connects call centers with <span class="highlight">experienced, pre-screened agents.</span>
+    </h1>
+    <p class="hero-sub">100% human-screened. Bot-free. Built on transparency, speed, and trust.</p>
+  </div>
+</section>
+
+<!-- SPLIT PANELS -->
+<div class="split">
+
+  <!-- BUSINESS PANEL (dark navy) -->
+  <div class="panel-biz">
+    <a href="business.html" class="panel-badge">&#127970; For Businesses</a>
+    <h2 class="panel-title">Find the Talent <em>Who Already Want the Job You're Offering</em></h2>
+    <div class="panel-callout">
+      &#9989; Every candidate personally vetted by our team of HUMANS.
+    </div>
+    <p class="panel-desc">Search a pool of pre-vetted contact center professionals, filter by exactly what you need, and invite them directly — in minutes, not weeks.</p>
+    <div class="panel-stats">
+      <div>
+        <div class="pstat-num">100+</div>
+        <div class="pstat-label">Vetted professionals<br>ready to work</div>
+      </div>
+      <div>
+        <div class="pstat-num">&lt; 2 hrs</div>
+        <div class="pstat-label">Average time<br>to first offer</div>
+      </div>
+      <div>
+        <div class="pstat-num">$0</div>
+        <div class="pstat-label">Job Posting<br>fees</div>
+      </div>
+    </div>
+    <div class="panel-actions">
+      <a href="/register?role=business" class="btn-teal-lg">Search Our Talent Pool &#8594;</a>
+      <a href="business.html" class="why-link">Why Remagent for Businesses &#8594;</a>
+    </div>
+  </div>
+
+  <!-- PROFESSIONAL PANEL (TEAL) -->
+  <div class="panel-pro">
+    <a href="professional.html" class="panel-badge">&#128100; For Professionals</a>
+    <h2 class="panel-title">Get Discovered by Employers <em>Looking for You</em></h2>
+    <div class="panel-callout">
+      &#9989; Every application is personally reviewed by a Remagent manager.
+    </div>
+    <p class="panel-desc">Build your profile once. Companies search, filter, and invite you directly, based on your: skills, availability, and pay expectations — no resume roulette.</p>
+    <div class="panel-stats">
+      <div>
+        <div class="pstat-num">20 min</div>
+        <div class="pstat-label">To build<br>your profile</div>
+      </div>
+      <div>
+        <div class="pstat-num">100%</div>
+        <div class="pstat-label">Remote<br>positions</div>
+      </div>
+      <div>
+        <div class="pstat-num">0</div>
+        <div class="pstat-label">Resume<br>Roulette</div>
+      </div>
+    </div>
+    <div class="panel-actions">
+      <a href="/register?role=professional" class="btn-white-lg">Build My Profile &#8594;</a>
+      <a href="professional.html" class="why-link">Why Remagent for Professionals &#8594;</a>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer style="margin-top: 96px;">
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="nav-logo">
+          <div class="nav-logo-mark">R</div>
+          <span class="nav-logo-text">rem<span>agent</span></span>
+        </div>
+        <p>The remote contact center talent marketplace. Search, filter, and invite pre-screened professionals — in minutes, not months.</p>
+      </div>
+      <div>
+        <div class="footer-col-title">For Businesses</div>
+        <ul class="footer-links">
+          <li><a href="how-it-works-business.html">How It Works</a></li>
+          <li><a href="business.html">Why Remagent</a></li>
+          <li><a href="/register?role=business">Get Started</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">For Professionals</div>
+        <ul class="footer-links">
+          <li><a href="how-it-works-professional.html">How It Works</a></li>
+          <li><a href="professional.html">Why Remagent</a></li>
+          <li><a href="/register?role=professional">Build My Profile</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Remagent. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+const heroInner = document.querySelector('.hero-inner');
+window.addEventListener('scroll', () => {
+  const scrolled = window.scrollY;
+  heroInner.style.transform = 'translateY(' + (scrolled * 0.4) + 'px)';
+  heroInner.style.opacity = Math.max(1 - scrolled / 500, 0);
+});
+
+const panels = document.querySelectorAll('.panel-biz, .panel-pro');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) entry.target.classList.add('visible');
+  });
+}, { threshold: 0.15 });
+panels.forEach(panel => observer.observe(panel));
+</script>
+</body>
+</html>

@@ -57,10 +57,38 @@
     .btn-teal { background: var(--teal); color: var(--navy); font-weight: 700; font-size: 0.88rem; padding: 9px 20px; border-radius: 10px; display: inline-block; transition: background 0.2s; }
     .btn-teal:hover { background: var(--teal-dark); }
 
+    /* ── SCROLL ANIMATIONS ── */
+    .fade-up {
+      opacity: 0; transform: translateY(50px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
+    .slide-left {
+      opacity: 0; transform: translateX(-60px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .slide-left.visible { opacity: 1; transform: translateX(0); }
+    .slide-right {
+      opacity: 0; transform: translateX(60px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .slide-right.visible { opacity: 1; transform: translateX(0); }
+    .scale-in {
+      opacity: 0; transform: scale(0.85);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .scale-in.visible { opacity: 1; transform: scale(1); }
+    .stagger-1 { transition-delay: 0.05s; }
+    .stagger-2 { transition-delay: 0.1s; }
+    .stagger-3 { transition-delay: 0.15s; }
+    .stagger-4 { transition-delay: 0.2s; }
+    .stagger-5 { transition-delay: 0.25s; }
+    .stagger-6 { transition-delay: 0.3s; }
+
     /* ── PAGE HERO ── */
     .page-hero {
       background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
-      padding: 72px 24px 64px; text-align: center; position: relative; overflow: hidden;
+      padding: 100px 24px 80px; text-align: center; position: relative; overflow: hidden;
     }
     .page-hero::before {
       content: ''; position: absolute; inset: 0;
@@ -209,32 +237,32 @@
 <section class="section">
   <div class="wrap">
     <div class="benefits-grid">
-      <div class="benefit-card">
+      <div class="benefit-card fade-up stagger-1">
         <div class="benefit-icon">&#127919;</div>
         <div class="benefit-title">You Search. You Choose.</div>
         <p class="benefit-desc">You're not waiting for applications. You define what you need, browse professionals who match, and send invitations directly. The power stays with you.</p>
       </div>
-      <div class="benefit-card">
+      <div class="benefit-card fade-up stagger-2">
         <div class="benefit-icon">&#9989;</div>
         <div class="benefit-title">Every Professional is Pre-Screened by Humans</div>
         <p class="benefit-desc">No bots, no keyword matching. Real contact center experience is verified before a profile goes live. When you search Remagent, you're only seeing people who have actually done the job.</p>
       </div>
-      <div class="benefit-card">
+      <div class="benefit-card fade-up stagger-3">
         <div class="benefit-icon">&#128640;</div>
         <div class="benefit-title">Faster Than Traditional Hiring</div>
         <p class="benefit-desc">Skip weeks of job postings, screening calls, and recruiter emails. With Remagent, you can identify qualified professionals, review profiles, and send invitations in minutes — not weeks.</p>
       </div>
-      <div class="benefit-card">
+      <div class="benefit-card fade-up stagger-4">
         <div class="benefit-icon">&#128269;</div>
         <div class="benefit-title">Filters That Actually Mean Something</div>
         <p class="benefit-desc">Filter by platform (Zendesk, Salesforce, Genesys), channel (Voice, Chat, Email), language, availability, pay range, industry background, and more. Every filter maps to real, verified profile data.</p>
       </div>
-      <div class="benefit-card">
+      <div class="benefit-card fade-up stagger-5">
         <div class="benefit-icon">&#9889;</div>
         <div class="benefit-title">From Search to Shortlist in Minutes</div>
         <p class="benefit-desc">Set your filters, see matching professionals instantly, review their full profiles — experience, availability, platforms, languages — and send invitations in a single workflow. No back-and-forth.</p>
       </div>
-      <div class="benefit-card">
+      <div class="benefit-card fade-up stagger-6">
         <div class="benefit-icon">&#128260;</div>
         <div class="benefit-title">Scale Up or Down Without the Overhead</div>
         <p class="benefit-desc">Need two agents for a seasonal push? Ten for a new product launch? Remagent's talent pool is always available. Hire for what you need, when you need it, without long-term staffing commitments.</p>
@@ -249,19 +277,19 @@
     <span class="section-label" style="background:rgba(15,212,176,0.15);border-color:rgba(15,212,176,0.3);color:var(--teal);">By the Numbers</span>
     <h2 style="font-size:clamp(1.5rem,3vw,2.25rem);font-weight:900;color:#fff;margin-bottom:12px;">Results Businesses <span style="color:var(--teal);font-style:italic;">Actually See</span></h2>
     <div class="stats-row">
-      <div class="stat-card">
+      <div class="stat-card scale-in stagger-1">
         <div class="stat-num">&lt;2 hrs</div>
         <div class="stat-label">Average time to first qualified offer made.</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card scale-in stagger-2">
         <div class="stat-num">100+</div>
         <div class="stat-label">Pre-screened, experienced, contact center professionals and growing daily</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card scale-in stagger-3">
         <div class="stat-num">$0</div>
         <div class="stat-label">No cost for Job Postings. Just a small fee for using the platform</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card scale-in stagger-4">
         <div class="stat-num">&lt;9%</div>
         <div class="stat-label">Lowest 90-day attrition due to more accurate matches to skills and hiring desires</div>
       </div>
@@ -278,7 +306,7 @@
       <p class="section-subtitle" style="margin:0 auto;">Every feature on Remagent was designed around one problem: finding the right contact center professional <span style="color:var(--teal-dark);font-weight:600;">that stays.</span></p>
     </div>
     <div class="compare-grid">
-      <div class="compare-card trad">
+      <div class="compare-card trad slide-left">
         <span class="compare-tag tag-gray">Traditional Hiring</span>
         <div class="compare-heading">Post, pray, and wait.</div>
         <ul class="compare-list">
@@ -290,8 +318,8 @@
         </ul>
         <div class="compare-time time-bad">Weeks to fill a role</div>
       </div>
-      <div class="vs-badge">VS</div>
-      <div class="compare-card rem">
+      <div class="vs-badge scale-in">VS</div>
+      <div class="compare-card rem slide-right">
         <span class="compare-tag tag-teal">With Remagent</span>
         <div class="compare-heading">Search, filter, invite, done.</div>
         <ul class="compare-list">
@@ -315,7 +343,7 @@
       <h2 class="section-title">Every Filter Maps to <span class="accent">Real Profile Data</span></h2>
       <p class="section-subtitle" style="margin:0 auto;">These aren't keyword tags on a resume. Every data point is verified and structured — so what you filter for is exactly what you get.</p>
     </div>
-    <div class="filters-box">
+    <div class="filters-box fade-up">
       <p class="filters-box-title">Search and filter professionals by:</p>
       <div class="chips">
         <div class="chip"><span class="chip-check">&#10003;</span> Voice</div>
@@ -355,7 +383,7 @@
 <!-- CTA -->
 <section class="section">
   <div class="wrap">
-    <div class="cta-banner">
+    <div class="cta-banner fade-up">
       <div>
         <h3>Ready to find your next hire?</h3>
         <p>Create your account free. Search professionals immediately.</p>
@@ -403,5 +431,21 @@
   </div>
 </footer>
 
+<script>
+// Parallax hero
+const heroInner = document.querySelector('.page-hero-inner');
+window.addEventListener('scroll', () => {
+  const s = window.scrollY;
+  heroInner.style.transform = 'translateY(' + (s * 0.35) + 'px)';
+  heroInner.style.opacity = Math.max(1 - s / 400, 0);
+});
+
+// Scroll-triggered animations
+const animEls = document.querySelectorAll('.fade-up, .slide-left, .slide-right, .scale-in');
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.12 });
+animEls.forEach(el => obs.observe(el));
+</script>
 </body>
 </html>

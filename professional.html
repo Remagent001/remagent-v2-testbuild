@@ -33,8 +33,20 @@
     .nav-login { color: rgba(255,255,255,0.8); font-size: 0.88rem; font-weight: 600; padding: 8px 16px; border-radius: 8px; }
     .btn-teal { background: var(--teal); color: var(--navy); font-weight: 700; font-size: 0.88rem; padding: 9px 20px; border-radius: 10px; display: inline-block; }
     .btn-teal:hover { background: var(--teal-dark); }
+    /* SCROLL ANIMATIONS */
+    .fade-up { opacity: 0; transform: translateY(50px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
+    .slide-left { opacity: 0; transform: translateX(-60px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .slide-left.visible { opacity: 1; transform: translateX(0); }
+    .slide-right { opacity: 0; transform: translateX(60px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .slide-right.visible { opacity: 1; transform: translateX(0); }
+    .scale-in { opacity: 0; transform: scale(0.85); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .scale-in.visible { opacity: 1; transform: scale(1); }
+    .stagger-1 { transition-delay: 0.05s; } .stagger-2 { transition-delay: 0.1s; }
+    .stagger-3 { transition-delay: 0.15s; } .stagger-4 { transition-delay: 0.2s; }
+    .stagger-5 { transition-delay: 0.25s; } .stagger-6 { transition-delay: 0.3s; }
     /* PAGE HERO */
-    .page-hero { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%); padding: 72px 24px 64px; text-align: center; position: relative; overflow: hidden; }
+    .page-hero { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%); padding: 100px 24px 80px; text-align: center; position: relative; overflow: hidden; }
     .page-hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 70% 80% at 50% 120%, rgba(15,212,176,0.12) 0%, transparent 70%); pointer-events: none; }
     .page-hero-inner { max-width: 720px; margin: 0 auto; position: relative; z-index: 1; }
     .section-label { display: inline-block; background: rgba(15,212,176,0.15); border: 1px solid rgba(15,212,176,0.3); color: var(--teal); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 6px 14px; border-radius: 100px; margin-bottom: 20px; }
@@ -154,32 +166,32 @@
       <p class="sec-sub" style="margin:0 auto;">Your experience is real. Your skills are specific. Remagent is built to put them in front of the right employers — without the guesswork of traditional job searching.</p>
     </div>
     <div class="benefits-grid">
-      <div class="benefit-card">
+      <div class="benefit-card fade-up stagger-1">
         <div class="benefit-icon">&#128231;</div>
         <div class="benefit-title">You Don't Apply — You Get Invited</div>
         <p class="benefit-desc">Forget submitting resumes into a void. Build your profile once and become searchable by businesses actively hiring. When they like what they see, they send you the opportunity — not the other way around.</p>
       </div>
-      <div class="benefit-card">
+      <div class="benefit-card fade-up stagger-2">
         <div class="benefit-icon">&#9200;</div>
         <div class="benefit-title">Your Schedule. Your Rate. Your Terms.</div>
         <p class="benefit-desc">Set the days and hours you're available. Set what you expect to earn. Companies filter for what matches — you only hear from businesses that fit your life, not the other way around.</p>
       </div>
-      <div class="benefit-card">
+      <div class="benefit-card fade-up stagger-3">
         <div class="benefit-icon">&#128274;</div>
         <div class="benefit-title">Your Profile, Your Control</div>
         <p class="benefit-desc">You decide when you're visible and what opportunities you accept. Update your availability, adjust your rate, or pause your profile anytime — you stay in control of your career.</p>
       </div>
-      <div class="benefit-card">
+      <div class="benefit-card fade-up stagger-4">
         <div class="benefit-icon">&#127919;</div>
         <div class="benefit-title">Your Skills Are Matched, Not Skimmed</div>
         <p class="benefit-desc">Your profile is structured data — not a document employers skim and dismiss. Every platform you've used, every channel you've worked, every language you speak becomes a filter that matches you to the right company.</p>
       </div>
-      <div class="benefit-card">
+      <div class="benefit-card fade-up stagger-5">
         <div class="benefit-icon">&#9989;</div>
         <div class="benefit-title">Pre-Screened Employers Only</div>
         <p class="benefit-desc">Remagent verifies every business before they can search and invite professionals. You're not fielding inquiries from just anyone — every invitation comes from a vetted company with real, legitimate remote roles.</p>
       </div>
-      <div class="benefit-card">
+      <div class="benefit-card fade-up stagger-6">
         <div class="benefit-icon">&#128176;</div>
         <div class="benefit-title">Free to Build and Maintain</div>
         <p class="benefit-desc">Building your profile and being discoverable by employers costs you nothing. No subscription fees, no premium tiers to get seen, no paying for the privilege of job hunting. Remagent works for you — free.</p>
@@ -197,7 +209,7 @@
       <p class="sec-sub" style="margin:0 auto;">Traditional job searching puts all the work on you and all the power with employers. Remagent flips the model.</p>
     </div>
     <div class="compare-grid">
-      <div class="compare-card trad">
+      <div class="compare-card trad slide-left">
         <span class="compare-tag tag-gray">Traditional Job Search</span>
         <div class="compare-heading">Apply, wait, repeat.</div>
         <ul class="compare-list">
@@ -210,8 +222,8 @@
         </ul>
         <div class="compare-time time-bad">Months of searching. Often nothing.</div>
       </div>
-      <div class="vs-badge">VS</div>
-      <div class="compare-card rem">
+      <div class="vs-badge scale-in">VS</div>
+      <div class="compare-card rem slide-right">
         <span class="compare-tag tag-teal">With Remagent</span>
         <div class="compare-heading">Build once. Get found.</div>
         <ul class="compare-list">
@@ -234,19 +246,19 @@
     <span class="sec-label" style="background:rgba(15,212,176,0.15);border-color:rgba(15,212,176,0.3);color:var(--teal);">By the Numbers</span>
     <h2 style="font-size:clamp(1.5rem,3vw,2.25rem);font-weight:900;color:#fff;margin-bottom:12px;">What <span style="color:var(--teal);">Professionals Gain</span></h2>
     <div class="stats-row">
-      <div class="stat-card">
+      <div class="stat-card scale-in stagger-1">
         <div class="stat-num">20 min</div>
         <div class="stat-label">Average time to build a complete profile from scratch</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card scale-in stagger-2">
         <div class="stat-num">$0</div>
         <div class="stat-label">Cost to create your profile and be discovered by employers</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card scale-in stagger-3">
         <div class="stat-num">1</div>
         <div class="stat-label">Profile. Build it once — Employers find it.</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card scale-in stagger-4">
         <div class="stat-num">0 Applications</div>
         <div class="stat-label">Professionals don't apply — employers invite you.</div>
       </div>
@@ -262,7 +274,7 @@
       <h2 class="sec-title">More Than a Resume. <span class="accent">Structured Data.</span></h2>
       <p class="sec-sub" style="margin:0 auto;">Every field in your Remagent profile is something employers actually filter on. What you enter becomes your visibility.</p>
     </div>
-    <div class="profile-box">
+    <div class="profile-box fade-up">
       <p class="profile-box-title">What employers search and filter on:</p>
       <div class="profile-grid">
         <div class="profile-field"><span class="field-check">&#10003;</span> Years of Contact Center Experience</div>
@@ -282,7 +294,7 @@
 <!-- CTA -->
 <section class="section section-alt">
   <div class="wrap">
-    <div class="cta-banner">
+    <div class="cta-banner fade-up">
       <div>
         <h3>Ready to let employers find you?</h3>
         <p>Build your profile in about 20 minutes. It's free.</p>
@@ -329,5 +341,21 @@
     </div>
   </div>
 </footer>
+<script>
+// Parallax hero
+const heroInner = document.querySelector('.page-hero-inner');
+window.addEventListener('scroll', () => {
+  const s = window.scrollY;
+  heroInner.style.transform = 'translateY(' + (s * 0.35) + 'px)';
+  heroInner.style.opacity = Math.max(1 - s / 400, 0);
+});
+
+// Scroll-triggered animations
+const animEls = document.querySelectorAll('.fade-up, .slide-left, .slide-right, .scale-in');
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.12 });
+animEls.forEach(el => obs.observe(el));
+</script>
 </body>
 </html>

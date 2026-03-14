@@ -119,7 +119,7 @@ export default function StepExperience({ data, onNext, onBack, onSaveExit, onSki
 
   return (
     <div className="onboarding-step">
-      <p className="onboarding-step-desc">
+      <p className="onboarding-step-desc" style={{ fontSize: "1.05rem", marginBottom: "24px" }}>
         Tell us about your experience, skills, and the tools you work with.
       </p>
 
@@ -130,21 +130,12 @@ export default function StepExperience({ data, onNext, onBack, onSaveExit, onSki
           value={overallExperience}
           onChange={(e) => setOverallExperience(e.target.value)}
         >
-          <option value="">Select your experience level</option>
+          <option value="">Select your relevant experience</option>
           {EXP_OPTIONS.map((opt) => (
             <option key={opt} value={opt}>{opt}</option>
           ))}
         </select>
       </div>
-
-      <SelectableGrid
-        items={allSkills}
-        selected={selectedSkills}
-        onToggle={toggleItem(setSelectedSkills)}
-        onExpChange={setItemExp(setSelectedSkills)}
-        label="Skills"
-        hint="Select your skills and how long you've used each one."
-      />
 
       <SelectableGrid
         items={allIndustries}
@@ -153,6 +144,15 @@ export default function StepExperience({ data, onNext, onBack, onSaveExit, onSki
         onExpChange={setItemExp(setSelectedIndustries)}
         label="Industry Experience"
         hint="Select the industries you have experience in."
+      />
+
+      <SelectableGrid
+        items={allSkills}
+        selected={selectedSkills}
+        onToggle={toggleItem(setSelectedSkills)}
+        onExpChange={setItemExp(setSelectedSkills)}
+        label="Skills"
+        hint="Select your skills and years of experience with each."
       />
 
       <SelectableGrid

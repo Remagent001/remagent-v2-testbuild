@@ -78,6 +78,7 @@ export default function StepChannels({ data, onNext, onBack, onSaveExit, onSkip,
                 <select
                   className="form-input form-select channel-exp"
                   value={channels[ch.id]}
+                  onClick={(e) => e.stopPropagation()}
                   onChange={(e) => setExperience(ch.id, e.target.value)}
                 >
                   {EXP_OPTIONS.map((opt) => (

@@ -73,7 +73,7 @@ export default function RegisterPage() {
       {/* Left panel */}
       <div className="login-left">
         <div className="login-left-content">
-          <div className="login-logo"><span className="login-logo-mark">R</span><span className="login-logo-text">rem<span>agent</span></span></div>
+          <a href="/index2.html" className="login-logo" style={{ textDecoration: 'none' }}><span className="login-logo-mark">R</span><span className="login-logo-text">rem<span>agent</span></span></a>
           <h1 className="login-tagline">
             Build Your <span className="t">Future</span> With Us.
           </h1>
