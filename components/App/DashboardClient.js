@@ -129,7 +129,7 @@ export default function DashboardClient() {
               <div className="card-title">{hasProfile ? "Company Profile" : "Set Up Your Company"}</div>
               <div className="card-subtitle">
                 {hasProfile
-                  ? `${bizProfile.businessName}${bizProfile.industry ? ` · ${bizProfile.industry}` : ""}`
+                  ? `${bizProfile.businessName}${bizProfile.city ? `, ${bizProfile.city}` : ""}${bizProfile.state ? `, ${bizProfile.state}` : ""}`
                   : "Complete your company profile to start posting jobs and finding professionals."}
               </div>
             </div>

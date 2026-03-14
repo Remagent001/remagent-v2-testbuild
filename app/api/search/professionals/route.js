@@ -69,7 +69,7 @@ export async function GET(request) {
   // Build where clause
   const where = {
     role: "PROFESSIONAL",
-    professionalProfile: { isNot: null, profileComplete: true },
+    professionalProfile: { profileComplete: true },
   };
 
   // Keyword search — match on name, title, or summary

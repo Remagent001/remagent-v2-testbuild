@@ -33,12 +33,10 @@ export default function StepPositionDetail({ data, onNext, onBack, onSaveExit, o
 
       <div className="form-group">
         <label className="form-label">Description *</label>
-        <p className="form-hint">Please provide a description of the role including: what the employee will do day-to-day, what success in the role looks like, and why this is a good opportunity for candidates.</p>
-        <p className="form-hint" style={{ marginTop: 8, fontStyle: "italic" }}>Getting the right candidate is key. Setting clear expectations helps attract the right people and leads to longer tenure and better outcomes for both the employee and the company.</p>
         <RichTextEditor
           content={description}
           onChange={setDescription}
-          placeholder="Tell professionals about this position..."
+          placeholder="Tell professionals about this position. Please provide a description of the role including: what the employee will do day-to-day, what success in the role looks like, and why this is a good opportunity for candidates. Getting the right candidate is key. Setting clear expectations helps attract the right people and leads to longer tenure and better outcomes for both the employee and the company."
           maxLength={5000}
         />
       </div>
