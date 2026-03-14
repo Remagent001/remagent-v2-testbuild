@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import AddressAutocomplete from "@/components/App/AddressAutocomplete";
 
 const WORK_LOCATIONS = [
   { value: "office", label: "Required in a local office" },
@@ -56,12 +57,11 @@ export default function StepEnvironment({ data, onNext, onBack, onSaveExit, onSk
       {(workLocation === "office" || workLocation === "mix") && (
         <div className="form-group">
           <label className="form-label">Office Address (optional)</label>
-          <input
-            className="form-input"
-            placeholder="Start typing an address..."
+          <AddressAutocomplete
             value={officeAddress}
-            onChange={(e) => setOfficeAddress(e.target.value)}
-            id="office-address-input"
+            onChange={setOfficeAddress}
+            onPlaceSelect={useCallback((place) => setOfficeAddress(place.fullAddress), [])}
+            placeholder="Start typing an address..."
           />
         </div>
       )}
