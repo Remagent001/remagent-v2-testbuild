@@ -123,7 +123,7 @@ export default function DashboardClient() {
           </Link>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: hasProfile ? "1fr 1fr" : "1fr", gap: 16, marginBottom: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
           <div className="card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", margin: 0 }}>
             <div style={{ marginBottom: 16 }}>
               <div className="card-title">{hasProfile ? "Company Profile" : "Set Up Your Company"}</div>
@@ -149,16 +149,16 @@ export default function DashboardClient() {
               </Link>
             </div>
           )}
-        </div>
 
-        <div className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <div className="card-title">Account</div>
-            <div className="card-subtitle">Manage your session.</div>
+          <div className="card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", margin: 0 }}>
+            <div style={{ marginBottom: 16 }}>
+              <div className="card-title">Account</div>
+              <div className="card-subtitle">Manage your session.</div>
+            </div>
+            <button className="btn-secondary" onClick={() => signOut({ callbackUrl: "/login" })} style={{ whiteSpace: "nowrap", alignSelf: "flex-start" }}>
+              Sign Out
+            </button>
           </div>
-          <button className="btn-secondary" onClick={() => signOut({ callbackUrl: "/login" })} style={{ whiteSpace: "nowrap" }}>
-            Sign Out
-          </button>
         </div>
       </div>
     );

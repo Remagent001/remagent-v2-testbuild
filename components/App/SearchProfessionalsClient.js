@@ -545,6 +545,7 @@ export default function SearchProfessionalsClient() {
                   className="form-input"
                   type="number"
                   placeholder="Min"
+                  min="10"
                   value={minRate}
                   onChange={(e) => setMinRate(e.target.value)}
                   style={{ fontSize: "0.85rem", width: "50%" }}
@@ -554,6 +555,7 @@ export default function SearchProfessionalsClient() {
                   className="form-input"
                   type="number"
                   placeholder="Max"
+                  min="10"
                   value={maxRate}
                   onChange={(e) => setMaxRate(e.target.value)}
                   style={{ fontSize: "0.85rem", width: "50%" }}

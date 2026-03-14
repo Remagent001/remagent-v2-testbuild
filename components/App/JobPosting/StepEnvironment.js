@@ -19,12 +19,14 @@ export default function StepEnvironment({ data, onNext, onBack, onSaveExit, onSk
   });
   const [equipmentPolicy, setEquipmentPolicy] = useState(env?.equipmentPolicy || "");
   const [requirements, setRequirements] = useState(env?.requirements || "");
+  const [officeAddress, setOfficeAddress] = useState(env?.officeAddress || "");
   const [isDefault, setIsDefault] = useState(false);
 
   const getData = () => ({
     workLocation: workLocation ? [workLocation] : [],
     equipmentPolicy,
     requirements: requirements.trim(),
+    officeAddress: officeAddress.trim(),
     isDefault,
   });
 
@@ -51,6 +53,19 @@ export default function StepEnvironment({ data, onNext, onBack, onSaveExit, onSk
         </div>
       </div>
 
+      {(workLocation === "office" || workLocation === "mix") && (
+        <div className="form-group">
+          <label className="form-label">Office Address (optional)</label>
+          <input
+            className="form-input"
+            placeholder="Start typing an address..."
+            value={officeAddress}
+            onChange={(e) => setOfficeAddress(e.target.value)}
+            id="office-address-input"
+          />
+        </div>
+      )}
+
       <div className="form-group" style={{ marginTop: 28 }}>
         <label className="form-label">Equipment</label>
         <p className="form-hint">
@@ -64,7 +79,7 @@ export default function StepEnvironment({ data, onNext, onBack, onSaveExit, onSk
               checked={equipmentPolicy === "provided"}
               onChange={() => setEquipmentPolicy("provided")}
             />
-            Business will provide hardware to Professional
+            Our company will provide the required hardware
           </label>
           <label className="form-checkbox">
             <input
@@ -73,7 +88,7 @@ export default function StepEnvironment({ data, onNext, onBack, onSaveExit, onSk
               checked={equipmentPolicy === "byod"}
               onChange={() => setEquipmentPolicy("byod")}
             />
-            BYOD (Worker is able to use their own device (PC or Mac))
+            BYOD - Professional is able to use their own equipment (Windows PC)
           </label>
         </div>
       </div>

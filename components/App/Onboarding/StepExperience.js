@@ -119,7 +119,7 @@ export default function StepExperience({ data, onNext, onBack, onSaveExit, onSki
 
   return (
     <div className="onboarding-step">
-      <p className="onboarding-step-desc" style={{ fontSize: "1.05rem", marginBottom: "24px" }}>
+      <p className="onboarding-step-desc">
         Tell us about your experience, skills, and the tools you work with.
       </p>
 
@@ -130,7 +130,6 @@ export default function StepExperience({ data, onNext, onBack, onSaveExit, onSki
           value={overallExperience}
           onChange={(e) => setOverallExperience(e.target.value)}
         >
-          <option value="">Select your relevant experience</option>
           {EXP_OPTIONS.map((opt) => (
             <option key={opt} value={opt}>{opt}</option>
           ))}

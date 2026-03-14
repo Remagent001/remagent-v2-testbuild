@@ -16,6 +16,7 @@ for (let h = 0; h < 24; h++) {
     TIMES.push({ value: `${hh24}:${mm}`, label });
   }
 }
+TIMES.push({ value: "23:59", label: "11:59 PM (End of Day)" });
 
 const GRID_HOURS = [];
 for (let h = 6; h <= 23; h++) {

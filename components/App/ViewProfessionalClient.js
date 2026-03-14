@@ -33,13 +33,6 @@ function timeAgo(dateStr) {
   return `${Math.floor(days / 30)}mo ago`;
 }
 
-function formatPhone(phone) {
-  if (!phone) return "";
-  const digits = phone.replace(/\D/g, "");
-  const d = digits.length === 11 && digits[0] === "1" ? digits.slice(1) : digits;
-  if (d.length === 10) return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
-  return phone;
-}
 
 export default function ViewProfessionalClient({ professionalId }) {
   const router = useRouter();
@@ -366,21 +359,6 @@ export default function ViewProfessionalClient({ professionalId }) {
           </Section>
         )}
 
-        {/* Contact */}
-        <Section title="Contact">
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 24, fontSize: "0.9rem", color: "var(--gray-700)" }}>
-            <div>
-              <div style={{ fontSize: "0.75rem", color: "var(--gray-400)", textTransform: "uppercase", marginBottom: 2 }}>Email</div>
-              {pro.email}
-            </div>
-            {pro.phone && (
-              <div>
-                <div style={{ fontSize: "0.75rem", color: "var(--gray-400)", textTransform: "uppercase", marginBottom: 2 }}>Phone</div>
-                {formatPhone(pro.phone)}
-              </div>
-            )}
-          </div>
-        </Section>
       </div>
 
       {/* Invite Modal */}

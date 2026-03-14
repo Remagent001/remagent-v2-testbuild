@@ -21,7 +21,7 @@ export default function StepHourlyRate({ data, onNext, onBack, onSaveExit, onSki
         <input
           className="form-input"
           type="number"
-          min="0"
+          min="10"
           step="0.50"
           placeholder="e.g. 25.00"
           value={regularRate}

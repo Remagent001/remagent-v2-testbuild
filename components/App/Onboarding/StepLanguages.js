@@ -44,7 +44,7 @@ export default function StepLanguages({ data, onNext, onBack, onSaveExit, onSkip
   return (
     <div className="onboarding-step">
       <p className="onboarding-step-desc">
-        Do you speak any additional languages? This is optional but can help match you with more opportunities.
+        If you speak any additional languages, please identify them here. This is optional but can help match you with more opportunities.
       </p>
 
       {/* Added language cards */}

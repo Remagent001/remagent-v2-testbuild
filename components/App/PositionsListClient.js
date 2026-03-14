@@ -458,6 +458,24 @@ export default function PositionsListClient() {
                 </span>
               </div>
 
+              {/* Availability summary */}
+              {pos.availability && pos.availability.length > 0 && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10, alignItems: "center" }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gray-400)" strokeWidth="2" style={{ marginRight: 2 }}>
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                  {["monday","tuesday","wednesday","thursday","friday","saturday","sunday"].filter((d) => pos.availability.find((a) => a.day === d)).map((d) => {
+                    const a = pos.availability.find((av) => av.day === d);
+                    const to12 = (t) => { if (!t) return ""; const [h,m] = t.split(":"); const hr = parseInt(h); return `${hr === 0 ? 12 : hr > 12 ? hr - 12 : hr}:${m}${hr >= 12 ? "p" : "a"}`; };
+                    return (
+                      <span key={d} style={{ padding: "3px 8px", borderRadius: 12, fontSize: "0.72rem", background: "var(--gray-100)", color: "var(--gray-600)" }}>
+                        {d.slice(0,3).charAt(0).toUpperCase() + d.slice(1,3)} {to12(a.startTime)}–{to12(a.endTime)}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+
               {/* Experience items — split by Desired vs Required */}
               <ExperienceTags skills={pos.skills} channels={pos.channels} positionApps={pos.positionApps} />
             </div>

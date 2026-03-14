@@ -141,7 +141,7 @@ export default function StepEducation({ data, onNext, onBack, onSaveExit, onSkip
             <div className="form-row">
               <div className="form-group form-third">
                 <label className="form-label">From Date</label>
-                <input className="form-input" type="date" value={entry.fromDate} onChange={(e) => update(i, "fromDate", e.target.value)} />
+                <input className="form-input" type="date" value={entry.fromDate} max={new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().slice(0, 10)} onChange={(e) => update(i, "fromDate", e.target.value)} />
               </div>
               <div className="form-group form-third">
                 <label className="form-label">To Date</label>

@@ -76,14 +76,18 @@ export default function StepEnvironment({ data, onNext, onBack, onSaveExit, onSk
       <div className="form-group">
         <label className="form-label">Computer Equipment</label>
         <label className="form-checkbox">
-          <input type="checkbox" checked={needsEquipment} onChange={(e) => setNeedsEquipment(e.target.checked)} />
+          <input type="radio" name="computerEquipment" checked={needsEquipment} onChange={() => {
+            setNeedsEquipment(true);
+            setHasOwnEquipment(false);
+            setComputers([]);
+          }} />
           I would need computer equipment provided
         </label>
         <p style={{ fontSize: "0.85rem", color: "var(--gray-400)", margin: "10px 0", textAlign: "center" }}>Or</p>
         <label className="form-checkbox">
-          <input type="checkbox" checked={hasOwnEquipment} onChange={(e) => {
-            setHasOwnEquipment(e.target.checked);
-            if (!e.target.checked) setComputers([]);
+          <input type="radio" name="computerEquipment" checked={hasOwnEquipment} onChange={() => {
+            setHasOwnEquipment(true);
+            setNeedsEquipment(false);
           }} />
           I have my own computer equipment I can use
         </label>

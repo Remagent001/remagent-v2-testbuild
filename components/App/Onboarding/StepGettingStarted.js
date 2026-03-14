@@ -58,7 +58,7 @@ export default function StepGettingStarted({ data, onNext, onSaveExit, saving })
         <RichTextEditor
           content={summary}
           onChange={setSummary}
-          placeholder="Write a short summary about your experience and what distinguishes you as a call center / contact center professional..."
+          placeholder="Write a short summary about your experience and what distinguishes you as a call center / contact center professional."
           maxLength={MAX_SUMMARY}
         />
       </div>
