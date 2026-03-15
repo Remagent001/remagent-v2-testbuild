@@ -11,6 +11,7 @@ import "../app.css";
 
 function AppShell({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const pathname = usePathname();
   const { data: session } = useSession();
 
@@ -23,7 +24,7 @@ function AppShell({ children }) {
   const role = user?.role?.toLowerCase() || "professional";
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
       {sidebarOpen && (
         <div
           className="sidebar-overlay"
@@ -39,7 +40,11 @@ function AppShell({ children }) {
       />
 
       <div className="app-main">
-        <Topbar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
+        <Topbar
+          onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
+          onCollapseToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+          collapsed={sidebarCollapsed}
+        />
         {role === "business" && <MsaBanner />}
         <main className="app-content">
           {children}

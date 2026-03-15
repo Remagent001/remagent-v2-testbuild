@@ -145,6 +145,7 @@ export default function PositionsListClient() {
   const [positions, setPositions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(null);
+  const [copying, setCopying] = useState(null);
   const [activeTab, setActiveTab] = useState(urlTab || "published");
   const [updatingStatus, setUpdatingStatus] = useState(null);
   const [profileComplete, setProfileComplete] = useState(null);
@@ -210,6 +211,18 @@ export default function PositionsListClient() {
     });
     loadPositions();
     setUpdatingStatus(null);
+  };
+
+  const handleCopy = async (posId) => {
+    setCopying(posId);
+    try {
+      const res = await fetch(`/api/positions/${posId}/copy`, { method: "POST" });
+      const data = await res.json();
+      if (data.success) {
+        router.push(`/positions/${data.position.id}`);
+      }
+    } catch {}
+    setCopying(null);
   };
 
   // Toggle visibility for pending positions
@@ -405,13 +418,24 @@ export default function PositionsListClient() {
                     Edit
                   </button>
                   <button
-                    className="btn-danger-outline"
+                    className="btn-secondary"
                     style={{ padding: "6px 12px", fontSize: "0.8rem" }}
-                    onClick={() => handleDelete(pos.id, pos.title)}
-                    disabled={deleting === pos.id}
+                    onClick={() => handleCopy(pos.id)}
+                    disabled={copying === pos.id}
+                    title="Duplicate this posting"
                   >
-                    {deleting === pos.id ? "..." : "Delete"}
+                    {copying === pos.id ? "..." : "Copy"}
                   </button>
+                  {pos.status === "closed" && (
+                    <button
+                      className="btn-danger-outline"
+                      style={{ padding: "6px 12px", fontSize: "0.8rem" }}
+                      onClick={() => handleDelete(pos.id, pos.title)}
+                      disabled={deleting === pos.id}
+                    >
+                      {deleting === pos.id ? "..." : "Delete"}
+                    </button>
+                  )}
                 </div>
               </div>
 

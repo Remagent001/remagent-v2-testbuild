@@ -40,6 +40,32 @@ const STATUS_TABS = [
   { key: "declined", label: "Declined", color: "#ef4444" },
 ];
 
+const MSG_STATUS_CONFIG = {
+  unread:         { color: "#ef4444", label: "New message" },
+  awaiting_reply: { color: "#f59e0b", label: "Awaiting reply" },
+  active:         { color: "#10b981", label: "Active" },
+  stale:          { color: "#94a3b8", label: "" },
+};
+
+function MessageIndicator({ status }) {
+  if (!status) return null;
+  const cfg = MSG_STATUS_CONFIG[status];
+  if (!cfg) return null;
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+      <span style={{
+        width: 9, height: 9, borderRadius: "50%",
+        background: cfg.color, flexShrink: 0, display: "inline-block",
+      }} />
+      {cfg.label && (
+        <span style={{ fontSize: "0.72rem", fontWeight: 600, color: cfg.color }}>
+          {cfg.label}
+        </span>
+      )}
+    </span>
+  );
+}
+
 export default function InvitationsClient() {
   const router = useRouter();
   const [invitations, setInvitations] = useState([]);
@@ -235,7 +261,7 @@ function InvitationCard({ invitation, expanded, onToggle, onRespond, responding 
                   {biz?.city && ` — ${biz.city}${biz.state ? `, ${biz.state}` : ""}`}
                 </p>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                 <span style={{
                   padding: "3px 12px", borderRadius: 12,
                   fontSize: "0.75rem", fontWeight: 600,
@@ -243,6 +269,7 @@ function InvitationCard({ invitation, expanded, onToggle, onRespond, responding 
                 }}>
                   {status.label}
                 </span>
+                <MessageIndicator status={invitation.messageStatus} />
                 {rate && (
                   <span style={{ fontSize: "1rem", fontWeight: 700, color: "var(--teal)" }}>
                     ${rate}<span style={{ fontSize: "0.75rem", fontWeight: 400, color: "var(--gray-400)" }}>/hr</span>

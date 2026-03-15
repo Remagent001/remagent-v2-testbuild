@@ -19,6 +19,32 @@ const STATUS_COLORS = {
   withdrawn: { bg: "#94a3b818", color: "#94a3b8" },
 };
 
+const MSG_STATUS_CONFIG = {
+  unread:         { color: "#ef4444", label: "New message" },
+  awaiting_reply: { color: "#f59e0b", label: "Awaiting reply" },
+  active:         { color: "#10b981", label: "Active" },
+  stale:          { color: "#94a3b8", label: "" },
+};
+
+function MessageIndicator({ status }) {
+  if (!status) return null;
+  const cfg = MSG_STATUS_CONFIG[status];
+  if (!cfg) return null;
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+      <span style={{
+        width: 9, height: 9, borderRadius: "50%",
+        background: cfg.color, flexShrink: 0, display: "inline-block",
+      }} />
+      {cfg.label && (
+        <span style={{ fontSize: "0.72rem", fontWeight: 600, color: cfg.color }}>
+          {cfg.label}
+        </span>
+      )}
+    </span>
+  );
+}
+
 function timeAgo(dateStr) {
   if (!dateStr) return "";
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -188,6 +214,7 @@ export default function InvitesListClient() {
             const sc = STATUS_COLORS[inv.status] || STATUS_COLORS.pending;
             const isExpanded = expandedId === inv.id;
             const unread = unreadCounts[inv.id] || 0;
+            const msgStatus = inv.messageStatus;
 
             return (
               <div key={inv.id} className="card" style={{ padding: 0, overflow: "hidden" }}>
@@ -224,14 +251,7 @@ export default function InvitesListClient() {
                         }}>
                           {inv.status.charAt(0).toUpperCase() + inv.status.slice(1)}
                         </span>
-                        {unread > 0 && (
-                          <span style={{
-                            padding: "2px 8px", borderRadius: 10, fontSize: "0.7rem", fontWeight: 700,
-                            background: "#ef4444", color: "white",
-                          }}>
-                            {unread} new message{unread > 1 ? "s" : ""}
-                          </span>
-                        )}
+                        <MessageIndicator status={msgStatus} />
                       </div>
                       {profile?.title && (
                         <p style={{ fontSize: "0.85rem", color: "var(--gray-500)", marginTop: 2 }}>{profile.title}</p>

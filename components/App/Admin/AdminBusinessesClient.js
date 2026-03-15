@@ -207,6 +207,7 @@ export default function AdminBusinessesClient() {
                     </div>
                     <p className="position-card-meta">
                       {biz.email}
+                      {biz.geoCountry ? ` · ${biz.geoCountry}` : ""}
                       {hasProfile && profile.industry ? ` · ${profile.industry}` : ""}
                       {hasProfile && profile.city ? ` · ${profile.city}${profile.state ? `, ${profile.state}` : ""}` : ""}
                       {` · ${biz._count.positions} posting${biz._count.positions !== 1 ? "s" : ""}`}

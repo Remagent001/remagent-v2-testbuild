@@ -24,6 +24,7 @@ export default function DashboardClient() {
   const [bizProfile, setBizProfile] = useState(null);
   const [positionAlerts, setPositionAlerts] = useState([]);
   const [positionCounts, setPositionCounts] = useState({ total: 0, invites: 0, applicants: 0, hires: 0 });
+  const [unreadMessages, setUnreadMessages] = useState([]);
 
   useEffect(() => {
     if (isBusiness || isAdmin) {
@@ -37,10 +38,8 @@ export default function DashboardClient() {
         .then((r) => r.json())
         .then((data) => {
           const positions = data.positions || [];
-          // Find positions with admin notes that need attention
           const alerts = positions.filter((p) => p.reviewRequired && p.adminNote);
           setPositionAlerts(alerts);
-          // Calculate real counts
           let invites = 0, applicants = 0, hires = 0;
           positions.forEach((p) => {
             invites += p._count?.offers || 0;
@@ -50,6 +49,23 @@ export default function DashboardClient() {
           setPositionCounts({ total: positions.length, invites, applicants, hires });
         })
         .catch(() => {});
+
+      // Load unread messages across invites
+      fetch("/api/invites")
+        .then((r) => r.json())
+        .then((data) => {
+          const msgs = (data.invites || [])
+            .filter((inv) => inv.messageStatus === "unread" || inv.messageStatus === "awaiting_reply")
+            .map((inv) => ({
+              id: inv.id,
+              name: `${inv.user?.firstName || ""} ${inv.user?.lastName || ""}`.trim(),
+              title: inv.position?.title || "Untitled",
+              status: inv.messageStatus,
+              unread: inv.unreadMessages || 0,
+            }));
+          setUnreadMessages(msgs);
+        })
+        .catch(() => {});
     } else {
       // Fetch invitation count for professionals
       fetch("/api/invitations")
@@ -57,6 +73,16 @@ export default function DashboardClient() {
         .then((data) => {
           setInvitationCount(data.counts?.pending || 0);
           setTotalInvitations(data.counts?.all || 0);
+          // Collect message alerts
+          const msgs = (data.invitations || [])
+            .filter((inv) => inv.messageStatus === "unread" || inv.messageStatus === "awaiting_reply")
+            .map((inv) => ({
+              id: inv.id,
+              name: inv.position?.user?.businessProfile?.businessName || `${inv.position?.user?.firstName || ""} ${inv.position?.user?.lastName || ""}`.trim(),
+              title: inv.position?.title || "Untitled",
+              status: inv.messageStatus,
+            }));
+          setUnreadMessages(msgs);
         })
         .catch(() => {});
 
@@ -111,6 +137,39 @@ export default function DashboardClient() {
                       Review &rarr;
                     </span>
                   </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {/* Unread message alerts */}
+        {unreadMessages.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
+            {unreadMessages.map((msg) => (
+              <Link key={msg.id} href="/invites" style={{ textDecoration: "none" }}>
+                <div style={{
+                  padding: "12px 18px",
+                  marginBottom: 6,
+                  background: msg.status === "unread" ? "#fef2f2" : "#fffbeb",
+                  borderLeft: `4px solid ${msg.status === "unread" ? "#ef4444" : "#f59e0b"}`,
+                  borderRadius: 6,
+                  cursor: "pointer",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}>
+                  <div>
+                    <strong style={{ color: msg.status === "unread" ? "#dc2626" : "#d97706", fontSize: "0.88rem" }}>
+                      {msg.status === "unread" ? `New message from ${msg.name}` : `Awaiting your reply to ${msg.name}`}
+                    </strong>
+                    <p style={{ margin: "2px 0 0", color: "var(--gray-500)", fontSize: "0.82rem" }}>
+                      {msg.title}
+                    </p>
+                  </div>
+                  <span style={{ color: msg.status === "unread" ? "#dc2626" : "#d97706", fontSize: "0.8rem", fontWeight: 600, whiteSpace: "nowrap", marginLeft: 16 }}>
+                    View &rarr;
+                  </span>
                 </div>
               </Link>
             ))}
@@ -191,6 +250,39 @@ export default function DashboardClient() {
         <p className="page-subtitle">Here&apos;s what&apos;s happening with your account.</p>
       </div>
 
+      {/* Unread message alerts */}
+      {unreadMessages.length > 0 && (
+        <div style={{ marginBottom: 20 }}>
+          {unreadMessages.map((msg) => (
+            <Link key={msg.id} href="/invitations" style={{ textDecoration: "none" }}>
+              <div style={{
+                padding: "12px 18px",
+                marginBottom: 6,
+                background: msg.status === "unread" ? "#fef2f2" : "#fffbeb",
+                borderLeft: `4px solid ${msg.status === "unread" ? "#ef4444" : "#f59e0b"}`,
+                borderRadius: 6,
+                cursor: "pointer",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}>
+                <div>
+                  <strong style={{ color: msg.status === "unread" ? "#dc2626" : "#d97706", fontSize: "0.88rem" }}>
+                    {msg.status === "unread" ? `New message from ${msg.name}` : `Awaiting your reply to ${msg.name}`}
+                  </strong>
+                  <p style={{ margin: "2px 0 0", color: "var(--gray-500)", fontSize: "0.82rem" }}>
+                    {msg.title}
+                  </p>
+                </div>
+                <span style={{ color: msg.status === "unread" ? "#dc2626" : "#d97706", fontSize: "0.8rem", fontWeight: 600, whiteSpace: "nowrap", marginLeft: 16 }}>
+                  View &rarr;
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+
       <div className="stat-grid">
         <div className="stat-card">
           <div className="stat-card-label">Profile Views</div>
@@ -209,10 +301,15 @@ export default function DashboardClient() {
           <div className="stat-card-label">Active Jobs</div>
           <div className="stat-card-value">0</div>
         </div>
-        <div className="stat-card">
+        <Link href="/invitations" className="stat-card" style={{ textDecoration: "none", color: "inherit" }}>
           <div className="stat-card-label">Messages</div>
-          <div className="stat-card-value">0</div>
-        </div>
+          <div className="stat-card-value">{unreadMessages.filter((m) => m.status === "unread").length}</div>
+          {unreadMessages.filter((m) => m.status === "unread").length > 0 && (
+            <div style={{ fontSize: "0.75rem", color: "#ef4444", fontWeight: 600, marginTop: 2 }}>
+              unread
+            </div>
+          )}
+        </Link>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>

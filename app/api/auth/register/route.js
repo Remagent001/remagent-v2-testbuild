@@ -1,6 +1,22 @@
 import { NextResponse } from "next/server";
+import { headers } from "next/headers";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+
+async function detectCountry(request) {
+  try {
+    const hdrs = headers();
+    const forwarded = hdrs.get("x-forwarded-for");
+    const ip = forwarded ? forwarded.split(",")[0].trim() : hdrs.get("x-real-ip") || "";
+    if (!ip || ip === "127.0.0.1" || ip === "::1") return null;
+    const res = await fetch(`http://ip-api.com/json/${ip}?fields=country,countryCode`, { signal: AbortSignal.timeout(3000) });
+    if (res.ok) {
+      const data = await res.json();
+      return data.countryCode || data.country || null;
+    }
+  } catch {}
+  return null;
+}
 
 export async function POST(request) {
   try {
@@ -43,6 +59,9 @@ export async function POST(request) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
+    // Detect country from IP (non-blocking)
+    const geoCountry = await detectCountry(request);
+
     // Create user + role-specific profile in a transaction
     const user = await prisma.$transaction(async (tx) => {
       const newUser = await tx.user.create({
@@ -52,6 +71,7 @@ export async function POST(request) {
           email: email.toLowerCase(),
           password: hashedPassword,
           role,
+          ...(geoCountry ? { geoCountry } : {}),
         },
       });
 

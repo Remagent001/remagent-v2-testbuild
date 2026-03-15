@@ -78,15 +78,50 @@ export async function GET() {
     });
   }
 
-  // Get unread message counts for each invitation
-  const unreadCounts = await Promise.all(
-    invitations.map((inv) =>
-      prisma.inviteMessage.count({
-        where: { offerId: inv.id, senderId: { not: session.user.id }, read: false },
-      })
-    )
-  );
-  const result = invitations.map((inv, i) => ({ ...inv, unreadMessages: unreadCounts[i] }));
+  // Get unread message counts and last message info for each invitation
+  const STALE_HOURS = 72;
+  const staleThreshold = new Date(Date.now() - STALE_HOURS * 60 * 60 * 1000);
+
+  const [unreadCounts, lastMessages] = await Promise.all([
+    Promise.all(
+      invitations.map((inv) =>
+        prisma.inviteMessage.count({
+          where: { offerId: inv.id, senderId: { not: session.user.id }, read: false },
+        })
+      )
+    ),
+    Promise.all(
+      invitations.map((inv) =>
+        prisma.inviteMessage.findFirst({
+          where: { offerId: inv.id },
+          orderBy: { createdAt: "desc" },
+          select: { senderId: true, createdAt: true },
+        })
+      )
+    ),
+  ]);
+
+  const result = invitations.map((inv, i) => {
+    const unread = unreadCounts[i];
+    const lastMsg = lastMessages[i];
+    let messageStatus = null;
+
+    if (lastMsg) {
+      const isStale = new Date(lastMsg.createdAt) < staleThreshold;
+      const lastIsFromMe = lastMsg.senderId === session.user.id;
+      if (unread > 0) {
+        messageStatus = "unread";
+      } else if (!lastIsFromMe) {
+        messageStatus = "awaiting_reply";
+      } else if (!isStale) {
+        messageStatus = "active";
+      } else {
+        messageStatus = "stale";
+      }
+    }
+
+    return { ...inv, unreadMessages: unread, messageStatus };
+  });
 
   // Count by status
   const totalUnread = unreadCounts.reduce((sum, c) => sum + c, 0);

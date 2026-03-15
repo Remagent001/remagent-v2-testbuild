@@ -26,6 +26,7 @@ export async function GET() {
       email: true,
       createdAt: true,
       lastLogin: true,
+      geoCountry: true,
       businessProfile: true,
       _count: {
         select: { positions: true },
