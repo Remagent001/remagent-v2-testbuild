@@ -80,9 +80,9 @@ const proNav = [
   { section: "Main", links: [
     { href: "/dashboard", label: "Dashboard", icon: "dashboard" },
     { href: "/profile", label: "My Profile", icon: "profile" },
+    { href: "/invitations", label: "Invitations", icon: "inbox", badgeKey: "invitations" },
     { href: "/jobs", label: "Browse Jobs", icon: "briefcase" },
     { href: "/my-jobs", label: "My Jobs", icon: "clipboard" },
-    { href: "/inbox", label: "Inbox", icon: "inbox" },
   ]},
   { section: "Account", links: [
     { href: "/settings", label: "Settings", icon: "settings" },
@@ -124,6 +124,17 @@ export default function Sidebar({ isOpen, onClose, role = "professional", user =
   const [badges, setBadges] = useState({});
 
   useEffect(() => {
+    if (role === "professional") {
+      fetch("/api/invitations")
+        .then((r) => r.json())
+        .then((data) => {
+          const pending = data.counts?.pending || 0;
+          if (pending > 0) {
+            setBadges((prev) => ({ ...prev, invitations: pending }));
+          }
+        })
+        .catch(() => {});
+    }
     if (role === "business" || isAdmin) {
       // Get positions needing attention (admin notes)
       fetch("/api/positions")

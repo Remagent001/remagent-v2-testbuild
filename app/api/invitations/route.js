@@ -1,0 +1,125 @@
+import { auth } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { NextResponse } from "next/server";
+
+// GET — list invitations received by the logged-in professional
+export async function GET() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const invitations = await prisma.jobOffer.findMany({
+    where: { userId: session.user.id },
+    select: {
+      id: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+      position: {
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          visibility: true,
+          numberOfHires: true,
+          description: true,
+          timezone: true,
+          availability: { select: { day: true, startTime: true, endTime: true } },
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              businessProfile: {
+                select: {
+                  businessName: true,
+                  industry: true,
+                  city: true,
+                  state: true,
+                  logo: true,
+                  website: true,
+                },
+              },
+            },
+          },
+          hourlyRate: { select: { regularRate: true, overtimeRate: true } },
+          skills: { select: { skill: { select: { name: true } } } },
+          channels: { select: { channel: { select: { name: true } } } },
+          environment: { select: { workFromHome: true, workFromOffice: true, officeAddress: true } },
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  // Count by status
+  const counts = {
+    all: invitations.length,
+    pending: invitations.filter((i) => i.status === "pending").length,
+    accepted: invitations.filter((i) => i.status === "accepted").length,
+    declined: invitations.filter((i) => i.status === "declined").length,
+  };
+
+  return NextResponse.json({ invitations, counts });
+}
+
+// PUT — respond to an invitation (accept or decline)
+export async function PUT(request) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { inviteId, action } = await request.json();
+
+  if (!inviteId || !["accept", "decline"].includes(action)) {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+
+  // Verify this invite belongs to the current user
+  const invite = await prisma.jobOffer.findUnique({
+    where: { id: inviteId },
+    include: { position: true },
+  });
+
+  if (!invite || invite.userId !== session.user.id) {
+    return NextResponse.json({ error: "Invitation not found" }, { status: 404 });
+  }
+
+  if (invite.status !== "pending") {
+    return NextResponse.json({ error: "This invitation has already been responded to" }, { status: 400 });
+  }
+
+  const newStatus = action === "accept" ? "accepted" : "declined";
+
+  await prisma.jobOffer.update({
+    where: { id: inviteId },
+    data: { status: newStatus },
+  });
+
+  // If accepted, create a job application record
+  if (action === "accept") {
+    // Check if application already exists
+    const existing = await prisma.jobApplication.findUnique({
+      where: {
+        positionId_userId: {
+          positionId: invite.positionId,
+          userId: session.user.id,
+        },
+      },
+    });
+
+    if (!existing) {
+      await prisma.jobApplication.create({
+        data: {
+          positionId: invite.positionId,
+          userId: session.user.id,
+          status: "new",
+        },
+      });
+    }
+  }
+
+  return NextResponse.json({ success: true, status: newStatus });
+}

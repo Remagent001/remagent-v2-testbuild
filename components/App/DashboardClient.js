@@ -16,6 +16,10 @@ export default function DashboardClient() {
   const [firstIncompleteStep, setFirstIncompleteStep] = useState(null);
   const TOTAL_STEPS = 13;
 
+  // Professional invitation state
+  const [invitationCount, setInvitationCount] = useState(0);
+  const [totalInvitations, setTotalInvitations] = useState(0);
+
   // Business state
   const [bizProfile, setBizProfile] = useState(null);
   const [positionAlerts, setPositionAlerts] = useState([]);
@@ -47,6 +51,15 @@ export default function DashboardClient() {
         })
         .catch(() => {});
     } else {
+      // Fetch invitation count for professionals
+      fetch("/api/invitations")
+        .then((r) => r.json())
+        .then((data) => {
+          setInvitationCount(data.counts?.pending || 0);
+          setTotalInvitations(data.counts?.all || 0);
+        })
+        .catch(() => {});
+
       fetch("/api/onboarding/load")
         .then((r) => r.json())
         .then((data) => {
@@ -183,10 +196,15 @@ export default function DashboardClient() {
           <div className="stat-card-label">Profile Views</div>
           <div className="stat-card-value">0</div>
         </div>
-        <div className="stat-card">
+        <Link href="/invitations" className="stat-card" style={{ textDecoration: "none", color: "inherit" }}>
           <div className="stat-card-label">Invitations</div>
-          <div className="stat-card-value">0</div>
-        </div>
+          <div className="stat-card-value">{totalInvitations}</div>
+          {invitationCount > 0 && (
+            <div style={{ fontSize: "0.75rem", color: "#f59e0b", fontWeight: 600, marginTop: 2 }}>
+              {invitationCount} new
+            </div>
+          )}
+        </Link>
         <div className="stat-card">
           <div className="stat-card-label">Active Jobs</div>
           <div className="stat-card-value">0</div>
