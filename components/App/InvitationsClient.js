@@ -184,7 +184,7 @@ export default function InvitationsClient() {
 function InvitationCard({ invitation, expanded, onToggle, onRespond, responding }) {
   const pos = invitation.position;
   const biz = pos?.user?.businessProfile;
-  const rate = pos?.hourlyRate;
+  const rate = pos?.regularRate;
   const env = pos?.environment;
   const schedule = (pos?.availability || []).sort((a, b) => DAY_ORDER.indexOf(a.day) - DAY_ORDER.indexOf(b.day));
   const description = stripHtml(pos?.description);
@@ -241,9 +241,9 @@ function InvitationCard({ invitation, expanded, onToggle, onRespond, responding 
                 }}>
                   {status.label}
                 </span>
-                {rate?.regularRate && (
+                {rate && (
                   <span style={{ fontSize: "1rem", fontWeight: 700, color: "var(--teal)" }}>
-                    ${rate.regularRate}<span style={{ fontSize: "0.75rem", fontWeight: 400, color: "var(--gray-400)" }}>/hr</span>
+                    ${rate}<span style={{ fontSize: "0.75rem", fontWeight: 400, color: "var(--gray-400)" }}>/hr</span>
                   </span>
                 )}
               </div>
@@ -251,9 +251,9 @@ function InvitationCard({ invitation, expanded, onToggle, onRespond, responding 
 
             <div style={{ display: "flex", gap: 12, fontSize: "0.8rem", color: "var(--gray-400)", marginTop: 4, flexWrap: "wrap" }}>
               <span>Received {timeAgo(invitation.createdAt)}</span>
-              {env && (
+              {env?.workLocation && (
                 <span>
-                  {env.workFromHome && env.workFromOffice ? "Hybrid" : env.workFromHome ? "Remote" : "Office"}
+                  {Array.isArray(env.workLocation) ? (env.workLocation.includes("home") && env.workLocation.includes("office") ? "Hybrid" : env.workLocation.includes("home") ? "Remote" : "Office") : ""}
                 </span>
               )}
               {schedule.length > 0 && (
