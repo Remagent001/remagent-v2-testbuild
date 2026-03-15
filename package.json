@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@aws-sdk/client-sns": "^3.1009.0",
     "@prisma/client": "^5.22.0",
     "@react-google-maps/api": "^2.20.8",
     "@tailwindcss/postcss": "^4.2.1",

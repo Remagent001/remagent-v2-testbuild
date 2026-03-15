@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { notifyInviteAccepted, notifyInviteDeclined } from "@/lib/sms";
 
 // GET — list invitations received by the logged-in professional
 export async function GET() {
@@ -144,6 +145,25 @@ export async function PUT(request) {
           status: "new",
         },
       });
+    }
+  }
+
+  // SMS notify the business owner (non-blocking)
+  const bizOwner = await prisma.user.findUnique({
+    where: { id: invite.position.userId },
+    select: { phone: true },
+  });
+  const proUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { firstName: true, lastName: true },
+  });
+  if (bizOwner?.phone) {
+    const proName = `${proUser?.firstName || ""} ${proUser?.lastName || ""}`.trim() || "A professional";
+    const jobTitle = invite.position.title || "a position";
+    if (action === "accept") {
+      notifyInviteAccepted(bizOwner.phone, { professionalName: proName, jobTitle }).catch(() => {});
+    } else {
+      notifyInviteDeclined(bizOwner.phone, { professionalName: proName, jobTitle }).catch(() => {});
     }
   }
 

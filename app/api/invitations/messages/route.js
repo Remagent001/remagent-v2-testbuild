@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { notifyNewMessage } from "@/lib/sms";
 
 // GET — fetch messages for an invite
 export async function GET(request) {
@@ -78,7 +79,7 @@ export async function POST(request) {
   // Verify access
   const offer = await prisma.jobOffer.findUnique({
     where: { id: offerId },
-    include: { position: { select: { userId: true } } },
+    include: { position: { select: { userId: true, title: true } } },
   });
 
   if (!offer) {
@@ -116,6 +117,24 @@ export async function POST(request) {
       where: { id: offerId },
       data: { progressStep: 3 },
     });
+  }
+
+  // SMS notify the other party (non-blocking)
+  const recipientId = isPro ? offer.position.userId : offer.userId;
+  const recipient = await prisma.user.findUnique({
+    where: { id: recipientId },
+    select: { phone: true },
+  });
+  const sender = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { firstName: true, lastName: true },
+  });
+  if (recipient?.phone) {
+    const senderName = `${sender?.firstName || ""} ${sender?.lastName || ""}`.trim() || "Someone";
+    notifyNewMessage(recipient.phone, {
+      senderName,
+      jobTitle: offer.position?.title || "an invitation",
+    }).catch(() => {});
   }
 
   return NextResponse.json({ message });

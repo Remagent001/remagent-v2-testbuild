@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { notifyInviteReceived } from "@/lib/sms";
 
 // POST — invite a professional to apply to a job posting
 export async function POST(request) {
@@ -54,6 +55,18 @@ export async function POST(request) {
       status: "pending",
     },
   });
+
+  // SMS notify the professional (non-blocking)
+  if (professional.phone) {
+    const bizProfile = await prisma.businessProfile.findUnique({
+      where: { userId: session.user.id },
+      select: { businessName: true },
+    });
+    notifyInviteReceived(professional.phone, {
+      businessName: bizProfile?.businessName || "A business",
+      jobTitle: position.title || "a position",
+    }).catch(() => {});
+  }
 
   return NextResponse.json({ success: true, invite });
 }
