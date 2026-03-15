@@ -44,7 +44,12 @@ export async function POST(request) {
   });
 
   if (existing) {
-    return NextResponse.json({ error: "Already invited to this posting" }, { status: 409 });
+    if (existing.status === "withdrawn") {
+      // Delete the old withdrawn invite so they can be re-invited
+      await prisma.jobOffer.delete({ where: { id: existing.id } });
+    } else {
+      return NextResponse.json({ error: "Already invited to this posting" }, { status: 409 });
+    }
   }
 
   // Create the invite
@@ -113,7 +118,17 @@ export async function GET(request) {
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json({ invites });
+  // Get unread message counts for each invite
+  const unreadCounts = await Promise.all(
+    invites.map((inv) =>
+      prisma.inviteMessage.count({
+        where: { offerId: inv.id, senderId: { not: session.user.id }, read: false },
+      })
+    )
+  );
+  const result = invites.map((inv, i) => ({ ...inv, unreadMessages: unreadCounts[i] }));
+
+  return NextResponse.json({ invites: result });
 }
 
 // PUT — update invite status (withdraw)

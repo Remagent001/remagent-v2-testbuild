@@ -2,8 +2,8 @@
 
 export default function MsaGateModal({ onClose }) {
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480 }}>
+    <div className="modal-backdrop" onClick={onClose} style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480, margin: "0 auto" }}>
         <div style={{ textAlign: "center", padding: "32px 24px" }}>
           <div style={{
             width: 64, height: 64, borderRadius: "50%",
@@ -19,11 +19,11 @@ export default function MsaGateModal({ onClose }) {
           <h3 style={{ fontSize: "1.1rem", fontWeight: 600, color: "var(--gray-800)", marginBottom: 8 }}>
             Agreement Required
           </h3>
-          <p style={{ fontSize: "0.9rem", color: "var(--gray-500)", lineHeight: 1.6, marginBottom: 20 }}>
+          <p style={{ fontSize: "0.9rem", color: "var(--gray-700)", lineHeight: 1.6, marginBottom: 20 }}>
             To access professional profiles and send invitations, please sign your Master Services Agreement.
             You can sign it on your Company Profile page.
           </p>
-          <p style={{ fontSize: "0.85rem", color: "var(--gray-400)", marginBottom: 24, lineHeight: 1.5 }}>
+          <p style={{ fontSize: "0.85rem", color: "var(--gray-600)", marginBottom: 24, lineHeight: 1.5 }}>
             Need help? Contact us at{" "}
             <a href="mailto:support@remagent.com" style={{ color: "var(--teal)", textDecoration: "none" }}>
               support@remagent.com

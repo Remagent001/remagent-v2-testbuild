@@ -51,6 +51,8 @@ export default function InvitationsClient() {
 
   useEffect(() => {
     fetchInvitations();
+    const interval = setInterval(fetchInvitations, 15000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchInvitations = async () => {
@@ -277,7 +279,7 @@ function InvitationCard({ invitation, expanded, onToggle, onRespond, responding 
         <div style={{ borderTop: "1px solid var(--gray-100)", padding: "20px 24px" }}>
           {/* Progress tracker */}
           <div style={{ marginBottom: 20 }}>
-            <ProgressBubbles currentStep={invitation.progressStep || 1} />
+            <ProgressBubbles currentStep={invitation.progressStep || 1} role="professional" />
           </div>
 
           {/* Description */}
@@ -448,11 +450,17 @@ function MessageThread({ offerId }) {
   const [loaded, setLoaded] = useState(false);
   const bottomRef = useRef(null);
 
-  useEffect(() => {
+  const fetchMessages = () => {
     fetch(`/api/invitations/messages?offerId=${offerId}`)
       .then((r) => r.json())
       .then((data) => setMessages(data.messages || []))
       .finally(() => setLoaded(true));
+  };
+
+  useEffect(() => {
+    fetchMessages();
+    const interval = setInterval(fetchMessages, 10000);
+    return () => clearInterval(interval);
   }, [offerId]);
 
   useEffect(() => {

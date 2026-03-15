@@ -122,7 +122,7 @@ export async function PUT(request) {
     where: { id: inviteId },
     data: {
       status: newStatus,
-      progressStep: Math.max(invite.progressStep || 1, 3),
+      progressStep: Math.max(invite.progressStep || 1, action === "accept" ? 5 : 3),
     },
   });
 

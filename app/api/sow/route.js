@@ -105,7 +105,7 @@ export async function POST(request) {
   if (sowData.status === "sent") {
     await prisma.jobOffer.update({
       where: { id: offerId },
-      data: { progressStep: Math.max(offer.progressStep || 1, 5) },
+      data: { progressStep: Math.max(offer.progressStep || 1, 6) },
     });
 
     // SMS notify the professional
@@ -159,7 +159,7 @@ export async function PUT(request) {
     // Advance progress to step 6 (SOW Signed)
     await prisma.jobOffer.update({
       where: { id: offerId },
-      data: { progressStep: 6 },
+      data: { progressStep: 7 },
     });
 
     // Create hire record
@@ -183,7 +183,7 @@ export async function PUT(request) {
       // Advance to step 7 (Hired)
       await prisma.jobOffer.update({
         where: { id: offerId },
-        data: { progressStep: 7 },
+        data: { progressStep: 8 },
       });
     }
 

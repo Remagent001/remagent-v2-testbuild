@@ -50,23 +50,19 @@ export default function InvitesListClient() {
       .then((data) => {
         const list = data.invites || [];
         setInvites(list);
-        // Check for unread messages on each invite
-        list.forEach((inv) => {
-          fetch(`/api/invitations/messages?offerId=${inv.id}`)
-            .then((r) => r.json())
-            .then((msgData) => {
-              const unread = (msgData.messages || []).filter((m) => m.sender?.role === "PROFESSIONAL" && !m.read).length;
-              if (unread > 0) {
-                setUnreadCounts((prev) => ({ ...prev, [inv.id]: unread }));
-              }
-            })
-            .catch(() => {});
-        });
+        const counts = {};
+        list.forEach((inv) => { if (inv.unreadMessages > 0) counts[inv.id] = inv.unreadMessages; });
+        setUnreadCounts(counts);
       })
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { loadInvites(); }, []);
+  useEffect(() => {
+    loadInvites();
+    // Poll for updates every 15 seconds
+    const interval = setInterval(loadInvites, 15000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleWithdraw = async (inviteId) => {
     if (!confirm("Withdraw this invite? The professional will no longer be able to respond.")) return;
@@ -240,11 +236,13 @@ export default function InvitesListClient() {
                       {profile?.title && (
                         <p style={{ fontSize: "0.85rem", color: "var(--gray-500)", marginTop: 2 }}>{profile.title}</p>
                       )}
-                      <p className="position-card-meta" style={{ marginTop: 4 }}>
+                      <p style={{ fontSize: "0.82rem", color: "var(--teal)", fontWeight: 600, marginTop: 4 }}>
                         {inv.position?.title || "Untitled Position"}
-                        {loc && (loc.city || loc.state) && ` · ${[loc.city, loc.state].filter(Boolean).join(", ")}`}
-                        {rate && ` · $${rate}/hr`}
-                        {` · Invited ${timeAgo(inv.createdAt)}`}
+                      </p>
+                      <p className="position-card-meta" style={{ marginTop: 2 }}>
+                        {loc && (loc.city || loc.state) && `${[loc.city, loc.state].filter(Boolean).join(", ")} · `}
+                        {rate && `$${rate}/hr · `}
+                        {`Invited ${timeAgo(inv.createdAt)}`}
                       </p>
                     </div>
 
@@ -291,7 +289,7 @@ export default function InvitesListClient() {
                 {isExpanded && (
                   <div style={{ borderTop: "1px solid var(--gray-100)", padding: "20px 24px" }}>
                     <div style={{ marginBottom: 20 }}>
-                      <ProgressBubbles currentStep={inv.progressStep || 1} />
+                      <ProgressBubbles currentStep={inv.progressStep || 1} role="business" />
                     </div>
                     <ZoomButton offerId={inv.id} />
                     <BizMessageThread offerId={inv.id} onRead={() => setUnreadCounts((prev) => ({ ...prev, [inv.id]: 0 }))} />
@@ -313,7 +311,7 @@ function BizMessageThread({ offerId, onRead }) {
   const [loaded, setLoaded] = useState(false);
   const bottomRef = useRef(null);
 
-  useEffect(() => {
+  const fetchMessages = () => {
     fetch(`/api/invitations/messages?offerId=${offerId}`)
       .then((r) => r.json())
       .then((data) => {
@@ -321,6 +319,12 @@ function BizMessageThread({ offerId, onRead }) {
         if (onRead) onRead();
       })
       .finally(() => setLoaded(true));
+  };
+
+  useEffect(() => {
+    fetchMessages();
+    const interval = setInterval(fetchMessages, 10000);
+    return () => clearInterval(interval);
   }, [offerId]);
 
   useEffect(() => {

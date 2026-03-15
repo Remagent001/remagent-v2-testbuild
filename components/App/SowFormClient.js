@@ -183,7 +183,7 @@ export default function SowFormClient() {
 
       {/* Progress */}
       <div className="card" style={{ marginBottom: 20 }}>
-        <ProgressBubbles currentStep={offer.progressStep || 1} />
+        <ProgressBubbles currentStep={offer.progressStep || 1} role={isPro ? "professional" : "business"} />
       </div>
 
       {/* Status banner */}

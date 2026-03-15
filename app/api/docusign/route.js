@@ -27,8 +27,13 @@ export async function POST(request) {
     }
 
     const signerEmail = user.email;
-    const signerName = `${user.firstName} ${user.lastName}`;
-    const address = user.location?.fullAddress || `${user.location?.city || ""}, ${user.location?.state || ""}`;
+    const signerName = `${user.firstName || ""} ${user.lastName || ""}`.trim();
+    // For BU, use business address; for PU, use personal location
+    const bizProfile = user.businessProfile;
+    const address = bizProfile?.fullAddress
+      || [bizProfile?.city, bizProfile?.state, bizProfile?.zip].filter(Boolean).join(", ")
+      || user.location?.fullAddress
+      || [user.location?.city, user.location?.state].filter(Boolean).join(", ");
 
     let envelopeId;
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3020";

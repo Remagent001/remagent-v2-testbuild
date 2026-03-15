@@ -1,16 +1,30 @@
 "use client";
 
-const STEPS = [
+const BU_STEPS = [
   { num: 1, label: "Invite Sent" },
+  { num: 2, label: "JP Seen" },
+  { num: 3, label: "Questions" },
+  { num: 4, label: "Interview" },
+  { num: 5, label: "Offer Made" },
+  { num: 6, label: "SOW Sent" },
+  { num: 7, label: "SOW Signed" },
+  { num: 8, label: "Hired" },
+];
+
+const PU_STEPS = [
+  { num: 1, label: "Invite Received" },
   { num: 2, label: "Reviewed" },
   { num: 3, label: "Questions" },
   { num: 4, label: "Interview" },
-  { num: 5, label: "SOW Drafted" },
-  { num: 6, label: "SOW Signed" },
-  { num: 7, label: "Hired" },
+  { num: 5, label: "Accepted" },
+  { num: 6, label: "SOW Received" },
+  { num: 7, label: "SOW Signed" },
+  { num: 8, label: "Hired" },
 ];
 
-export default function ProgressBubbles({ currentStep = 1, compact = false }) {
+export default function ProgressBubbles({ currentStep = 1, compact = false, role = "business" }) {
+  const STEPS = role === "professional" ? PU_STEPS : BU_STEPS;
+
   return (
     <div style={{
       display: "flex",
@@ -27,15 +41,15 @@ export default function ProgressBubbles({ currentStep = 1, compact = false }) {
         return (
           <div key={step.num} style={{ display: "flex", alignItems: "center", flex: isLast ? "0 0 auto" : 1 }}>
             {/* Bubble */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: compact ? 24 : 32 }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: compact ? 20 : 28 }}>
               <div style={{
-                width: compact ? 20 : 28,
-                height: compact ? 20 : 28,
+                width: compact ? 18 : 24,
+                height: compact ? 18 : 24,
                 borderRadius: "50%",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: compact ? "0.55rem" : "0.65rem",
+                fontSize: compact ? "0.5rem" : "0.6rem",
                 fontWeight: 700,
                 transition: "all 0.3s",
                 background: isComplete ? "var(--teal)" : "var(--gray-100)",
@@ -44,7 +58,7 @@ export default function ProgressBubbles({ currentStep = 1, compact = false }) {
                 boxShadow: isCurrent ? "0 0 0 3px var(--teal-dim)" : "none",
               }}>
                 {isComplete && step.num < currentStep ? (
-                  <svg width={compact ? 10 : 14} height={compact ? 10 : 14} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width={compact ? 8 : 12} height={compact ? 8 : 12} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 ) : (
@@ -53,10 +67,10 @@ export default function ProgressBubbles({ currentStep = 1, compact = false }) {
               </div>
               {!compact && (
                 <span style={{
-                  fontSize: "0.6rem",
+                  fontSize: "0.55rem",
                   fontWeight: isCurrent ? 700 : 500,
                   color: isComplete ? "var(--teal)" : "var(--gray-400)",
-                  marginTop: 4,
+                  marginTop: 3,
                   whiteSpace: "nowrap",
                   textAlign: "center",
                 }}>
@@ -71,8 +85,8 @@ export default function ProgressBubbles({ currentStep = 1, compact = false }) {
                 flex: 1,
                 height: 2,
                 background: step.num < currentStep ? "var(--teal)" : "var(--gray-200)",
-                marginBottom: compact ? 0 : 18,
-                minWidth: 8,
+                marginBottom: compact ? 0 : 16,
+                minWidth: 6,
               }} />
             )}
           </div>
