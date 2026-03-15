@@ -352,9 +352,16 @@ export default function CompanyProfileClient() {
                 <p style={{ fontSize: "0.85rem", color: "var(--teal)", fontWeight: 500, marginBottom: 4 }}>
                   Signed {msaSignedAt ? new Date(msaSignedAt).toLocaleDateString() : ""}
                 </p>
-                <p style={{ fontSize: "0.82rem", color: "var(--gray-400)" }}>
+                <p style={{ fontSize: "0.82rem", color: "var(--gray-400)", marginBottom: 12 }}>
                   Your agreement is on file. You have full access to all platform features.
                 </p>
+                <button
+                  className="btn-secondary"
+                  style={{ width: "auto", padding: "6px 16px", fontSize: "0.82rem" }}
+                  onClick={() => window.open("/api/docusign/document", "_blank")}
+                >
+                  View Signed Agreement
+                </button>
               </>
             ) : (
               <>
