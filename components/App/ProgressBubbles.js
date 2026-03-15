@@ -2,7 +2,7 @@
 
 const BU_STEPS = [
   { num: 1, label: "Invite Sent" },
-  { num: 2, label: "JP Seen" },
+  { num: 2, label: "Posting Seen" },
   { num: 3, label: "Questions" },
   { num: 4, label: "Interview" },
   { num: 5, label: "Offer Made" },

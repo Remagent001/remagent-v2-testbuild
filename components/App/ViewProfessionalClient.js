@@ -103,7 +103,7 @@ export default function ViewProfessionalClient({ professionalId }) {
             color: "var(--teal)",
           }}>
             {profile.photoUrl ? (
-              <img src={profile.photoUrl} alt="" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
+              <img src={`/${profile.photoUrl}`} alt="" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
             ) : (
               `${pro.firstName?.[0] || ""}${pro.lastName?.[0] || ""}`
             )}

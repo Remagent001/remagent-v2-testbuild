@@ -97,7 +97,7 @@ const bizNav = [
     { href: "/positions", label: "Job Postings", icon: "briefcase", badgeKey: "positions" },
   ]},
   { section: "Manage", links: [
-    { href: "/invites", label: "Invites", icon: "clipboard" },
+    { href: "/invites", label: "Invites", icon: "clipboard", badgeKey: "invites" },
     { href: "/applicants", label: "Applicants", icon: "users" },
     { href: "/hires", label: "Hires", icon: "handshake" },
     { href: "/inbox", label: "Inbox", icon: "inbox" },
@@ -129,8 +129,10 @@ export default function Sidebar({ isOpen, onClose, role = "professional", user =
         .then((r) => r.json())
         .then((data) => {
           const pending = data.counts?.pending || 0;
-          if (pending > 0) {
-            setBadges((prev) => ({ ...prev, invitations: pending }));
+          const unread = data.counts?.unreadMessages || 0;
+          const total = pending + unread;
+          if (total > 0) {
+            setBadges((prev) => ({ ...prev, invitations: total }));
           }
         })
         .catch(() => {});
@@ -144,6 +146,16 @@ export default function Sidebar({ isOpen, onClose, role = "professional", user =
           const needsAttention = positions.filter((p) => p.reviewRequired && p.adminNote).length;
           if (needsAttention > 0) {
             setBadges((prev) => ({ ...prev, positions: needsAttention }));
+          }
+        })
+        .catch(() => {});
+      // Get unread message count across all invites
+      fetch("/api/invites")
+        .then((r) => r.json())
+        .then((data) => {
+          const totalUnread = (data.invites || []).reduce((sum, inv) => sum + (inv.unreadMessages || 0), 0);
+          if (totalUnread > 0) {
+            setBadges((prev) => ({ ...prev, invites: totalUnread }));
           }
         })
         .catch(() => {});

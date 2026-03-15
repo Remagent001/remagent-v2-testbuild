@@ -35,6 +35,7 @@ export async function POST(request) {
       || user.location?.fullAddress
       || [user.location?.city, user.location?.state].filter(Boolean).join(", ");
 
+
     let envelopeId;
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3020";
     const returnUrl = `${appUrl}/api/docusign/callback?type=${type}`;
@@ -46,11 +47,10 @@ export async function POST(request) {
         return NextResponse.json({ error: "Agreement already signed" }, { status: 400 });
       }
 
-      // Check for existing envelope
+      // Check for existing envelope — only reuse if completed
       if (user.businessProfile?.docusignEnvelopeId) {
-        envelopeId = user.businessProfile.docusignEnvelopeId;
         try {
-          const status = await getEnvelopeStatus(envelopeId);
+          const status = await getEnvelopeStatus(user.businessProfile.docusignEnvelopeId);
           if (status === "completed") {
             await prisma.businessProfile.update({
               where: { userId: user.id },
@@ -58,12 +58,9 @@ export async function POST(request) {
             });
             return NextResponse.json({ alreadySigned: true });
           }
-          if (status === "voided" || status === "declined") {
-            envelopeId = null;
-          }
-        } catch {
-          envelopeId = null;
-        }
+        } catch {}
+        // Always create a fresh envelope so latest profile data is used
+        envelopeId = null;
       }
 
       if (!envelopeId) {
@@ -79,9 +76,8 @@ export async function POST(request) {
       }
 
       if (user.professionalProfile?.docusignEnvelopeId) {
-        envelopeId = user.professionalProfile.docusignEnvelopeId;
         try {
-          const status = await getEnvelopeStatus(envelopeId);
+          const status = await getEnvelopeStatus(user.professionalProfile.docusignEnvelopeId);
           if (status === "completed") {
             await prisma.professionalProfile.update({
               where: { userId: user.id },
@@ -89,12 +85,8 @@ export async function POST(request) {
             });
             return NextResponse.json({ alreadySigned: true });
           }
-          if (status === "voided" || status === "declined") {
-            envelopeId = null;
-          }
-        } catch {
-          envelopeId = null;
-        }
+        } catch {}
+        envelopeId = null;
       }
 
       if (!envelopeId) {

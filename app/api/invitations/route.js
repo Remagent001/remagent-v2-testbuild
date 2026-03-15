@@ -78,15 +78,27 @@ export async function GET() {
     });
   }
 
+  // Get unread message counts for each invitation
+  const unreadCounts = await Promise.all(
+    invitations.map((inv) =>
+      prisma.inviteMessage.count({
+        where: { offerId: inv.id, senderId: { not: session.user.id }, read: false },
+      })
+    )
+  );
+  const result = invitations.map((inv, i) => ({ ...inv, unreadMessages: unreadCounts[i] }));
+
   // Count by status
+  const totalUnread = unreadCounts.reduce((sum, c) => sum + c, 0);
   const counts = {
     all: invitations.length,
     pending: invitations.filter((i) => i.status === "pending").length,
     accepted: invitations.filter((i) => i.status === "accepted").length,
     declined: invitations.filter((i) => i.status === "declined").length,
+    unreadMessages: totalUnread,
   };
 
-  return NextResponse.json({ invitations, counts });
+  return NextResponse.json({ invitations: result, counts });
 }
 
 // PUT — respond to an invitation (accept or decline)

@@ -99,9 +99,10 @@ export default function InviteModal({ professionalId, professionalName, onClose 
               </div>
             )}
             {positions.filter((pos) => !search || pos.title?.toLowerCase().includes(search.toLowerCase())).map((pos) => {
-              const alreadyInvited = pos.inviteStatus || sent[pos.id];
+              const activeInvite = pos.inviteStatus && pos.inviteStatus !== "withdrawn";
+              const alreadyInvited = activeInvite || sent[pos.id];
               const justSent = sent[pos.id] === true;
-              const wasPrevious = pos.inviteStatus;
+              const wasPrevious = activeInvite ? pos.inviteStatus : null;
 
               return (
                 <div
