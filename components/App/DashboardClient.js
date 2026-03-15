@@ -143,47 +143,28 @@ export default function DashboardClient() {
           </div>
         )}
 
-        {/* Unread message alerts */}
-        {unreadMessages.length > 0 && (
-          <div style={{ marginBottom: 20 }}>
-            {unreadMessages.map((msg) => (
-              <Link key={msg.id} href="/invites" style={{ textDecoration: "none" }}>
-                <div style={{
-                  padding: "12px 18px",
-                  marginBottom: 6,
-                  background: msg.status === "unread" ? "#fef2f2" : "#fffbeb",
-                  borderLeft: `4px solid ${msg.status === "unread" ? "#ef4444" : "#f59e0b"}`,
-                  borderRadius: 6,
-                  cursor: "pointer",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}>
-                  <div>
-                    <strong style={{ color: msg.status === "unread" ? "#dc2626" : "#d97706", fontSize: "0.88rem" }}>
-                      {msg.status === "unread" ? `New message from ${msg.name}` : `Awaiting your reply to ${msg.name}`}
-                    </strong>
-                    <p style={{ margin: "2px 0 0", color: "var(--gray-500)", fontSize: "0.82rem" }}>
-                      {msg.title}
-                    </p>
-                  </div>
-                  <span style={{ color: msg.status === "unread" ? "#dc2626" : "#d97706", fontSize: "0.8rem", fontWeight: 600, whiteSpace: "nowrap", marginLeft: 16 }}>
-                    View &rarr;
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-
         <div className="stat-grid">
+          <Link href="/inbox" className="stat-card" style={{ textDecoration: "none", color: "inherit" }}>
+            <div className="stat-card-label">Inbox</div>
+            <div className="stat-card-value">
+              {unreadMessages.filter((m) => m.status === "unread").length || 0}
+            </div>
+            <div style={{ fontSize: "0.75rem", color: "var(--gray-400)", marginTop: 2, display: "flex", gap: 8 }}>
+              {unreadMessages.filter((m) => m.status === "unread").length > 0 && (
+                <span style={{ color: "#ef4444", fontWeight: 600 }}>
+                  {unreadMessages.filter((m) => m.status === "unread").length} unread
+                </span>
+              )}
+              {unreadMessages.filter((m) => m.status === "awaiting_reply").length > 0 && (
+                <span style={{ color: "#f59e0b", fontWeight: 600 }}>
+                  {unreadMessages.filter((m) => m.status === "awaiting_reply").length} need reply
+                </span>
+              )}
+            </div>
+          </Link>
           <Link href="/positions" className="stat-card" style={{ textDecoration: "none", color: "inherit" }}>
             <div className="stat-card-label">Job Postings</div>
             <div className="stat-card-value">{positionCounts.total}</div>
-          </Link>
-          <Link href="/invites" className="stat-card" style={{ textDecoration: "none", color: "inherit" }}>
-            <div className="stat-card-label">Invites Sent</div>
-            <div className="stat-card-value">{positionCounts.invites}</div>
           </Link>
           <Link href="/applicants" className="stat-card" style={{ textDecoration: "none", color: "inherit" }}>
             <div className="stat-card-label">Applicants</div>
@@ -250,44 +231,25 @@ export default function DashboardClient() {
         <p className="page-subtitle">Here&apos;s what&apos;s happening with your account.</p>
       </div>
 
-      {/* Unread message alerts */}
-      {unreadMessages.length > 0 && (
-        <div style={{ marginBottom: 20 }}>
-          {unreadMessages.map((msg) => (
-            <Link key={msg.id} href="/invitations" style={{ textDecoration: "none" }}>
-              <div style={{
-                padding: "12px 18px",
-                marginBottom: 6,
-                background: msg.status === "unread" ? "#fef2f2" : "#fffbeb",
-                borderLeft: `4px solid ${msg.status === "unread" ? "#ef4444" : "#f59e0b"}`,
-                borderRadius: 6,
-                cursor: "pointer",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}>
-                <div>
-                  <strong style={{ color: msg.status === "unread" ? "#dc2626" : "#d97706", fontSize: "0.88rem" }}>
-                    {msg.status === "unread" ? `New message from ${msg.name}` : `Awaiting your reply to ${msg.name}`}
-                  </strong>
-                  <p style={{ margin: "2px 0 0", color: "var(--gray-500)", fontSize: "0.82rem" }}>
-                    {msg.title}
-                  </p>
-                </div>
-                <span style={{ color: msg.status === "unread" ? "#dc2626" : "#d97706", fontSize: "0.8rem", fontWeight: 600, whiteSpace: "nowrap", marginLeft: 16 }}>
-                  View &rarr;
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
-
       <div className="stat-grid">
-        <div className="stat-card">
-          <div className="stat-card-label">Profile Views</div>
-          <div className="stat-card-value">0</div>
-        </div>
+        <Link href="/inbox" className="stat-card" style={{ textDecoration: "none", color: "inherit" }}>
+          <div className="stat-card-label">Inbox</div>
+          <div className="stat-card-value">
+            {unreadMessages.filter((m) => m.status === "unread").length || 0}
+          </div>
+          <div style={{ fontSize: "0.75rem", color: "var(--gray-400)", marginTop: 2, display: "flex", gap: 8 }}>
+            {unreadMessages.filter((m) => m.status === "unread").length > 0 && (
+              <span style={{ color: "#ef4444", fontWeight: 600 }}>
+                {unreadMessages.filter((m) => m.status === "unread").length} unread
+              </span>
+            )}
+            {unreadMessages.filter((m) => m.status === "awaiting_reply").length > 0 && (
+              <span style={{ color: "#f59e0b", fontWeight: 600 }}>
+                {unreadMessages.filter((m) => m.status === "awaiting_reply").length} need reply
+              </span>
+            )}
+          </div>
+        </Link>
         <Link href="/invitations" className="stat-card" style={{ textDecoration: "none", color: "inherit" }}>
           <div className="stat-card-label">Invitations</div>
           <div className="stat-card-value">{totalInvitations}</div>
@@ -298,18 +260,13 @@ export default function DashboardClient() {
           )}
         </Link>
         <div className="stat-card">
+          <div className="stat-card-label">Profile Views</div>
+          <div className="stat-card-value">0</div>
+        </div>
+        <div className="stat-card">
           <div className="stat-card-label">Active Jobs</div>
           <div className="stat-card-value">0</div>
         </div>
-        <Link href="/invitations" className="stat-card" style={{ textDecoration: "none", color: "inherit" }}>
-          <div className="stat-card-label">Messages</div>
-          <div className="stat-card-value">{unreadMessages.filter((m) => m.status === "unread").length}</div>
-          {unreadMessages.filter((m) => m.status === "unread").length > 0 && (
-            <div style={{ fontSize: "0.75rem", color: "#ef4444", fontWeight: 600, marginTop: 2 }}>
-              unread
-            </div>
-          )}
-        </Link>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>

@@ -78,10 +78,11 @@ export default function ViewProfessionalClient({ professionalId }) {
           if (fromPage === "invites") router.push("/invites");
           else if (fromPage === "applicants") router.push("/applicants");
           else if (fromPage === "hires") router.push("/hires");
+          else if (fromPage === "inbox") router.push("/inbox");
           else router.back();
         }}
       >
-        &larr; {fromPage === "invites" ? "Back to Invites Sent" : fromPage === "applicants" ? "Back to Applicants" : fromPage === "hires" ? "Back to Hires" : "Back to Search"}
+        &larr; {fromPage === "invites" ? "Back to Invites Sent" : fromPage === "applicants" ? "Back to Applicants" : fromPage === "hires" ? "Back to Hires" : fromPage === "inbox" ? "Back to Inbox" : "Back to Search"}
       </button>
 
       {/* Hero card */}

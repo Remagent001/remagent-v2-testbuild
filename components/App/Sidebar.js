@@ -80,7 +80,8 @@ const proNav = [
   { section: "Main", links: [
     { href: "/dashboard", label: "Dashboard", icon: "dashboard" },
     { href: "/profile", label: "My Profile", icon: "profile" },
-    { href: "/invitations", label: "Invitations", icon: "inbox", badgeKey: "invitations" },
+    { href: "/inbox", label: "Inbox", icon: "inbox", badgeKey: "inbox" },
+    { href: "/invitations", label: "Invitations", icon: "clipboard", badgeKey: "invitations" },
     { href: "/jobs", label: "Browse Jobs", icon: "briefcase" },
     { href: "/my-jobs", label: "My Jobs", icon: "clipboard" },
   ]},
@@ -97,10 +98,10 @@ const bizNav = [
     { href: "/positions", label: "Job Postings", icon: "briefcase", badgeKey: "positions" },
   ]},
   { section: "Manage", links: [
+    { href: "/inbox", label: "Inbox", icon: "inbox", badgeKey: "inbox" },
     { href: "/invites", label: "Invites", icon: "clipboard", badgeKey: "invites" },
     { href: "/applicants", label: "Applicants", icon: "users" },
     { href: "/hires", label: "Hires", icon: "handshake" },
-    { href: "/inbox", label: "Inbox", icon: "inbox" },
   ]},
   { section: "Account", links: [
     { href: "/settings", label: "Settings", icon: "settings" },
@@ -130,9 +131,11 @@ export default function Sidebar({ isOpen, onClose, role = "professional", user =
         .then((data) => {
           const pending = data.counts?.pending || 0;
           const unread = data.counts?.unreadMessages || 0;
-          const total = pending + unread;
-          if (total > 0) {
-            setBadges((prev) => ({ ...prev, invitations: total }));
+          if (pending > 0) {
+            setBadges((prev) => ({ ...prev, invitations: pending }));
+          }
+          if (unread > 0) {
+            setBadges((prev) => ({ ...prev, inbox: unread }));
           }
         })
         .catch(() => {});
@@ -153,9 +156,10 @@ export default function Sidebar({ isOpen, onClose, role = "professional", user =
       fetch("/api/invites")
         .then((r) => r.json())
         .then((data) => {
-          const totalUnread = (data.invites || []).reduce((sum, inv) => sum + (inv.unreadMessages || 0), 0);
+          const invites = data.invites || [];
+          const totalUnread = invites.reduce((sum, inv) => sum + (inv.unreadMessages || 0), 0);
           if (totalUnread > 0) {
-            setBadges((prev) => ({ ...prev, invites: totalUnread }));
+            setBadges((prev) => ({ ...prev, invites: totalUnread, inbox: totalUnread }));
           }
         })
         .catch(() => {});

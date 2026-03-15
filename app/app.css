@@ -2152,3 +2152,24 @@
     gap: 12px;
   }
 }
+
+/* ── INBOX ── */
+@media (max-width: 768px) {
+  .inbox-list-panel {
+    width: 100% !important;
+    border-right: none !important;
+  }
+  .inbox-detail-panel {
+    display: none !important;
+  }
+  .inbox-detail-panel.inbox-mobile-show {
+    display: flex !important;
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 10;
+    background: white;
+  }
+  .inbox-back-btn {
+    display: flex !important;
+  }
+}

@@ -135,7 +135,7 @@ export async function GET(request) {
         prisma.inviteMessage.findFirst({
           where: { offerId: inv.id },
           orderBy: { createdAt: "desc" },
-          select: { senderId: true, createdAt: true },
+          select: { senderId: true, createdAt: true, content: true },
         })
       )
     ),
@@ -160,7 +160,7 @@ export async function GET(request) {
       }
     }
 
-    return { ...inv, unreadMessages: unread, messageStatus };
+    return { ...inv, unreadMessages: unread, messageStatus, lastMessageContent: lastMsg?.content || null, lastMessageAt: lastMsg?.createdAt || null };
   });
 
   return NextResponse.json({ invites: result });

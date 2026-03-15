@@ -21,8 +21,8 @@ const STATUS_COLORS = {
 
 const MSG_STATUS_CONFIG = {
   unread:         { color: "#ef4444", label: "New message" },
-  awaiting_reply: { color: "#f59e0b", label: "Awaiting reply" },
-  active:         { color: "#10b981", label: "Active" },
+  awaiting_reply: { color: "#f59e0b", label: "Message received" },
+  active:         { color: "#10b981", label: "Message sent" },
   stale:          { color: "#94a3b8", label: "" },
 };
 

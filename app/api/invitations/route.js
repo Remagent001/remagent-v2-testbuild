@@ -95,7 +95,7 @@ export async function GET() {
         prisma.inviteMessage.findFirst({
           where: { offerId: inv.id },
           orderBy: { createdAt: "desc" },
-          select: { senderId: true, createdAt: true },
+          select: { senderId: true, createdAt: true, content: true },
         })
       )
     ),
@@ -120,7 +120,7 @@ export async function GET() {
       }
     }
 
-    return { ...inv, unreadMessages: unread, messageStatus };
+    return { ...inv, unreadMessages: unread, messageStatus, lastMessageContent: lastMsg?.content || null, lastMessageAt: lastMsg?.createdAt || null };
   });
 
   // Count by status
