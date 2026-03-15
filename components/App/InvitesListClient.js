@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import ProgressBubbles from "./ProgressBubbles";
 
 const TABS = [
   { key: "", label: "All", color: "var(--gray-600)" },
@@ -277,9 +278,12 @@ export default function InvitesListClient() {
                   </div>
                 </div>
 
-                {/* Expanded: message thread */}
+                {/* Expanded: progress + message thread */}
                 {isExpanded && (
                   <div style={{ borderTop: "1px solid var(--gray-100)", padding: "20px 24px" }}>
+                    <div style={{ marginBottom: 20 }}>
+                      <ProgressBubbles currentStep={inv.progressStep || 1} />
+                    </div>
                     <BizMessageThread offerId={inv.id} onRead={() => setUnreadCounts((prev) => ({ ...prev, [inv.id]: 0 }))} />
                   </div>
                 )}

@@ -529,12 +529,14 @@ model JobApplication {
 }
 
 model JobOffer {
-  id         String   @id @default(cuid())
-  positionId String
-  userId     String   // the professional being invited
-  status     String   @default("pending") // pending, accepted, declined, withdrawn
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id           String    @id @default(cuid())
+  positionId   String
+  userId       String   // the professional being invited
+  status       String   @default("pending") // pending, accepted, declined, withdrawn
+  viewedAt     DateTime? // when professional first opened the invite
+  progressStep Int      @default(1) // 1-7 progress tracker step
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   position    Position      @relation(fields: [positionId], references: [id], onDelete: Cascade)
   user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)

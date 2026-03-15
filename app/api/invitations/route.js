@@ -14,6 +14,8 @@ export async function GET() {
     select: {
       id: true,
       status: true,
+      viewedAt: true,
+      progressStep: true,
       createdAt: true,
       updatedAt: true,
       position: {
@@ -52,6 +54,27 @@ export async function GET() {
     },
     orderBy: { createdAt: "desc" },
   });
+
+  // Mark unviewed invites as viewed (step 1 -> 2) and set viewedAt
+  const unviewed = invitations.filter((i) => !i.viewedAt);
+  if (unviewed.length > 0) {
+    await Promise.all(
+      unviewed.map((i) =>
+        prisma.jobOffer.update({
+          where: { id: i.id },
+          data: {
+            viewedAt: new Date(),
+            progressStep: Math.max(i.progressStep, 2),
+          },
+        })
+      )
+    );
+    // Update local data
+    unviewed.forEach((i) => {
+      i.viewedAt = new Date();
+      i.progressStep = Math.max(i.progressStep, 2);
+    });
+  }
 
   // Count by status
   const counts = {
@@ -95,7 +118,10 @@ export async function PUT(request) {
 
   await prisma.jobOffer.update({
     where: { id: inviteId },
-    data: { status: newStatus },
+    data: {
+      status: newStatus,
+      progressStep: Math.max(invite.progressStep || 1, 3),
+    },
   });
 
   // If accepted, create a job application record

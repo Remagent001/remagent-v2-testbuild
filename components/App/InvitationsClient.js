@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import ProgressBubbles from "./ProgressBubbles";
 
 const DAY_LABELS = { sunday: "Sun", monday: "Mon", tuesday: "Tue", wednesday: "Wed", thursday: "Thu", friday: "Fri", saturday: "Sat" };
 const DAY_ORDER = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
@@ -274,6 +275,11 @@ function InvitationCard({ invitation, expanded, onToggle, onRespond, responding 
       {/* Expanded details */}
       {expanded && (
         <div style={{ borderTop: "1px solid var(--gray-100)", padding: "20px 24px" }}>
+          {/* Progress tracker */}
+          <div style={{ marginBottom: 20 }}>
+            <ProgressBubbles currentStep={invitation.progressStep || 1} />
+          </div>
+
           {/* Description */}
           {description && (
             <div style={{ marginBottom: 16 }}>

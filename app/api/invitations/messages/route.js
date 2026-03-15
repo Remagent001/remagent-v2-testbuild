@@ -110,5 +110,13 @@ export async function POST(request) {
     },
   });
 
+  // Auto-advance progress to step 3 (Questions) when first message is sent
+  if (offer.progressStep < 3) {
+    await prisma.jobOffer.update({
+      where: { id: offerId },
+      data: { progressStep: 3 },
+    });
+  }
+
   return NextResponse.json({ message });
 }
