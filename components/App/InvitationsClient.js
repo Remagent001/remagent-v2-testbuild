@@ -368,6 +368,9 @@ function InvitationCard({ invitation, expanded, onToggle, onRespond, responding 
             </p>
           </div>
 
+          {/* Video call */}
+          <ZoomButton offerId={invitation.id} />
+
           {/* Message thread */}
           <MessageThread offerId={invitation.id} />
 
@@ -514,6 +517,53 @@ function MessageThread({ offerId }) {
           {sending ? "..." : "Send"}
         </button>
       </div>
+    </div>
+  );
+}
+
+function ZoomButton({ offerId }) {
+  const [starting, setStarting] = useState(false);
+
+  const handleZoom = async () => {
+    setStarting(true);
+    try {
+      const res = await fetch("/api/invitations/zoom", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ offerId }),
+      });
+      const data = await res.json();
+      if (data.joinUrl) {
+        window.open(data.joinUrl, "_blank");
+      } else {
+        alert(data.error || "Failed to start video call");
+      }
+    } catch {
+      alert("Failed to start video call");
+    }
+    setStarting(false);
+  };
+
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <button
+        onClick={handleZoom}
+        disabled={starting}
+        style={{
+          display: "inline-flex", alignItems: "center", gap: 8,
+          padding: "8px 18px", borderRadius: 8,
+          background: "#2D8CFF", color: "white",
+          border: "none", fontSize: "0.85rem", fontWeight: 600,
+          cursor: starting ? "wait" : "pointer",
+          opacity: starting ? 0.7 : 1,
+        }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="23 7 16 12 23 17 23 7" />
+          <rect x="1" y="5" width="15" height="14" rx="2" />
+        </svg>
+        {starting ? "Starting..." : "Start Video Call"}
+      </button>
     </div>
   );
 }

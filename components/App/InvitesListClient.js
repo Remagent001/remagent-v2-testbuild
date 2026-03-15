@@ -278,12 +278,13 @@ export default function InvitesListClient() {
                   </div>
                 </div>
 
-                {/* Expanded: progress + message thread */}
+                {/* Expanded: progress + zoom + message thread */}
                 {isExpanded && (
                   <div style={{ borderTop: "1px solid var(--gray-100)", padding: "20px 24px" }}>
                     <div style={{ marginBottom: 20 }}>
                       <ProgressBubbles currentStep={inv.progressStep || 1} />
                     </div>
+                    <ZoomButton offerId={inv.id} />
                     <BizMessageThread offerId={inv.id} onRead={() => setUnreadCounts((prev) => ({ ...prev, [inv.id]: 0 }))} />
                   </div>
                 )}
@@ -399,6 +400,55 @@ function BizMessageThread({ offerId, onRead }) {
           {sending ? "..." : "Send"}
         </button>
       </div>
+    </div>
+  );
+}
+
+function ZoomButton({ offerId }) {
+  const [starting, setStarting] = useState(false);
+
+  const handleZoom = async () => {
+    setStarting(true);
+    try {
+      const res = await fetch("/api/invitations/zoom", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ offerId }),
+      });
+      const data = await res.json();
+      if (data.startUrl) {
+        window.open(data.startUrl, "_blank");
+      } else if (data.joinUrl) {
+        window.open(data.joinUrl, "_blank");
+      } else {
+        alert(data.error || "Failed to start video call");
+      }
+    } catch {
+      alert("Failed to start video call");
+    }
+    setStarting(false);
+  };
+
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <button
+        onClick={handleZoom}
+        disabled={starting}
+        style={{
+          display: "inline-flex", alignItems: "center", gap: 8,
+          padding: "8px 18px", borderRadius: 8,
+          background: "#2D8CFF", color: "white",
+          border: "none", fontSize: "0.85rem", fontWeight: 600,
+          cursor: starting ? "wait" : "pointer",
+          opacity: starting ? 0.7 : 1,
+        }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="23 7 16 12 23 17 23 7" />
+          <rect x="1" y="5" width="15" height="14" rx="2" />
+        </svg>
+        {starting ? "Starting..." : "Start Video Call"}
+      </button>
     </div>
   );
 }
