@@ -266,6 +266,15 @@ export default function InvitesListClient() {
                           {withdrawing === inv.id ? "..." : "Withdraw"}
                         </button>
                       )}
+                      {inv.status === "accepted" && (
+                        <button
+                          className="btn-primary"
+                          style={{ width: "auto", fontSize: "0.82rem", padding: "6px 14px" }}
+                          onClick={(e) => { e.stopPropagation(); router.push(`/sow/${inv.id}`); }}
+                        >
+                          Prepare SOW
+                        </button>
+                      )}
 
                       {/* Expand arrow */}
                       <svg

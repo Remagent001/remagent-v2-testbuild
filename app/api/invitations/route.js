@@ -19,6 +19,7 @@ export async function GET() {
       progressStep: true,
       createdAt: true,
       updatedAt: true,
+      sow: { select: { status: true } },
       position: {
         select: {
           id: true,

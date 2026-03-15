@@ -401,8 +401,32 @@ function InvitationCard({ invitation, expanded, onToggle, onRespond, responding 
           )}
 
           {invitation.status === "accepted" && (
-            <div style={{ padding: "12px 16px", background: "#d1fae5", borderRadius: 8, fontSize: "0.85rem", color: "#065f46" }}>
-              You accepted this invitation. The business has been notified and your application is active.
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: "#d1fae5", borderRadius: 8, fontSize: "0.85rem", color: "#065f46" }}>
+              <span>
+                {invitation.sow?.status === "agreed"
+                  ? "You agreed to the Statement of Work. You are hired!"
+                  : invitation.sow?.status === "sent"
+                  ? "A Statement of Work has been sent to you for review."
+                  : "You accepted this invitation. The business has been notified and your application is active."}
+              </span>
+              {invitation.sow?.status === "sent" && (
+                <button
+                  className="btn-primary"
+                  style={{ width: "auto", fontSize: "0.82rem", padding: "6px 16px", marginLeft: 12, whiteSpace: "nowrap" }}
+                  onClick={() => window.location.href = `/sow/${invitation.id}`}
+                >
+                  Review SOW
+                </button>
+              )}
+              {invitation.sow?.status === "agreed" && (
+                <button
+                  className="btn-secondary"
+                  style={{ width: "auto", fontSize: "0.82rem", padding: "6px 16px", marginLeft: 12, whiteSpace: "nowrap" }}
+                  onClick={() => window.location.href = `/sow/${invitation.id}`}
+                >
+                  View SOW
+                </button>
+              )}
             </div>
           )}
 

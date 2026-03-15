@@ -44,7 +44,21 @@ export async function GET(request) {
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json({ applications });
+  // Find matching offer IDs for each application (for SOW links)
+  const offerLookups = applications.map((app) =>
+    prisma.jobOffer.findUnique({
+      where: { positionId_userId: { positionId: app.positionId, userId: app.userId } },
+      select: { id: true, progressStep: true, sow: { select: { status: true } } },
+    })
+  );
+  const offers = await Promise.all(offerLookups);
+
+  const result = applications.map((app, i) => ({
+    ...app,
+    offer: offers[i] || null,
+  }));
+
+  return NextResponse.json({ applications: result });
 }
 
 // PUT — update application status (reviewing, accepted, declined)

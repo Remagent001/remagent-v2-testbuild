@@ -237,6 +237,19 @@ export default function ApplicantsListClient() {
                         </button>
                       </>
                     )}
+                    {app.status === "accepted" && app.offer?.id && (
+                      <button
+                        className="btn-primary"
+                        style={{ width: "auto", fontSize: "0.82rem", padding: "6px 14px" }}
+                        onClick={() => router.push(`/sow/${app.offer.id}`)}
+                      >
+                        {app.offer.sow?.status === "sent" ? "View SOW" :
+                         app.offer.sow?.status === "agreed" ? "SOW Agreed" :
+                         app.offer.sow?.status === "declined" ? "SOW Declined" :
+                         app.offer.sow?.status === "draft" ? "Continue SOW" :
+                         "Hire — Prepare SOW"}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

@@ -538,10 +538,11 @@ model JobOffer {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  position    Position      @relation(fields: [positionId], references: [id], onDelete: Cascade)
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  position    Position         @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   negotiation Negotiation?
   messages    InviteMessage[]
+  sow         StatementOfWork?
 
   @@unique([positionId, userId])
   @@map("job_offers")
@@ -559,6 +560,38 @@ model InviteMessage {
   sender User     @relation("inviteMessages", fields: [senderId], references: [id], onDelete: Cascade)
 
   @@map("invite_messages")
+}
+
+model StatementOfWork {
+  id                String    @id @default(cuid())
+  offerId           String    @unique
+  resourceName      String?
+  resourceTitle     String?
+  isExtension       Boolean   @default(false)
+  previousPo        String?
+  additionalSkills  String?   @db.Text
+  workDescription   String?   @db.Text
+  channels          String?
+  schedule          Json?     // { monday: { start, end }, ... }
+  reportingManager  String?
+  department        String?
+  workLocations     String?
+  hourlyRate        Float?
+  estimatedHours    Float?
+  startDate         DateTime?
+  endDate           DateTime?
+  equipment         String?   @db.Text
+  hiringModel       String?   // direct_hire, contract, w2_employee
+  billingRate       Float?
+  poNumber          String?
+  status            String    @default("draft") // draft, sent, agreed, declined
+  agreedAt          DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  offer JobOffer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+
+  @@map("statements_of_work")
 }
 
 // ──────────────────────────────────────
