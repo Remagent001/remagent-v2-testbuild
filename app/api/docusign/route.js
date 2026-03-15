@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { getDocuSignClient, createMsaEnvelope, createProfessionalEnvelope, getSigningUrl, getEnvelopeStatus } from "@/lib/docusign";
+import { createMsaEnvelope, createProfessionalEnvelope, getSigningUrl, getEnvelopeStatus } from "@/lib/docusign";
 
 // POST — initiate DocuSign signing ceremony
 export async function POST(request) {
@@ -26,7 +26,6 @@ export async function POST(request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const apiClient = await getDocuSignClient();
     const signerEmail = user.email;
     const signerName = `${user.firstName} ${user.lastName}`;
     const address = user.location?.fullAddress || `${user.location?.city || ""}, ${user.location?.state || ""}`;
@@ -38,7 +37,6 @@ export async function POST(request) {
     if (type === "msa" && user.role === "BUSINESS") {
       const companyName = user.businessProfile?.businessName || "";
 
-      // Check if already signed
       if (user.businessProfile?.agreementSigned) {
         return NextResponse.json({ error: "Agreement already signed" }, { status: 400 });
       }
@@ -46,11 +44,9 @@ export async function POST(request) {
       // Check for existing envelope
       if (user.businessProfile?.docusignEnvelopeId) {
         envelopeId = user.businessProfile.docusignEnvelopeId;
-        // Check if it's still valid
         try {
-          const status = await getEnvelopeStatus(apiClient, envelopeId);
+          const status = await getEnvelopeStatus(envelopeId);
           if (status === "completed") {
-            // Already completed, update our records
             await prisma.businessProfile.update({
               where: { userId: user.id },
               data: { agreementSigned: true, agreementSignedAt: new Date() },
@@ -58,17 +54,15 @@ export async function POST(request) {
             return NextResponse.json({ alreadySigned: true });
           }
           if (status === "voided" || status === "declined") {
-            envelopeId = null; // Create a new one
+            envelopeId = null;
           }
         } catch {
-          envelopeId = null; // Envelope not found, create new
+          envelopeId = null;
         }
       }
 
       if (!envelopeId) {
-        envelopeId = await createMsaEnvelope(apiClient, {
-          signerEmail, signerName, companyName, address,
-        });
+        envelopeId = await createMsaEnvelope({ signerEmail, signerName, companyName, address });
         await prisma.businessProfile.update({
           where: { userId: user.id },
           data: { docusignEnvelopeId: envelopeId },
@@ -82,7 +76,7 @@ export async function POST(request) {
       if (user.professionalProfile?.docusignEnvelopeId) {
         envelopeId = user.professionalProfile.docusignEnvelopeId;
         try {
-          const status = await getEnvelopeStatus(apiClient, envelopeId);
+          const status = await getEnvelopeStatus(envelopeId);
           if (status === "completed") {
             await prisma.professionalProfile.update({
               where: { userId: user.id },
@@ -99,9 +93,7 @@ export async function POST(request) {
       }
 
       if (!envelopeId) {
-        envelopeId = await createProfessionalEnvelope(apiClient, {
-          signerEmail, signerName, address,
-        });
+        envelopeId = await createProfessionalEnvelope({ signerEmail, signerName, address });
         await prisma.professionalProfile.update({
           where: { userId: user.id },
           data: { docusignEnvelopeId: envelopeId },
@@ -112,9 +104,7 @@ export async function POST(request) {
     }
 
     // Get the embedded signing URL
-    const signingUrl = await getSigningUrl(apiClient, envelopeId, {
-      signerEmail, signerName, returnUrl,
-    });
+    const signingUrl = await getSigningUrl(envelopeId, { signerEmail, signerName, returnUrl });
 
     return NextResponse.json({ signingUrl });
   } catch (err) {

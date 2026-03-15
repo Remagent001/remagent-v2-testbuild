@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { getDocuSignClient, getEnvelopeStatus } from "@/lib/docusign";
+import { getEnvelopeStatus } from "@/lib/docusign";
 
 // GET — DocuSign returns here after signing ceremony
 export async function GET(request) {
@@ -12,27 +12,21 @@ export async function GET(request) {
 
   const { searchParams } = new URL(request.url);
   const type = searchParams.get("type"); // "msa" or "professional"
-  const event = searchParams.get("event"); // "signing_complete", "cancel", "decline", "exception", etc.
+  const event = searchParams.get("event"); // "signing_complete", "cancel", "decline", etc.
 
   if (event === "signing_complete") {
     try {
-      // Verify with DocuSign that the envelope is actually completed
       if (type === "msa") {
         const profile = await prisma.businessProfile.findUnique({
           where: { userId: session.user.id },
         });
 
         if (profile?.docusignEnvelopeId) {
-          const apiClient = await getDocuSignClient();
-          const status = await getEnvelopeStatus(apiClient, profile.docusignEnvelopeId);
-
+          const status = await getEnvelopeStatus(profile.docusignEnvelopeId);
           if (status === "completed") {
             await prisma.businessProfile.update({
               where: { userId: session.user.id },
-              data: {
-                agreementSigned: true,
-                agreementSignedAt: new Date(),
-              },
+              data: { agreementSigned: true, agreementSignedAt: new Date() },
             });
           }
         }
@@ -43,16 +37,11 @@ export async function GET(request) {
         });
 
         if (profile?.docusignEnvelopeId) {
-          const apiClient = await getDocuSignClient();
-          const status = await getEnvelopeStatus(apiClient, profile.docusignEnvelopeId);
-
+          const status = await getEnvelopeStatus(profile.docusignEnvelopeId);
           if (status === "completed") {
             await prisma.professionalProfile.update({
               where: { userId: session.user.id },
-              data: {
-                agreementSigned: true,
-                agreementSignedAt: new Date(),
-              },
+              data: { agreementSigned: true, agreementSignedAt: new Date() },
             });
           }
         }
@@ -63,7 +52,7 @@ export async function GET(request) {
     }
   }
 
-  // For cancel, decline, or other events — redirect back
+  // For cancel, decline, or other events
   if (type === "msa") {
     return redirect("/company-profile?signing=cancelled");
   }
