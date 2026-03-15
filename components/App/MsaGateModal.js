@@ -2,8 +2,15 @@
 
 export default function MsaGateModal({ onClose }) {
   return (
-    <div className="modal-backdrop" onClick={onClose} style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480, margin: "0 auto" }}>
+    <div onClick={onClose} style={{
+      position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+      background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center",
+      justifyContent: "center", zIndex: 9999,
+    }}>
+      <div onClick={(e) => e.stopPropagation()} style={{
+        maxWidth: 480, width: "90%", background: "white", borderRadius: 12,
+        boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
+      }}>
         <div style={{ textAlign: "center", padding: "32px 24px" }}>
           <div style={{
             width: 64, height: 64, borderRadius: "50%",
