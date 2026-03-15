@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 
 const AddressAutocomplete = dynamic(() => import("@/components/App/AddressAutocomplete"), { ssr: false });
@@ -22,6 +22,8 @@ function formatPhone(value) {
 
 export default function CompanyProfileClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const justSigned = searchParams.get("signed") === "true";
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -40,6 +42,11 @@ export default function CompanyProfileClient() {
   const [state, setState] = useState("");
   const [city, setCity] = useState("");
   const [zip, setZip] = useState("");
+
+  // MSA
+  const [msaSigned, setMsaSigned] = useState(false);
+  const [msaSignedAt, setMsaSignedAt] = useState(null);
+  const [msaSigning, setMsaSigning] = useState(false);
 
   // Logo
   const [logoPreview, setLogoPreview] = useState(null);
@@ -68,6 +75,8 @@ export default function CompanyProfileClient() {
           setCity(p.city || "");
           setZip(p.zip || "");
           setPhone(p.phone ? formatPhone(p.phone) : "");
+          setMsaSigned(!!p.agreementSigned);
+          if (p.agreementSignedAt) setMsaSignedAt(p.agreementSignedAt);
           if (p.logo) {
             setLogoPath(p.logo);
             setLogoPreview(`/${p.logo}`);
@@ -317,6 +326,85 @@ export default function CompanyProfileClient() {
             {saving ? "Saving..." : "Save Profile"}
           </button>
           {saved && <span style={{ color: "var(--teal)", fontSize: "0.85rem", fontWeight: 500 }}>Saved!</span>}
+        </div>
+      </div>
+
+      {/* Master Services Agreement */}
+      <div className="card" style={{ maxWidth: 720, marginTop: 24 }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
+          <div style={{
+            width: 48, height: 48, minWidth: 48, borderRadius: 10,
+            background: msaSigned ? "var(--teal-dim)" : "var(--gray-100)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={msaSigned ? "var(--teal)" : "var(--gray-400)"} strokeWidth="1.5">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              {msaSigned && <path d="M9 15l2 2 4-4" />}
+            </svg>
+          </div>
+          <div style={{ flex: 1 }}>
+            <h3 style={{ fontSize: "1rem", fontWeight: 600, color: "var(--gray-800)", marginBottom: 4 }}>
+              Master Services Agreement
+            </h3>
+            {msaSigned ? (
+              <>
+                <p style={{ fontSize: "0.85rem", color: "var(--teal)", fontWeight: 500, marginBottom: 4 }}>
+                  Signed {msaSignedAt ? new Date(msaSignedAt).toLocaleDateString() : ""}
+                </p>
+                <p style={{ fontSize: "0.82rem", color: "var(--gray-400)" }}>
+                  Your agreement is on file. You have full access to all platform features.
+                </p>
+              </>
+            ) : (
+              <>
+                {justSigned ? (
+                  <p style={{ fontSize: "0.85rem", color: "var(--teal)", fontWeight: 500, marginBottom: 4 }}>
+                    Agreement signed successfully! Refreshing...
+                  </p>
+                ) : (
+                  <>
+                    <p style={{ fontSize: "0.85rem", color: "var(--gray-500)", marginBottom: 12, lineHeight: 1.5 }}>
+                      Sign your Master Services Agreement to unlock full access to professional profiles, invitations, and hiring features.
+                    </p>
+                    <button
+                      className="btn-primary"
+                      style={{ width: "auto", padding: "8px 20px" }}
+                      onClick={async () => {
+                        setMsaSigning(true);
+                        try {
+                          const res = await fetch("/api/docusign", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ type: "msa" }),
+                          });
+                          const data = await res.json();
+                          if (data.signingUrl) {
+                            window.location.href = data.signingUrl;
+                          } else if (data.alreadySigned) {
+                            setMsaSigned(true);
+                          } else {
+                            alert("Could not start signing. Please contact support@remagent.com");
+                          }
+                        } catch {
+                          alert("Could not start signing. Please contact support@remagent.com");
+                        }
+                        setMsaSigning(false);
+                      }}
+                      disabled={msaSigning}
+                    >
+                      {msaSigning ? "Starting..." : "Sign Agreement"}
+                    </button>
+                    <p style={{ fontSize: "0.75rem", color: "var(--gray-400)", marginTop: 8, lineHeight: 1.4 }}>
+                      Need help? Contact{" "}
+                      <a href="mailto:support@remagent.com" style={{ color: "var(--teal)" }}>support@remagent.com</a> or call{" "}
+                      <a href="tel:2146325485" style={{ color: "var(--teal)" }}>214-632-5485</a>
+                    </p>
+                  </>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>

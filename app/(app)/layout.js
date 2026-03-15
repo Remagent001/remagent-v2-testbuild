@@ -6,6 +6,7 @@ import { useState } from "react";
 import { SessionProvider } from "next-auth/react";
 import Sidebar from "@/components/App/Sidebar";
 import Topbar from "@/components/App/Topbar";
+import MsaBanner from "@/components/App/MsaBanner";
 import "../app.css";
 
 function AppShell({ children }) {
@@ -39,6 +40,7 @@ function AppShell({ children }) {
 
       <div className="app-main">
         <Topbar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
+        {role === "business" && <MsaBanner />}
         <main className="app-content">
           {children}
         </main>

@@ -78,9 +78,10 @@ model ProfessionalProfile {
   photoUrl          String?
   videoUrl          String?
   overallExperience String?
-  agreementSigned   Boolean @default(false)
-  agreementSignedAt DateTime?
-  profileComplete   Boolean @default(false)
+  agreementSigned     Boolean @default(false)
+  agreementSignedAt   DateTime?
+  docusignEnvelopeId  String?
+  profileComplete     Boolean @default(false)
   onboardingStep    Int     @default(1)
   completedSteps    String? @db.Text
 
@@ -108,9 +109,10 @@ model BusinessProfile {
   fullAddress     String?
   phone           String?
   otherIndustry   String?
-  agreementSigned Boolean @default(false)
-  agreementSignedAt DateTime?
-  adminMarkup     Float   @default(10)
+  agreementSigned    Boolean @default(false)
+  agreementSignedAt  DateTime?
+  docusignEnvelopeId String?
+  adminMarkup        Float   @default(10)
   autoApprove     Boolean @default(false)
   archived        Boolean @default(false)
   archivedAt      DateTime?

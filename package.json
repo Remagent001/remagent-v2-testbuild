@@ -19,6 +19,7 @@
     "@tiptap/starter-kit": "^3.20.1",
     "bcryptjs": "^3.0.3",
     "bootstrap": "^5.3.3",
+    "docusign-esign": "^7.0.3",
     "formik": "^2.4.6",
     "framer-motion": "^11.11.4",
     "jquery": "^3.7.1",

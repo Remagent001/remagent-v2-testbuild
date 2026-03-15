@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import InviteModal from "./InviteModal";
+import MsaGateModal from "./MsaGateModal";
 
 const LAST_LOGIN_OPTIONS = [
   { value: 0, label: "Any time" },
@@ -144,6 +145,10 @@ export default function SearchProfessionalsClient() {
   const [channelMode, setChannelMode] = useState("and");
   const [industryMode, setIndustryMode] = useState("and");
 
+  // MSA gating
+  const [msaSigned, setMsaSigned] = useState(true); // default true to avoid flash
+  const [showMsaModal, setShowMsaModal] = useState(false);
+
   // Job postings for availability shortcut
   const [positions, setPositions] = useState([]);
   const [selectedPosition, setSelectedPosition] = useState("");
@@ -155,6 +160,7 @@ export default function SearchProfessionalsClient() {
       .then((r) => r.json())
       .then((data) => {
         setProfileComplete(!!(data.profile?.businessName));
+        if (data.profile) setMsaSigned(!!data.profile.agreementSigned);
         if (data.user?.timezone) setSearchTimezone(data.user.timezone);
       })
       .catch(() => setProfileComplete(true)); // Non-business users pass through
@@ -906,7 +912,7 @@ export default function SearchProfessionalsClient() {
           {!loading && results.length > 0 && (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {results.map((pro) => (
-                <ProfessionalCard key={pro.id} pro={pro} router={router} onInvite={setInviteTarget} showDistance={!!(radius && centerCoords)} />
+                <ProfessionalCard key={pro.id} pro={pro} router={router} onInvite={setInviteTarget} showDistance={!!(radius && centerCoords)} msaSigned={msaSigned} onMsaGate={() => setShowMsaModal(true)} />
               ))}
             </div>
           )}
@@ -946,23 +952,31 @@ export default function SearchProfessionalsClient() {
           onClose={() => setInviteTarget(null)}
         />
       )}
+
+      {/* MSA Gate Modal */}
+      {showMsaModal && <MsaGateModal onClose={() => setShowMsaModal(false)} />}
     </div>
   );
 }
 
 // Professional result card
-function ProfessionalCard({ pro, router, onInvite, showDistance }) {
+function ProfessionalCard({ pro, router, onInvite, showDistance, msaSigned, onMsaGate }) {
   const profile = pro.professionalProfile || {};
   const loc = pro.location;
   const rate = pro.hourlyRate?.regularRate;
   const summary = stripHtml(profile.summary);
   const schedule = (pro.availability || []).sort((a, b) => DAY_ORDER.indexOf(a.day) - DAY_ORDER.indexOf(b.day));
 
+  const handleCardClick = () => {
+    if (!msaSigned) { onMsaGate(); return; }
+    router.push(`/search/${pro.id}`);
+  };
+
   return (
     <div
       className="card"
       style={{ padding: "20px 24px", cursor: "pointer", transition: "box-shadow 0.15s" }}
-      onClick={() => router.push(`/search/${pro.id}`)}
+      onClick={handleCardClick}
       onMouseEnter={(e) => e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.1)"}
       onMouseLeave={(e) => e.currentTarget.style.boxShadow = ""}
     >
@@ -993,7 +1007,7 @@ function ProfessionalCard({ pro, router, onInvite, showDistance }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 8 }}>
             <div>
-              <h3 style={{ fontSize: "1.05rem", fontWeight: 600, color: "var(--gray-800)", marginBottom: 2 }}>
+              <h3 style={{ fontSize: "1.05rem", fontWeight: 600, color: "var(--gray-800)", marginBottom: 2, filter: msaSigned ? "none" : "blur(6px)", userSelect: msaSigned ? "auto" : "none" }}>
                 {pro.firstName} {pro.lastName}
               </h3>
               {profile.title && (
@@ -1040,6 +1054,7 @@ function ProfessionalCard({ pro, router, onInvite, showDistance }) {
                 style={{ width: "auto", padding: "6px 14px", fontSize: "0.8rem", marginTop: 8 }}
                 onClick={(e) => {
                   e.stopPropagation();
+                  if (!msaSigned) { onMsaGate(); return; }
                   onInvite({ id: pro.id, name: `${pro.firstName} ${pro.lastName}` });
                 }}
               >
