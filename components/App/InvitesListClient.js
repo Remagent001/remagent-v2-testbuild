@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 const TABS = [
@@ -21,7 +21,11 @@ const STATUS_COLORS = {
 function timeAgo(dateStr) {
   if (!dateStr) return "";
   const diff = Date.now() - new Date(dateStr).getTime();
-  const days = Math.floor(diff / 86400000);
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
   if (days === 0) return "Today";
   if (days === 1) return "Yesterday";
   if (days < 7) return `${days}d ago`;
@@ -36,11 +40,28 @@ export default function InvitesListClient() {
   const [activeTab, setActiveTab] = useState("");
   const [withdrawing, setWithdrawing] = useState(null);
   const [filterPosition, setFilterPosition] = useState("");
+  const [expandedId, setExpandedId] = useState(null);
+  const [unreadCounts, setUnreadCounts] = useState({});
 
   const loadInvites = () => {
     fetch("/api/invites")
       .then((r) => r.json())
-      .then((data) => setInvites(data.invites || []))
+      .then((data) => {
+        const list = data.invites || [];
+        setInvites(list);
+        // Check for unread messages on each invite
+        list.forEach((inv) => {
+          fetch(`/api/invitations/messages?offerId=${inv.id}`)
+            .then((r) => r.json())
+            .then((msgData) => {
+              const unread = (msgData.messages || []).filter((m) => m.sender?.role === "PROFESSIONAL" && !m.read).length;
+              if (unread > 0) {
+                setUnreadCounts((prev) => ({ ...prev, [inv.id]: unread }));
+              }
+            })
+            .catch(() => {});
+        });
+      })
       .finally(() => setLoading(false));
   };
 
@@ -65,7 +86,6 @@ export default function InvitesListClient() {
     if (counts[inv.status] !== undefined) counts[inv.status]++;
   });
 
-  // Get unique position titles for filter dropdown
   const positionTitles = [...new Set(invites.map((inv) => inv.position?.title).filter(Boolean))].sort();
 
   let filtered = activeTab ? invites.filter((inv) => inv.status === activeTab) : invites;
@@ -169,11 +189,19 @@ export default function InvitesListClient() {
             const loc = pro?.location;
             const rate = pro?.hourlyRate?.regularRate;
             const sc = STATUS_COLORS[inv.status] || STATUS_COLORS.pending;
+            const isExpanded = expandedId === inv.id;
+            const unread = unreadCounts[inv.id] || 0;
 
             return (
-              <div key={inv.id} className="card position-card">
-                <div className="position-card-header">
-                  <div style={{ display: "flex", gap: 14, flex: 1 }}>
+              <div key={inv.id} className="card" style={{ padding: 0, overflow: "hidden" }}>
+                {/* Header */}
+                <div
+                  style={{ padding: "16px 20px", cursor: "pointer" }}
+                  onClick={() => setExpandedId(isExpanded ? null : inv.id)}
+                  onMouseEnter={(e) => e.currentTarget.style.background = "var(--gray-50)"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = ""}
+                >
+                  <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
                     {/* Avatar */}
                     <div style={{
                       width: 48, height: 48, minWidth: 48, borderRadius: "50%",
@@ -199,6 +227,14 @@ export default function InvitesListClient() {
                         }}>
                           {inv.status.charAt(0).toUpperCase() + inv.status.slice(1)}
                         </span>
+                        {unread > 0 && (
+                          <span style={{
+                            padding: "2px 8px", borderRadius: 10, fontSize: "0.7rem", fontWeight: 700,
+                            background: "#ef4444", color: "white",
+                          }}>
+                            {unread} new message{unread > 1 ? "s" : ""}
+                          </span>
+                        )}
                       </div>
                       {profile?.title && (
                         <p style={{ fontSize: "0.85rem", color: "var(--gray-500)", marginTop: 2 }}>{profile.title}</p>
@@ -210,33 +246,155 @@ export default function InvitesListClient() {
                         {` · Invited ${timeAgo(inv.createdAt)}`}
                       </p>
                     </div>
-                  </div>
 
-                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                    <button
-                      className="btn-secondary"
-                      style={{ width: "auto", fontSize: "0.82rem", padding: "6px 14px" }}
-                      onClick={() => router.push(`/search/${pro?.id}?from=invites`)}
-                    >
-                      View Profile
-                    </button>
-                    {inv.status === "pending" && (
+                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                       <button
                         className="btn-secondary"
-                        style={{ width: "auto", fontSize: "0.82rem", padding: "6px 14px", color: "#ef4444", borderColor: "#ef4444" }}
-                        onClick={() => handleWithdraw(inv.id)}
-                        disabled={withdrawing === inv.id}
+                        style={{ width: "auto", fontSize: "0.82rem", padding: "6px 14px" }}
+                        onClick={(e) => { e.stopPropagation(); router.push(`/search/${pro?.id}?from=invites`); }}
                       >
-                        {withdrawing === inv.id ? "..." : "Withdraw"}
+                        View Profile
                       </button>
-                    )}
+                      {inv.status === "pending" && (
+                        <button
+                          className="btn-secondary"
+                          style={{ width: "auto", fontSize: "0.82rem", padding: "6px 14px", color: "#ef4444", borderColor: "#ef4444" }}
+                          onClick={(e) => { e.stopPropagation(); handleWithdraw(inv.id); }}
+                          disabled={withdrawing === inv.id}
+                        >
+                          {withdrawing === inv.id ? "..." : "Withdraw"}
+                        </button>
+                      )}
+
+                      {/* Expand arrow */}
+                      <svg
+                        width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gray-400)" strokeWidth="2"
+                        style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}
+                      >
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
+
+                {/* Expanded: message thread */}
+                {isExpanded && (
+                  <div style={{ borderTop: "1px solid var(--gray-100)", padding: "20px 24px" }}>
+                    <BizMessageThread offerId={inv.id} onRead={() => setUnreadCounts((prev) => ({ ...prev, [inv.id]: 0 }))} />
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+function BizMessageThread({ offerId, onRead }) {
+  const [messages, setMessages] = useState([]);
+  const [newMsg, setNewMsg] = useState("");
+  const [sending, setSending] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const bottomRef = useRef(null);
+
+  useEffect(() => {
+    fetch(`/api/invitations/messages?offerId=${offerId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        setMessages(data.messages || []);
+        if (onRead) onRead();
+      })
+      .finally(() => setLoaded(true));
+  }, [offerId]);
+
+  useEffect(() => {
+    if (bottomRef.current) bottomRef.current.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const handleSend = async () => {
+    if (!newMsg.trim() || sending) return;
+    setSending(true);
+    try {
+      const res = await fetch("/api/invitations/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ offerId, content: newMsg.trim() }),
+      });
+      const data = await res.json();
+      if (data.message) {
+        setMessages((prev) => [...prev, data.message]);
+        setNewMsg("");
+      }
+    } catch {}
+    setSending(false);
+  };
+
+  return (
+    <div>
+      <label style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--gray-600)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 8, display: "block" }}>
+        Messages
+      </label>
+
+      <div style={{
+        maxHeight: 300, overflowY: "auto", marginBottom: 12,
+        background: "var(--gray-50)", borderRadius: 8, padding: messages.length > 0 ? 12 : 0,
+      }}>
+        {loaded && messages.length === 0 && (
+          <div style={{ padding: "16px 12px", textAlign: "center", color: "var(--gray-400)", fontSize: "0.85rem" }}>
+            No messages yet. Send a message to start a conversation.
+          </div>
+        )}
+        {messages.map((msg, i) => {
+          const isMe = msg.sender?.role !== "PROFESSIONAL";
+          return (
+            <div key={msg.id} style={{
+              display: "flex", flexDirection: "column",
+              alignItems: isMe ? "flex-end" : "flex-start",
+              marginBottom: i < messages.length - 1 ? 10 : 0,
+            }}>
+              <div style={{ fontSize: "0.7rem", color: "var(--gray-400)", marginBottom: 3 }}>
+                {isMe ? "You" : `${msg.sender?.firstName || "Professional"} ${msg.sender?.lastName?.[0] || ""}.`}
+                {" · "}
+                {timeAgo(msg.createdAt)}
+              </div>
+              <div style={{
+                padding: "8px 14px", borderRadius: 14,
+                maxWidth: "80%", fontSize: "0.88rem", lineHeight: 1.5,
+                background: isMe ? "var(--teal)" : "white",
+                color: isMe ? "white" : "var(--gray-700)",
+                border: isMe ? "none" : "1px solid var(--gray-200)",
+                borderBottomRightRadius: isMe ? 4 : 14,
+                borderBottomLeftRadius: isMe ? 14 : 4,
+              }}>
+                {msg.content}
+              </div>
+            </div>
+          );
+        })}
+        <div ref={bottomRef} />
+      </div>
+
+      <div style={{ display: "flex", gap: 8 }}>
+        <input
+          type="text"
+          className="form-input"
+          placeholder="Type a message..."
+          value={newMsg}
+          onChange={(e) => setNewMsg(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSend()}
+          style={{ flex: 1, margin: 0, fontSize: "0.88rem" }}
+        />
+        <button
+          className="btn-primary"
+          onClick={handleSend}
+          disabled={!newMsg.trim() || sending}
+          style={{ width: "auto", padding: "8px 20px", whiteSpace: "nowrap" }}
+        >
+          {sending ? "..." : "Send"}
+        </button>
+      </div>
     </div>
   );
 }

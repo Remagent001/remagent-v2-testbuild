@@ -53,6 +53,7 @@ model User {
   hiresAsPro          Hire[]             @relation("professional")
   hiresAsBiz          Hire[]             @relation("business")
   positions           Position[]
+  inviteMessages      InviteMessage[]  @relation("inviteMessages")
 
   @@map("users")
 }
@@ -538,9 +539,24 @@ model JobOffer {
   position    Position      @relation(fields: [positionId], references: [id], onDelete: Cascade)
   user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   negotiation Negotiation?
+  messages    InviteMessage[]
 
   @@unique([positionId, userId])
   @@map("job_offers")
+}
+
+model InviteMessage {
+  id        String   @id @default(cuid())
+  offerId   String
+  senderId  String
+  content   String   @db.Text
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  offer  JobOffer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  sender User     @relation("inviteMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@map("invite_messages")
 }
 
 // ──────────────────────────────────────

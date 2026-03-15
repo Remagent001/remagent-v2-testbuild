@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 const DAY_LABELS = { sunday: "Sun", monday: "Mon", tuesday: "Tue", wednesday: "Wed", thursday: "Thu", friday: "Fri", saturday: "Sat" };
@@ -362,6 +362,9 @@ function InvitationCard({ invitation, expanded, onToggle, onRespond, responding 
             </p>
           </div>
 
+          {/* Message thread */}
+          <MessageThread offerId={invitation.id} />
+
           {/* Action buttons */}
           {invitation.status === "pending" && (
             <div style={{ display: "flex", gap: 12, paddingTop: 16, borderTop: "1px solid var(--gray-100)" }}>
@@ -401,6 +404,110 @@ function InvitationCard({ invitation, expanded, onToggle, onRespond, responding 
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+function MessageThread({ offerId }) {
+  const [messages, setMessages] = useState([]);
+  const [newMsg, setNewMsg] = useState("");
+  const [sending, setSending] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const bottomRef = useRef(null);
+
+  useEffect(() => {
+    fetch(`/api/invitations/messages?offerId=${offerId}`)
+      .then((r) => r.json())
+      .then((data) => setMessages(data.messages || []))
+      .finally(() => setLoaded(true));
+  }, [offerId]);
+
+  useEffect(() => {
+    if (bottomRef.current) bottomRef.current.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const handleSend = async () => {
+    if (!newMsg.trim() || sending) return;
+    setSending(true);
+    try {
+      const res = await fetch("/api/invitations/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ offerId, content: newMsg.trim() }),
+      });
+      const data = await res.json();
+      if (data.message) {
+        setMessages((prev) => [...prev, data.message]);
+        setNewMsg("");
+      }
+    } catch {}
+    setSending(false);
+  };
+
+  return (
+    <div style={{ marginBottom: 16, borderTop: "1px solid var(--gray-100)", paddingTop: 16 }}>
+      <label style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--gray-600)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 8, display: "block" }}>
+        Messages
+      </label>
+
+      <div style={{
+        maxHeight: 300, overflowY: "auto", marginBottom: 12,
+        background: "var(--gray-50)", borderRadius: 8, padding: messages.length > 0 ? 12 : 0,
+      }}>
+        {loaded && messages.length === 0 && (
+          <div style={{ padding: "16px 12px", textAlign: "center", color: "var(--gray-400)", fontSize: "0.85rem" }}>
+            No messages yet. Ask a question or start a conversation.
+          </div>
+        )}
+        {messages.map((msg, i) => {
+          const isMe = msg.sender?.role === "PROFESSIONAL";
+          return (
+            <div key={msg.id} style={{
+              display: "flex", flexDirection: "column",
+              alignItems: isMe ? "flex-end" : "flex-start",
+              marginBottom: i < messages.length - 1 ? 10 : 0,
+            }}>
+              <div style={{ fontSize: "0.7rem", color: "var(--gray-400)", marginBottom: 3 }}>
+                {isMe ? "You" : `${msg.sender?.firstName || "Business"} ${msg.sender?.lastName?.[0] || ""}.`}
+                {" · "}
+                {timeAgo(msg.createdAt)}
+              </div>
+              <div style={{
+                padding: "8px 14px", borderRadius: 14,
+                maxWidth: "80%", fontSize: "0.88rem", lineHeight: 1.5,
+                background: isMe ? "var(--teal)" : "white",
+                color: isMe ? "white" : "var(--gray-700)",
+                border: isMe ? "none" : "1px solid var(--gray-200)",
+                borderBottomRightRadius: isMe ? 4 : 14,
+                borderBottomLeftRadius: isMe ? 14 : 4,
+              }}>
+                {msg.content}
+              </div>
+            </div>
+          );
+        })}
+        <div ref={bottomRef} />
+      </div>
+
+      <div style={{ display: "flex", gap: 8 }}>
+        <input
+          type="text"
+          className="form-input"
+          placeholder="Type a message..."
+          value={newMsg}
+          onChange={(e) => setNewMsg(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSend()}
+          style={{ flex: 1, margin: 0, fontSize: "0.88rem" }}
+        />
+        <button
+          className="btn-primary"
+          onClick={handleSend}
+          disabled={!newMsg.trim() || sending}
+          style={{ width: "auto", padding: "8px 20px", whiteSpace: "nowrap" }}
+        >
+          {sending ? "..." : "Send"}
+        </button>
+      </div>
     </div>
   );
 }
