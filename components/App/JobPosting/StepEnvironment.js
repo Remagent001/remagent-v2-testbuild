@@ -23,6 +23,8 @@ export default function StepEnvironment({ data, onNext, onBack, onSaveExit, onSk
   const [officeAddress, setOfficeAddress] = useState(env?.officeAddress || "");
   const [isDefault, setIsDefault] = useState(false);
 
+  const handlePlaceSelect = useCallback((place) => setOfficeAddress(place.fullAddress), []);
+
   const getData = () => ({
     workLocation: workLocation ? [workLocation] : [],
     equipmentPolicy,
@@ -60,7 +62,7 @@ export default function StepEnvironment({ data, onNext, onBack, onSaveExit, onSk
           <AddressAutocomplete
             value={officeAddress}
             onChange={setOfficeAddress}
-            onPlaceSelect={useCallback((place) => setOfficeAddress(place.fullAddress), [])}
+            onPlaceSelect={handlePlaceSelect}
             placeholder="Start typing an address..."
           />
         </div>
