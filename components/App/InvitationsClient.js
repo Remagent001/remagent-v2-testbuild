@@ -198,6 +198,7 @@ export default function InvitationsClient() {
               onToggle={() => setExpandedId(expandedId === inv.id ? null : inv.id)}
               onRespond={handleRespond}
               responding={responding === inv.id}
+              viewerTz={viewerTz}
             />
           ))}
         </div>
@@ -206,7 +207,7 @@ export default function InvitationsClient() {
   );
 }
 
-function InvitationCard({ invitation, expanded, onToggle, onRespond, responding }) {
+function InvitationCard({ invitation, expanded, onToggle, onRespond, responding, viewerTz }) {
   const pos = invitation.position;
   const biz = pos?.user?.businessProfile;
   const rate = pos?.regularRate;
