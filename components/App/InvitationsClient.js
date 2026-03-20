@@ -1,18 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import ProgressBubbles from "./ProgressBubbles";
+import { convertTime, to12hr as to12hrTz, tzLabel } from "@/utilities/TimeZoneHelper";
 
 const DAY_LABELS = { sunday: "Sun", monday: "Mon", tuesday: "Tue", wednesday: "Wed", thursday: "Thu", friday: "Fri", saturday: "Sat" };
 const DAY_ORDER = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
-
-function to12hr(time24) {
-  if (!time24) return "";
-  const [h, m] = time24.split(":");
-  const hr = parseInt(h, 10);
-  return `${hr === 0 ? 12 : hr > 12 ? hr - 12 : hr}:${m} ${hr >= 12 ? "PM" : "AM"}`;
-}
 
 function timeAgo(dateStr) {
   if (!dateStr) return "";
@@ -67,6 +62,8 @@ function MessageIndicator({ status }) {
 }
 
 export default function InvitationsClient() {
+  const { data: session } = useSession();
+  const viewerTz = session?.user?.timezone || "Americas/Eastern";
   const router = useRouter();
   const [invitations, setInvitations] = useState([]);
   const [counts, setCounts] = useState({});
@@ -335,7 +332,7 @@ function InvitationCard({ invitation, expanded, onToggle, onRespond, responding 
                     background: "var(--teal-dim)", color: "var(--teal)",
                     border: "1px solid var(--teal-border)",
                   }}>
-                    {DAY_LABELS[s.day]} {to12hr(s.startTime)} - {to12hr(s.endTime)}
+                    {DAY_LABELS[s.day]} {to12hrTz(convertTime(s.startTime, pos?.timezone, viewerTz))} - {to12hrTz(convertTime(s.endTime, pos?.timezone, viewerTz))} {tzLabel(viewerTz)}
                   </span>
                 ))}
               </div>

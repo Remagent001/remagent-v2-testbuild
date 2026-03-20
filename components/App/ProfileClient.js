@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { to12hr as to12hrUtil, tzLabel } from "@/utilities/TimeZoneHelper";
 
 function safeParse(val, fallback = []) {
   if (!val) return fallback;
@@ -21,14 +22,7 @@ function formatPhone(phone) {
 const DAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 const DAY_LABELS = { sunday: "Sun", monday: "Mon", tuesday: "Tue", wednesday: "Wed", thursday: "Thu", friday: "Fri", saturday: "Sat" };
 
-function to12hr(time24) {
-  if (!time24) return "";
-  const [h, m] = time24.split(":");
-  const hr = parseInt(h, 10);
-  const ampm = hr >= 12 ? "PM" : "AM";
-  const hr12 = hr === 0 ? 12 : hr > 12 ? hr - 12 : hr;
-  return `${hr12}:${m} ${ampm}`;
-}
+const to12hr = to12hrUtil;
 
 function EditBtn({ step, incomplete }) {
   return (
@@ -333,7 +327,7 @@ export default function ProfileClient() {
               <div key={day} className={`profile-avail-row ${slot ? "" : "off"}`}>
                 <span className="profile-avail-day">{DAY_LABELS[day]}</span>
                 <span className="profile-avail-time">
-                  {slot ? `${to12hr(slot.startTime)} – ${to12hr(slot.endTime)}` : "Off"}
+                  {slot ? `${to12hr(slot.startTime)} – ${to12hr(slot.endTime)} ${tzLabel(session?.user?.timezone)}` : "Off"}
                 </span>
               </div>
             );

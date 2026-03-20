@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import InviteModal from "./InviteModal";
+import { convertTime, to12hr, tzLabel } from "@/utilities/TimeZoneHelper";
 
 function safeParse(val, fallback = []) {
   if (!val) return fallback;
@@ -12,13 +13,6 @@ function safeParse(val, fallback = []) {
 
 const DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 const DAY_LABELS = { sunday: "Sun", monday: "Mon", tuesday: "Tue", wednesday: "Wed", thursday: "Thu", friday: "Fri", saturday: "Sat" };
-
-function to12hr(time24) {
-  if (!time24) return "";
-  const [h, m] = time24.split(":");
-  const hr = parseInt(h, 10);
-  return `${hr === 0 ? 12 : hr > 12 ? hr - 12 : hr}:${m} ${hr >= 12 ? "PM" : "AM"}`;
-}
 
 function timeAgo(dateStr) {
   if (!dateStr) return "Never";
@@ -41,12 +35,17 @@ export default function ViewProfessionalClient({ professionalId }) {
   const [pro, setPro] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showInvite, setShowInvite] = useState(false);
+  const [viewerTz, setViewerTz] = useState("Americas/Eastern");
 
   useEffect(() => {
     fetch(`/api/search/professionals/${professionalId}`)
       .then((r) => r.json())
       .then((data) => setPro(data.professional || null))
       .finally(() => setLoading(false));
+    fetch("/api/business/profile")
+      .then((r) => r.json())
+      .then((data) => { if (data.user?.timezone) setViewerTz(data.user.timezone); })
+      .catch(() => {});
   }, [professionalId]);
 
   if (loading) {
@@ -275,7 +274,7 @@ export default function ViewProfessionalClient({ professionalId }) {
                     {DAY_LABELS[s.day] || s.day}
                   </div>
                   <div style={{ fontSize: "0.8rem", color: "var(--gray-600)" }}>
-                    {to12hr(s.startTime)} - {to12hr(s.endTime)}
+                    {to12hr(convertTime(s.startTime, pro.timezone, viewerTz))} - {to12hr(convertTime(s.endTime, pro.timezone, viewerTz))} {tzLabel(viewerTz)}
                   </div>
                 </div>
               ))}

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import InviteModal from "./InviteModal";
 import MsaGateModal from "./MsaGateModal";
+import { convertTime, to12hr, tzLabel } from "@/utilities/TimeZoneHelper";
 
 const LAST_LOGIN_OPTIONS = [
   { value: 0, label: "Any time" },
@@ -56,13 +57,6 @@ for (let h = 0; h < 24; h++) {
     const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
     TIME_OPTIONS.push({ value: `${hh24}:${mm}`, label: `${h12}:${mm} ${period}` });
   }
-}
-
-function to12hr(time24) {
-  if (!time24) return "";
-  const [h, m] = time24.split(":");
-  const hr = parseInt(h, 10);
-  return `${hr === 0 ? 12 : hr > 12 ? hr - 12 : hr}:${m} ${hr >= 12 ? "PM" : "AM"}`;
 }
 
 function timeAgo(dateStr) {
@@ -912,7 +906,7 @@ export default function SearchProfessionalsClient() {
           {!loading && results.length > 0 && (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {results.map((pro) => (
-                <ProfessionalCard key={pro.id} pro={pro} router={router} onInvite={setInviteTarget} showDistance={!!(radius && centerCoords)} msaSigned={msaSigned} onMsaGate={() => setShowMsaModal(true)} />
+                <ProfessionalCard key={pro.id} pro={pro} router={router} onInvite={setInviteTarget} showDistance={!!(radius && centerCoords)} msaSigned={msaSigned} onMsaGate={() => setShowMsaModal(true)} viewerTz={searchTimezone} />
               ))}
             </div>
           )}
@@ -960,7 +954,7 @@ export default function SearchProfessionalsClient() {
 }
 
 // Professional result card
-function ProfessionalCard({ pro, router, onInvite, showDistance, msaSigned, onMsaGate }) {
+function ProfessionalCard({ pro, router, onInvite, showDistance, msaSigned, onMsaGate, viewerTz }) {
   const profile = pro.professionalProfile || {};
   const loc = pro.location;
   const rate = pro.hourlyRate?.regularRate;
@@ -1120,7 +1114,7 @@ function ProfessionalCard({ pro, router, onInvite, showDistance, msaSigned, onMs
                 return (
                   <div
                     key={day}
-                    title={entry ? `${DAY_LABELS[day]}: ${to12hr(entry.startTime)} - ${to12hr(entry.endTime)}` : `${DAY_LABELS[day]}: Not available`}
+                    title={entry ? `${DAY_LABELS[day]}: ${to12hr(convertTime(entry.startTime, pro.timezone, viewerTz))} - ${to12hr(convertTime(entry.endTime, pro.timezone, viewerTz))} ${tzLabel(viewerTz)}` : `${DAY_LABELS[day]}: Not available`}
                     style={{
                       width: 28,
                       height: 22,

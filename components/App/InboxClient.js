@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import ProgressBubbles from "./ProgressBubbles";
+import { convertTime, to12hr as to12hrTz, tzLabel } from "@/utilities/TimeZoneHelper";
 
 const MSG_STATUS_CONFIG = {
   unread:         { color: "#ef4444", label: "New message", sortOrder: 1 },
@@ -34,13 +35,6 @@ function stripHtml(html) {
 
 const DAY_LABELS = { sunday: "Sun", monday: "Mon", tuesday: "Tue", wednesday: "Wed", thursday: "Thu", friday: "Fri", saturday: "Sat" };
 const DAY_ORDER = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
-
-function to12hr(time24) {
-  if (!time24) return "";
-  const [h, m] = time24.split(":");
-  const hr = parseInt(h, 10);
-  return `${hr === 0 ? 12 : hr > 12 ? hr - 12 : hr}:${m} ${hr >= 12 ? "PM" : "AM"}`;
-}
 
 export default function InboxClient() {
   const { data: session } = useSession();
@@ -393,7 +387,7 @@ function ConversationDetail({ conversation, isBusiness, onBack, onRefresh }) {
 
       {/* Job details (collapsed) */}
       {!isBusiness && pos && (
-        <JobDetailsSummary position={pos} schedule={schedule} />
+        <JobDetailsSummary position={pos} schedule={schedule} viewerTz={session?.user?.timezone || "Americas/Eastern"} />
       )}
 
       {/* Message thread */}
@@ -449,7 +443,7 @@ function ConversationDetail({ conversation, isBusiness, onBack, onRefresh }) {
   );
 }
 
-function JobDetailsSummary({ position, schedule }) {
+function JobDetailsSummary({ position, schedule, viewerTz }) {
   const [expanded, setExpanded] = useState(false);
   const description = stripHtml(position?.description);
   const rate = position?.regularRate;
@@ -502,7 +496,7 @@ function JobDetailsSummary({ position, schedule }) {
                   background: "var(--teal-dim)", color: "var(--teal)",
                   border: "1px solid var(--teal-border)",
                 }}>
-                  {DAY_LABELS[s.day]} {to12hr(s.startTime)}-{to12hr(s.endTime)}
+                  {DAY_LABELS[s.day]} {to12hrTz(convertTime(s.startTime, position?.timezone, viewerTz))}-{to12hrTz(convertTime(s.endTime, position?.timezone, viewerTz))} {tzLabel(viewerTz)}
                 </span>
               ))}
             </div>

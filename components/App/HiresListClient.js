@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { convertTime, to12hr, tzLabel } from "@/utilities/TimeZoneHelper";
 
 const TABS = [
   { key: "", label: "All", color: "var(--gray-600)" },
@@ -25,6 +27,8 @@ function safeParse(val) {
 }
 
 export default function HiresListClient() {
+  const { data: session } = useSession();
+  const viewerTz = session?.user?.timezone || "Americas/Eastern";
   const router = useRouter();
   const [hires, setHires] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -192,7 +196,7 @@ export default function HiresListClient() {
                           <span>Days: {days.map((d) => DAY_LABELS[d] || d).join(", ")}</span>
                         )}
                         {hire.startTime && hire.endTime && (
-                          <span>Hours: {hire.startTime} - {hire.endTime}</span>
+                          <span>Hours: {to12hr(hire.startTime)} - {to12hr(hire.endTime)}</span>
                         )}
                       </div>
 

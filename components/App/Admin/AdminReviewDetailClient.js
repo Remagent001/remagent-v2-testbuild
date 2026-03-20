@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { to12hr as to12hrUtil, tzLabel } from "@/utilities/TimeZoneHelper";
 
 function safeParse(val) {
   if (!val) return [];
@@ -12,12 +13,7 @@ function safeParse(val) {
 const DAY_ORDER = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 const DAY_LABELS = { monday: "Mon", tuesday: "Tue", wednesday: "Wed", thursday: "Thu", friday: "Fri", saturday: "Sat", sunday: "Sun" };
 
-function to12hr(time24) {
-  if (!time24) return "";
-  const [h, m] = time24.split(":");
-  const hr = parseInt(h, 10);
-  return `${hr === 0 ? 12 : hr > 12 ? hr - 12 : hr}:${m} ${hr >= 12 ? "PM" : "AM"}`;
-}
+const to12hr = to12hrUtil;
 
 export default function AdminReviewDetailClient({ positionId }) {
   const router = useRouter();
@@ -264,7 +260,7 @@ export default function AdminReviewDetailClient({ positionId }) {
                   padding: "6px 14px", borderRadius: 20, fontSize: "0.82rem",
                   background: "var(--gray-100)", color: "var(--gray-600)",
                 }}>
-                  {DAY_LABELS[s.day] || s.day}: {to12hr(s.startTime)} - {to12hr(s.endTime)}
+                  {DAY_LABELS[s.day] || s.day}: {to12hr(s.startTime)} - {to12hr(s.endTime)} {tzLabel(pos.timezone)}
                 </span>
               ))}
             </div>

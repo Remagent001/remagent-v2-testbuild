@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { to12hr, tzLabel } from "@/utilities/TimeZoneHelper";
 
 const TABS = [
   { key: "published", label: "Public", color: "#10b981" },
@@ -490,10 +491,9 @@ export default function PositionsListClient() {
                   </svg>
                   {["monday","tuesday","wednesday","thursday","friday","saturday","sunday"].filter((d) => pos.availability.find((a) => a.day === d)).map((d) => {
                     const a = pos.availability.find((av) => av.day === d);
-                    const to12 = (t) => { if (!t) return ""; const [h,m] = t.split(":"); const hr = parseInt(h); return `${hr === 0 ? 12 : hr > 12 ? hr - 12 : hr}:${m}${hr >= 12 ? "p" : "a"}`; };
                     return (
                       <span key={d} style={{ padding: "3px 8px", borderRadius: 12, fontSize: "0.72rem", background: "var(--gray-100)", color: "var(--gray-600)" }}>
-                        {d.slice(0,3).charAt(0).toUpperCase() + d.slice(1,3)} {to12(a.startTime)}–{to12(a.endTime)}
+                        {d.slice(0,3).charAt(0).toUpperCase() + d.slice(1,3)} {to12hr(a.startTime)}–{to12hr(a.endTime)} {tzLabel(pos.timezone)}
                       </span>
                     );
                   })}
