@@ -258,6 +258,7 @@ export async function PUT(request, { params }) {
       let newStatus = data.status === "pending_approval" ? "pending_approval" : position.status;
       const updateData = {
         visibility: data.visibility || position.visibility,
+        showCompanyName: data.showCompanyName !== undefined ? data.showCompanyName : position.showCompanyName,
         status: newStatus,
         completedSteps: JSON.stringify(completedSteps),
         currentStep: nextStep,

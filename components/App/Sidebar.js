@@ -83,7 +83,7 @@ const proNav = [
     { href: "/inbox", label: "Inbox", icon: "inbox", badgeKey: "inbox" },
     { href: "/invitations", label: "Invitations", icon: "clipboard", badgeKey: "invitations" },
     { href: "/jobs", label: "Browse Jobs", icon: "briefcase" },
-    { href: "/my-jobs", label: "My Jobs", icon: "clipboard" },
+    { href: "/applications", label: "My Applications", icon: "fileText" },
   ]},
   { section: "Account", links: [
     { href: "/settings", label: "Settings", icon: "settings" },

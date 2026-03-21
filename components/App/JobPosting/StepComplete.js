@@ -22,6 +22,7 @@ const STEP_NAMES = {
 export default function StepComplete({ data, onNext, onBack, onSaveExit, saving }) {
   const pos = data?.position;
   const [visibility, setVisibility] = useState(pos?.visibility || "public");
+  const [showCompanyName, setShowCompanyName] = useState(pos?.showCompanyName !== false);
   const [showConfirm, setShowConfirm] = useState(false);
 
   const completedSteps = safeParse(pos?.completedSteps);
@@ -30,7 +31,7 @@ export default function StepComplete({ data, onNext, onBack, onSaveExit, saving 
   const trulyIncomplete = incompleteSteps.filter((n) => !defaultSteps.includes(n));
   const usingDefaults = incompleteSteps.filter((n) => defaultSteps.includes(n));
 
-  const getData = () => ({ visibility, status: "pending_approval" });
+  const getData = () => ({ visibility, showCompanyName, status: "pending_approval" });
 
   const handleSubmit = () => {
     if (incompleteSteps.length > 0) {
@@ -105,6 +106,27 @@ export default function StepComplete({ data, onNext, onBack, onSaveExit, saving 
           </label>
         </div>
       </div>
+
+      {/* Company name visibility */}
+      {visibility === "public" && (
+        <div className="form-group" style={{ marginTop: 20 }}>
+          <label className="form-checkbox" style={{ padding: "14px 20px", border: "1px solid var(--gray-200)", borderRadius: 10 }}>
+            <input
+              type="checkbox"
+              checked={showCompanyName}
+              onChange={(e) => setShowCompanyName(e.target.checked)}
+            />
+            <div>
+              <strong style={{ fontSize: "0.9rem" }}>Show company name on listing</strong>
+              <p style={{ margin: "4px 0 0", fontSize: "0.82rem", color: "var(--gray-500)" }}>
+                {showCompanyName
+                  ? "Your company name and logo will be visible to professionals browsing this job posting."
+                  : "Your company name will be hidden. Professionals will see the location and industry but not your company identity until you accept them."}
+              </p>
+            </div>
+          </label>
+        </div>
+      )}
 
       {/* Approval notice */}
       <div

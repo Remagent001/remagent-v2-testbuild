@@ -390,6 +390,7 @@ model Position {
   approvedBy         String?                     // admin user id who approved
   resubmittedAt      DateTime?                   // when BU resubmitted after admin note
   screeningQuestions Json?    // array of { text, isPreset, enabled }
+  showCompanyName    Boolean  @default(true) // business controls if their name shows on public listing
   completedSteps     String?  // JSON array of completed step numbers
   currentStep        Int      @default(1)
   isDefault          Boolean  @default(false)
@@ -513,12 +514,14 @@ model Document {
 // ──────────────────────────────────────
 
 model JobApplication {
-  id         String   @id @default(cuid())
-  positionId String
-  userId     String   // the professional
-  status     String   @default("new") // new, reviewing, declined, accepted
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id                String   @id @default(cuid())
+  positionId        String
+  userId            String   // the professional
+  status            String   @default("new") // new, reviewing, declined, accepted
+  coverMessage      String?  @db.Text
+  screeningAnswers  Json?    // array of { question, answer }
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   position    Position      @relation(fields: [positionId], references: [id], onDelete: Cascade)
   user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
