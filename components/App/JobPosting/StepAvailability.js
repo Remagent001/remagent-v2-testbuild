@@ -26,15 +26,17 @@ for (let h = 6; h <= 23; h++) {
 }
 
 const TIMEZONES = [
-  "Americas/Eastern", "Americas/Central", "Americas/Mountain", "Americas/Pacific",
+  "Americas/Eastern", "Americas/Central", "Americas/Mountain", "Americas/Pacific", "Americas/Alaska", "Americas/Hawaii",
 ];
 
 const IANA_TO_TZ = {
   "America/New_York": "Americas/Eastern", "America/Detroit": "Americas/Eastern", "America/Indiana/Indianapolis": "Americas/Eastern",
   "America/Chicago": "Americas/Central", "America/Indiana/Knox": "Americas/Central", "America/Menominee": "Americas/Central",
   "America/Denver": "Americas/Mountain", "America/Boise": "Americas/Mountain", "America/Phoenix": "Americas/Mountain",
-  "America/Los_Angeles": "Americas/Pacific", "America/Anchorage": "Americas/Pacific",
+  "America/Los_Angeles": "Americas/Pacific", "America/Anchorage": "Americas/Alaska",
+  "Pacific/Honolulu": "Americas/Hawaii",
   "US/Eastern": "Americas/Eastern", "US/Central": "Americas/Central", "US/Mountain": "Americas/Mountain", "US/Pacific": "Americas/Pacific",
+  "US/Alaska": "Americas/Alaska", "US/Hawaii": "Americas/Hawaii",
 };
 
 function detectTimezone() {

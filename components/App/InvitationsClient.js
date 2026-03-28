@@ -228,7 +228,13 @@ function InvitationCard({ invitation, expanded, onToggle, onRespond, responding,
       {/* Header — always visible */}
       <div
         style={{ padding: "20px 24px", cursor: "pointer" }}
-        onClick={onToggle}
+        onClick={(e) => {
+          onToggle();
+          if (!expanded) {
+            const card = e.currentTarget.closest(".card");
+            setTimeout(() => card?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+          }
+        }}
         onMouseEnter={(e) => e.currentTarget.style.background = "var(--gray-50)"}
         onMouseLeave={(e) => e.currentTarget.style.background = ""}
       >
@@ -473,23 +479,39 @@ function MessageThread({ offerId }) {
   const [newMsg, setNewMsg] = useState("");
   const [sending, setSending] = useState(false);
   const [loaded, setLoaded] = useState(false);
-  const bottomRef = useRef(null);
+  const containerRef = useRef(null);
+  const shouldScrollRef = useRef(true);
+
+  const scrollToBottom = () => {
+    if (containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
+  };
 
   const fetchMessages = () => {
     fetch(`/api/invitations/messages?offerId=${offerId}`)
       .then((r) => r.json())
       .then((data) => setMessages(data.messages || []))
-      .finally(() => setLoaded(true));
+      .finally(() => {
+        if (!loaded) {
+          setLoaded(true);
+          shouldScrollRef.current = true;
+        }
+      });
   };
 
   useEffect(() => {
+    shouldScrollRef.current = true;
     fetchMessages();
     const interval = setInterval(fetchMessages, 10000);
     return () => clearInterval(interval);
   }, [offerId]);
 
   useEffect(() => {
-    if (bottomRef.current) bottomRef.current.scrollIntoView({ behavior: "smooth" });
+    if (shouldScrollRef.current) {
+      scrollToBottom();
+      shouldScrollRef.current = false;
+    }
   }, [messages]);
 
   const handleSend = async () => {
@@ -505,6 +527,7 @@ function MessageThread({ offerId }) {
       if (data.message) {
         setMessages((prev) => [...prev, data.message]);
         setNewMsg("");
+        shouldScrollRef.current = true;
       }
     } catch {}
     setSending(false);
@@ -516,7 +539,7 @@ function MessageThread({ offerId }) {
         Messages
       </label>
 
-      <div style={{
+      <div ref={containerRef} style={{
         maxHeight: 300, overflowY: "auto", marginBottom: 12,
         background: "var(--gray-50)", borderRadius: 8, padding: messages.length > 0 ? 12 : 0,
       }}>
@@ -552,7 +575,6 @@ function MessageThread({ offerId }) {
             </div>
           );
         })}
-        <div ref={bottomRef} />
       </div>
 
       <div style={{ display: "flex", gap: 8 }}>

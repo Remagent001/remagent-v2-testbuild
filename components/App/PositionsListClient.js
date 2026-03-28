@@ -150,6 +150,7 @@ export default function PositionsListClient() {
   const [activeTab, setActiveTab] = useState(urlTab || "published");
   const [updatingStatus, setUpdatingStatus] = useState(null);
   const [profileComplete, setProfileComplete] = useState(null);
+  const [toast, setToast] = useState(null);
 
   const loadPositions = () => {
     fetch("/api/positions")
@@ -205,6 +206,7 @@ export default function PositionsListClient() {
 
   const handleStatusChange = async (posId, newStatus) => {
     setUpdatingStatus(posId);
+    const pos = positions.find((p) => p.id === posId);
     await fetch(`/api/positions/${posId}/status`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -212,6 +214,10 @@ export default function PositionsListClient() {
     });
     loadPositions();
     setUpdatingStatus(null);
+    if (newStatus === "closed" && pos) {
+      setToast(`${pos.title} has been moved to the Closed tab.`);
+      setTimeout(() => setToast(null), 3750);
+    }
   };
 
   const handleCopy = async (posId) => {
@@ -271,6 +277,16 @@ export default function PositionsListClient() {
 
   return (
     <div className="positions-page">
+      {toast && (
+        <div style={{
+          position: "fixed", top: 24, left: "50%", transform: "translateX(-50%)",
+          background: "var(--navy)", color: "white", padding: "12px 24px",
+          borderRadius: 10, fontSize: "0.9rem", fontWeight: 600,
+          boxShadow: "0 4px 20px rgba(0,0,0,0.15)", zIndex: 9999,
+        }}>
+          {toast}
+        </div>
+      )}
       <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
           <h1 className="page-title">Job Postings</h1>

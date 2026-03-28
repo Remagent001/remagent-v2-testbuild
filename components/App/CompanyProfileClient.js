@@ -7,7 +7,7 @@ import dynamic from "next/dynamic";
 const AddressAutocomplete = dynamic(() => import("@/components/App/AddressAutocomplete"), { ssr: false });
 
 const TIMEZONES = [
-  "Americas/Eastern", "Americas/Central", "Americas/Mountain", "Americas/Pacific",
+  "Americas/Eastern", "Americas/Central", "Americas/Mountain", "Americas/Pacific", "Americas/Alaska", "Americas/Hawaii",
 ];
 
 const STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
@@ -93,7 +93,8 @@ export default function CompanyProfileClient() {
               "America/New_York": "Americas/Eastern", "America/Detroit": "Americas/Eastern",
               "America/Chicago": "Americas/Central", "America/Menominee": "Americas/Central",
               "America/Denver": "Americas/Mountain", "America/Boise": "Americas/Mountain", "America/Phoenix": "Americas/Mountain",
-              "America/Los_Angeles": "Americas/Pacific", "America/Anchorage": "Americas/Pacific",
+              "America/Los_Angeles": "Americas/Pacific", "America/Anchorage": "Americas/Alaska",
+              "Pacific/Honolulu": "Americas/Hawaii", "US/Alaska": "Americas/Alaska", "US/Hawaii": "Americas/Hawaii",
             };
             setTimezone(map[iana] || "Americas/Eastern");
           } catch { setTimezone("Americas/Eastern"); }

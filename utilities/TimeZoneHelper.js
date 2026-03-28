@@ -1,15 +1,21 @@
 export const TZ_OFFSETS = {
   "Americas/Eastern": -5, "Americas/Central": -6, "Americas/Mountain": -7, "Americas/Pacific": -8,
+  "Americas/Alaska": -9, "Americas/Hawaii": -10,
   "America/New_York": -5, "America/Chicago": -6, "America/Denver": -7, "America/Los_Angeles": -8,
   "America/Detroit": -5, "America/Boise": -7, "America/Phoenix": -7, "America/Anchorage": -9,
+  "Pacific/Honolulu": -10,
   "US/Eastern": -5, "US/Central": -6, "US/Mountain": -7, "US/Pacific": -8,
+  "US/Alaska": -9, "US/Hawaii": -10,
 };
 
 const TZ_LABELS = {
   "Americas/Eastern": "ET", "Americas/Central": "CT", "Americas/Mountain": "MT", "Americas/Pacific": "PT",
+  "Americas/Alaska": "AKT", "Americas/Hawaii": "HT",
   "America/New_York": "ET", "America/Chicago": "CT", "America/Denver": "MT", "America/Los_Angeles": "PT",
   "America/Detroit": "ET", "America/Boise": "MT", "America/Phoenix": "MT", "America/Anchorage": "AKT",
+  "Pacific/Honolulu": "HT",
   "US/Eastern": "ET", "US/Central": "CT", "US/Mountain": "MT", "US/Pacific": "PT",
+  "US/Alaska": "AKT", "US/Hawaii": "HT",
 };
 
 export function convertTime(time24, fromTz, toTz) {

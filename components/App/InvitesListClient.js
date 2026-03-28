@@ -221,7 +221,14 @@ export default function InvitesListClient() {
                 {/* Header */}
                 <div
                   style={{ padding: "16px 20px", cursor: "pointer" }}
-                  onClick={() => setExpandedId(isExpanded ? null : inv.id)}
+                  onClick={(e) => {
+                    const opening = !isExpanded;
+                    setExpandedId(isExpanded ? null : inv.id);
+                    if (opening) {
+                      const card = e.currentTarget.closest(".card");
+                      setTimeout(() => card?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+                    }
+                  }}
                   onMouseEnter={(e) => e.currentTarget.style.background = "var(--gray-50)"}
                   onMouseLeave={(e) => e.currentTarget.style.background = ""}
                 >
@@ -329,7 +336,14 @@ function BizMessageThread({ offerId, onRead }) {
   const [newMsg, setNewMsg] = useState("");
   const [sending, setSending] = useState(false);
   const [loaded, setLoaded] = useState(false);
-  const bottomRef = useRef(null);
+  const containerRef = useRef(null);
+  const shouldScrollRef = useRef(true);
+
+  const scrollToBottom = () => {
+    if (containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
+  };
 
   const fetchMessages = () => {
     fetch(`/api/invitations/messages?offerId=${offerId}`)
@@ -338,17 +352,26 @@ function BizMessageThread({ offerId, onRead }) {
         setMessages(data.messages || []);
         if (onRead) onRead();
       })
-      .finally(() => setLoaded(true));
+      .finally(() => {
+        if (!loaded) {
+          setLoaded(true);
+          shouldScrollRef.current = true;
+        }
+      });
   };
 
   useEffect(() => {
+    shouldScrollRef.current = true;
     fetchMessages();
     const interval = setInterval(fetchMessages, 10000);
     return () => clearInterval(interval);
   }, [offerId]);
 
   useEffect(() => {
-    if (bottomRef.current) bottomRef.current.scrollIntoView({ behavior: "smooth" });
+    if (shouldScrollRef.current) {
+      scrollToBottom();
+      shouldScrollRef.current = false;
+    }
   }, [messages]);
 
   const handleSend = async () => {
@@ -364,6 +387,7 @@ function BizMessageThread({ offerId, onRead }) {
       if (data.message) {
         setMessages((prev) => [...prev, data.message]);
         setNewMsg("");
+        shouldScrollRef.current = true;
       }
     } catch {}
     setSending(false);
@@ -375,7 +399,7 @@ function BizMessageThread({ offerId, onRead }) {
         Messages
       </label>
 
-      <div style={{
+      <div ref={containerRef} style={{
         maxHeight: 300, overflowY: "auto", marginBottom: 12,
         background: "var(--gray-50)", borderRadius: 8, padding: messages.length > 0 ? 12 : 0,
       }}>
@@ -411,7 +435,6 @@ function BizMessageThread({ offerId, onRead }) {
             </div>
           );
         })}
-        <div ref={bottomRef} />
       </div>
 
       <div style={{ display: "flex", gap: 8 }}>

@@ -291,6 +291,7 @@ export default function InboxClient() {
 }
 
 function ConversationDetail({ conversation, isBusiness, onBack, onRefresh }) {
+  const { data: session } = useSession();
   const router = useRouter();
   const inv = conversation;
   const pos = isBusiness ? inv.position : inv.position;
