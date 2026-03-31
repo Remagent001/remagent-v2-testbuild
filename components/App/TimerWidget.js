@@ -158,7 +158,7 @@ export default function TimerWidget() {
   const timerHire = activeTimer?.hire;
 
   return (
-    <div className="card" style={{ marginBottom: 20 }}>
+    <div className="card" style={{ margin: 0 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
         <div className="card-title" style={{ margin: 0 }}>Time Tracker</div>
         {activeTimer && (

@@ -373,10 +373,9 @@ export default function DashboardClient() {
         </Link>
       </div>
 
-      {/* Timer Widget — only shows if professional has active hires */}
-      <TimerWidget />
-
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+        {/* Timer Widget — same size as other cards */}
+        <TimerWidget />
         <div className="card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", margin: 0 }}>
           <div style={{ marginBottom: 16 }}>
             <div className="card-title">{cardTitle}</div>
