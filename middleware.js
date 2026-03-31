@@ -20,5 +20,8 @@ export const config = {
     "/hires/:path*",
     "/onboarding/:path*",
     "/admin/:path*",
+    "/time-log/:path*",
+    "/timesheets/:path*",
+    "/invoices/:path*",
   ],
 };

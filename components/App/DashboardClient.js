@@ -3,6 +3,7 @@
 import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import TimerWidget from "@/components/App/TimerWidget";
 
 export default function DashboardClient() {
   const { data: session } = useSession();
@@ -20,11 +21,16 @@ export default function DashboardClient() {
   const [invitationCount, setInvitationCount] = useState(0);
   const [totalInvitations, setTotalInvitations] = useState(0);
 
+  // Professional hires state
+  const [activeHireCount, setActiveHireCount] = useState(0);
+  const [weekHours, setWeekHours] = useState(0);
+
   // Business state
   const [bizProfile, setBizProfile] = useState(null);
   const [positionAlerts, setPositionAlerts] = useState([]);
   const [positionCounts, setPositionCounts] = useState({ total: 0, invites: 0, applicants: 0, hires: 0 });
   const [unreadMessages, setUnreadMessages] = useState([]);
+  const [bizTimesheetStats, setBizTimesheetStats] = useState({ pendingTimesheets: 0, totalHoursWeek: 0, outstandingInvoices: 0, outstandingAmount: 0, spentThisMonth: 0 });
 
   useEffect(() => {
     if (isBusiness || isAdmin) {
@@ -66,6 +72,44 @@ export default function DashboardClient() {
           setUnreadMessages(msgs);
         })
         .catch(() => {});
+
+      // Fetch timesheet + invoice stats for business dashboard
+      fetch("/api/timesheets")
+        .then((r) => r.json())
+        .then((data) => {
+          const ts = data.timesheets || [];
+          const pending = ts.filter((t) => t.status === "pending").length;
+          // Current week hours
+          const now = new Date();
+          const day = now.getDay();
+          const diffMon = day === 0 ? -6 : 1 - day;
+          const weekMon = new Date(now);
+          weekMon.setDate(now.getDate() + diffMon);
+          weekMon.setHours(0, 0, 0, 0);
+          const thisWeek = ts.filter((t) => new Date(t.weekStart) >= weekMon);
+          const totalHrs = thisWeek.reduce((s, t) => s + t.totalRegularHrs + t.totalAfterHrs + t.totalHolidayHrs, 0);
+          setBizTimesheetStats((prev) => ({ ...prev, pendingTimesheets: pending, totalHoursWeek: Math.round(totalHrs * 100) / 100 }));
+        })
+        .catch(() => {});
+
+      fetch("/api/invoices")
+        .then((r) => r.json())
+        .then((data) => {
+          const invs = data.invoices || [];
+          const outstanding = invs.filter((i) => i.status === "due");
+          const outAmt = outstanding.reduce((s, i) => s + i.totalAmount, 0);
+          // Spent this month (paid invoices this month)
+          const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+          const paidThisMonth = invs.filter((i) => i.status === "paid" && i.paidAt && new Date(i.paidAt) >= monthStart);
+          const spent = paidThisMonth.reduce((s, i) => s + i.totalAmount, 0);
+          setBizTimesheetStats((prev) => ({
+            ...prev,
+            outstandingInvoices: outstanding.length,
+            outstandingAmount: Math.round(outAmt * 100) / 100,
+            spentThisMonth: Math.round(spent * 100) / 100,
+          }));
+        })
+        .catch(() => {});
     } else {
       // Fetch invitation count for professionals
       fetch("/api/invitations")
@@ -83,6 +127,37 @@ export default function DashboardClient() {
               status: inv.messageStatus,
             }));
           setUnreadMessages(msgs);
+        })
+        .catch(() => {});
+
+      // Fetch active hire count and this week's hours
+      fetch("/api/timer")
+        .then((r) => r.json())
+        .then((data) => {
+          setActiveHireCount((data.activeHires || []).length);
+        })
+        .catch(() => {});
+
+      // Fetch this week's time entries for total hours
+      const now = new Date();
+      const day = now.getDay();
+      const diffToMonday = day === 0 ? -6 : 1 - day;
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() + diffToMonday);
+      weekStart.setHours(0, 0, 0, 0);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      fetch(`/api/time-entries?from=${weekStart.toISOString().slice(0, 10)}&to=${weekEnd.toISOString().slice(0, 10)}`)
+        .then((r) => r.json())
+        .then((data) => {
+          const total = (data.entries || []).reduce((sum, e) => {
+            if (e.endTime) {
+              const ms = new Date(e.endTime).getTime() - new Date(e.startTime).getTime() - (e.breakMinutes || 0) * 60000;
+              return sum + Math.max(0, ms / 3600000);
+            }
+            return sum;
+          }, 0);
+          setWeekHours(Math.round(total * 100) / 100);
         })
         .catch(() => {});
 
@@ -176,6 +251,35 @@ export default function DashboardClient() {
           </Link>
         </div>
 
+        {/* Timesheet & Invoice stats */}
+        {positionCounts.hires > 0 && (
+          <div className="stat-grid">
+            <Link href="/timesheets" className="stat-card" style={{ textDecoration: "none", color: "inherit" }}>
+              <div className="stat-card-label">Hours This Week</div>
+              <div className="stat-card-value">{bizTimesheetStats.totalHoursWeek}h</div>
+            </Link>
+            <Link href="/timesheets?status=pending" className="stat-card" style={{ textDecoration: "none", color: "inherit" }}>
+              <div className="stat-card-label">Pending Timesheets</div>
+              <div className="stat-card-value" style={{ color: bizTimesheetStats.pendingTimesheets > 0 ? "#f59e0b" : "inherit" }}>
+                {bizTimesheetStats.pendingTimesheets}
+              </div>
+            </Link>
+            <Link href="/invoices?status=due" className="stat-card" style={{ textDecoration: "none", color: "inherit" }}>
+              <div className="stat-card-label">Outstanding Invoices</div>
+              <div className="stat-card-value">{bizTimesheetStats.outstandingInvoices}</div>
+              {bizTimesheetStats.outstandingAmount > 0 && (
+                <div style={{ fontSize: "0.75rem", color: "var(--gray-400)", marginTop: 2 }}>
+                  ${bizTimesheetStats.outstandingAmount.toLocaleString()}
+                </div>
+              )}
+            </Link>
+            <div className="stat-card">
+              <div className="stat-card-label">Spent This Month</div>
+              <div className="stat-card-value">${bizTimesheetStats.spentThisMonth.toLocaleString()}</div>
+            </div>
+          </div>
+        )}
+
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
           <div className="card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", margin: 0 }}>
             <div style={{ marginBottom: 16 }}>
@@ -259,15 +363,18 @@ export default function DashboardClient() {
             </div>
           )}
         </Link>
-        <div className="stat-card">
-          <div className="stat-card-label">Profile Views</div>
-          <div className="stat-card-value">0</div>
-        </div>
-        <div className="stat-card">
+        <Link href="/time-log" className="stat-card" style={{ textDecoration: "none", color: "inherit" }}>
+          <div className="stat-card-label">Hours This Week</div>
+          <div className="stat-card-value">{weekHours}h</div>
+        </Link>
+        <Link href="/hires" className="stat-card" style={{ textDecoration: "none", color: "inherit" }}>
           <div className="stat-card-label">Active Jobs</div>
-          <div className="stat-card-value">0</div>
-        </div>
+          <div className="stat-card-value">{activeHireCount}</div>
+        </Link>
       </div>
+
+      {/* Timer Widget — only shows if professional has active hires */}
+      <TimerWidget />
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
         <div className="card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", margin: 0 }}>

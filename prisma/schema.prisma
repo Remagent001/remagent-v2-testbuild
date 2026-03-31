@@ -54,6 +54,8 @@ model User {
   hiresAsBiz          Hire[]             @relation("business")
   positions           Position[]
   inviteMessages      InviteMessage[]  @relation("inviteMessages")
+  timeEntries         TimeEntry[]      @relation("proTimeEntries")
+  activeTimer         ActiveTimer?     @relation("proActiveTimer")
 
   @@map("users")
 }
@@ -663,6 +665,8 @@ model Hire {
   position     Position @relation(fields: [positionId], references: [id], onDelete: Cascade)
   business     User     @relation("business", fields: [businessId], references: [id], onDelete: Cascade)
   professional User     @relation("professional", fields: [professionalId], references: [id], onDelete: Cascade)
+  timeEntries  TimeEntry[]
+  activeTimers ActiveTimer[]
 
   @@map("hires")
 }
@@ -698,4 +702,139 @@ model Message {
   sender       User         @relation("sender", fields: [senderId], references: [id], onDelete: Cascade)
 
   @@map("messages")
+}
+
+// ──────────────────────────────────────
+// TIME TRACKING
+// ──────────────────────────────────────
+
+model TimeEntry {
+  id                 String    @id @default(cuid())
+  hireId             String
+  professionalId     String
+  date               DateTime  @db.Date
+  startTime          DateTime
+  endTime            DateTime?
+  breakMinutes       Int       @default(0)
+  type               String    @default("work") // "work" or "break"
+  description        String?   @db.Text
+  rateType           String    @default("regular") // "regular", "after_hours", "holiday"
+  status             String    @default("pending") // "pending", "approved", "under_review"
+  reviewReason       String?   @db.Text
+  weeklyTimesheetId  String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  hire             Hire             @relation(fields: [hireId], references: [id], onDelete: Cascade)
+  professional     User             @relation("proTimeEntries", fields: [professionalId], references: [id], onDelete: Cascade)
+  weeklyTimesheet  WeeklyTimesheet? @relation(fields: [weeklyTimesheetId], references: [id])
+
+  @@index([hireId, date])
+  @@index([professionalId, date])
+  @@index([weeklyTimesheetId])
+  @@map("time_entries")
+}
+
+model ActiveTimer {
+  id              String    @id @default(cuid())
+  professionalId  String    @unique
+  hireId          String
+  startTime       DateTime
+  breakStart      DateTime?
+  totalBreakMs    Int       @default(0)
+  status          String    @default("running") // "running" or "paused"
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  professional User @relation("proActiveTimer", fields: [professionalId], references: [id], onDelete: Cascade)
+  hire         Hire @relation(fields: [hireId], references: [id], onDelete: Cascade)
+
+  @@map("active_timers")
+}
+
+model WeeklyTimesheet {
+  id               String    @id @default(cuid())
+  hireId           String
+  professionalId   String
+  businessId       String
+  weekStart        DateTime  @db.Date
+  weekEnd          DateTime  @db.Date
+  totalRegularHrs  Float     @default(0)
+  totalAfterHrs    Float     @default(0)
+  totalHolidayHrs  Float     @default(0)
+  regularAmount    Float     @default(0)
+  afterHrsAmount   Float     @default(0)
+  holidayAmount    Float     @default(0)
+  subtotal         Float     @default(0)
+  adminMarkup      Float     @default(10)
+  adminFee         Float     @default(0)
+  totalAmount      Float     @default(0)
+  status           String    @default("pending") // "pending", "approved", "under_review", "invoiced"
+  approvedAt       DateTime?
+  approvedBy       String?
+  reviewReason     String?   @db.Text
+  reviewedAt       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  entries TimeEntry[]
+  invoiceLineItems InvoiceLineItem[]
+
+  @@unique([hireId, weekStart])
+  @@index([businessId, weekStart])
+  @@index([professionalId, weekStart])
+  @@map("weekly_timesheets")
+}
+
+// ──────────────────────────────────────
+// INVOICING
+// ──────────────────────────────────────
+
+model Invoice {
+  id              String    @id @default(cuid())
+  invoiceNumber   String    @unique
+  businessId      String
+  weekStart       DateTime  @db.Date
+  weekEnd         DateTime  @db.Date
+  subtotal        Float     @default(0)
+  adminMarkupPct  Float     @default(10)
+  adminFee        Float     @default(0)
+  totalAmount     Float     @default(0)
+  currency        String    @default("USD")
+  status          String    @default("due") // "due", "paid", "overdue", "cancelled"
+  dueDate         DateTime
+  paidAt          DateTime?
+  notes           String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  lineItems InvoiceLineItem[]
+
+  @@index([businessId, status])
+  @@map("invoices")
+}
+
+model InvoiceLineItem {
+  id                String  @id @default(cuid())
+  invoiceId         String
+  timesheetId       String
+  hireId            String
+  professionalId    String
+  professionalName  String
+  positionTitle     String
+  regularHrs        Float   @default(0)
+  regularRate       Float   @default(0)
+  regularAmount     Float   @default(0)
+  afterHrs          Float   @default(0)
+  afterHoursRate    Float   @default(0)
+  afterHrsAmount    Float   @default(0)
+  holidayHrs        Float   @default(0)
+  holidayRate       Float   @default(0)
+  holidayAmount     Float   @default(0)
+  subtotal          Float   @default(0)
+
+  invoice          Invoice          @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  weeklyTimesheet  WeeklyTimesheet  @relation(fields: [timesheetId], references: [id])
+
+  @@map("invoice_line_items")
 }

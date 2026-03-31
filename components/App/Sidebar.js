@@ -73,6 +73,21 @@ const icons = {
       <path d="M8 6h.01" /><path d="M16 6h.01" /><path d="M8 10h.01" /><path d="M16 10h.01" /><path d="M8 14h.01" /><path d="M16 14h.01" />
     </svg>
   ),
+  clock: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+    </svg>
+  ),
+  dollar: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+    </svg>
+  ),
+  chart: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
+    </svg>
+  ),
 };
 
 // Navigation config — different links for professional vs business
@@ -84,6 +99,9 @@ const proNav = [
     { href: "/invitations", label: "Invitations", icon: "clipboard", badgeKey: "invitations" },
     { href: "/jobs", label: "Browse Jobs", icon: "briefcase" },
     { href: "/applications", label: "My Applications", icon: "fileText" },
+    { href: "/time-log", label: "Time Log", icon: "clock" },
+    { href: "/timesheets", label: "Timesheets", icon: "fileText" },
+    { href: "/invoices", label: "Invoices", icon: "dollar" },
   ]},
   { section: "Account", links: [
     { href: "/settings", label: "Settings", icon: "settings" },
@@ -102,6 +120,8 @@ const bizNav = [
     { href: "/invites", label: "Invites", icon: "clipboard", badgeKey: "invites" },
     { href: "/applicants", label: "Applicants", icon: "users" },
     { href: "/hires", label: "Hires", icon: "handshake" },
+    { href: "/timesheets", label: "Timesheets", icon: "clock", badgeKey: "timesheets" },
+    { href: "/invoices", label: "Invoices", icon: "dollar" },
   ]},
   { section: "Account", links: [
     { href: "/settings", label: "Settings", icon: "settings" },
@@ -112,6 +132,9 @@ const adminNav = [
   { section: "Admin", links: [
     { href: "/admin/review-postings", label: "Review Postings", icon: "clipboard", badgeKey: "adminReview" },
     { href: "/admin/businesses", label: "Businesses", icon: "building" },
+    { href: "/admin/timesheets", label: "Timesheets", icon: "clock" },
+    { href: "/admin/invoices", label: "Invoices", icon: "dollar" },
+    { href: "/admin/analytics", label: "Analytics", icon: "chart" },
   ]},
 ];
 
@@ -149,6 +172,16 @@ export default function Sidebar({ isOpen, onClose, role = "professional", user =
           const needsAttention = positions.filter((p) => p.reviewRequired && p.adminNote).length;
           if (needsAttention > 0) {
             setBadges((prev) => ({ ...prev, positions: needsAttention }));
+          }
+        })
+        .catch(() => {});
+      // Get pending timesheet count
+      fetch("/api/timesheets?status=pending")
+        .then((r) => r.json())
+        .then((data) => {
+          const count = data.counts?.pending || 0;
+          if (count > 0) {
+            setBadges((prev) => ({ ...prev, timesheets: count }));
           }
         })
         .catch(() => {});
