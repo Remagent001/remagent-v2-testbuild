@@ -9,14 +9,17 @@ export async function GET(request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Professionals should not access invoices
+  if (session.user.role === "PROFESSIONAL") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status");
 
   const where = {};
   if (session.user.role === "BUSINESS") {
     where.businessId = session.user.id;
-  } else if (session.user.role === "PROFESSIONAL") {
-    where.lineItems = { some: { professionalId: session.user.id } };
   }
   // ADMIN sees all
 

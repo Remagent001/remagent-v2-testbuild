@@ -10,6 +10,10 @@ export default function InvoicesClient() {
   const isAdmin = session?.user?.role === "ADMIN";
   const isPro = session?.user?.role === "PROFESSIONAL";
 
+  useEffect(() => {
+    if (isPro) router.replace("/dashboard");
+  }, [isPro, router]);
+
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("");

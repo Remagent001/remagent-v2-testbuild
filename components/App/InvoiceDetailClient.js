@@ -10,6 +10,10 @@ export default function InvoiceDetailClient({ invoiceId }) {
   const isAdmin = session?.user?.role === "ADMIN";
   const isPro = session?.user?.role === "PROFESSIONAL";
 
+  useEffect(() => {
+    if (isPro) router.replace("/dashboard");
+  }, [isPro, router]);
+
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
 

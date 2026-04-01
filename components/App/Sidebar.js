@@ -101,7 +101,6 @@ const proNav = [
     { href: "/applications", label: "My Applications", icon: "fileText" },
     { href: "/time-log", label: "Time Log", icon: "clock" },
     { href: "/timesheets", label: "Timesheets", icon: "fileText" },
-    { href: "/invoices", label: "Invoices", icon: "dollar" },
   ]},
   { section: "Account", links: [
     { href: "/settings", label: "Settings", icon: "settings" },

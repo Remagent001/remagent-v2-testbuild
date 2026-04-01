@@ -1,7 +1,13 @@
+import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
 // GET — printable HTML invoice
 export async function GET(request, { params }) {
+  const session = await auth();
+  if (session?.user?.role === "PROFESSIONAL") {
+    return new Response("Forbidden", { status: 403 });
+  }
+
   const { id } = await params;
 
   const invoice = await prisma.invoice.findUnique({

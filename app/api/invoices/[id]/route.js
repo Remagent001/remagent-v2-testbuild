@@ -9,6 +9,11 @@ export async function GET(request, { params }) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Professionals should not access invoices
+  if (session.user.role === "PROFESSIONAL") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const { id } = await params;
 
   const invoice = await prisma.invoice.findUnique({
@@ -25,8 +30,7 @@ export async function GET(request, { params }) {
   // Authorization
   if (
     session.user.role !== "ADMIN" &&
-    invoice.businessId !== session.user.id &&
-    !invoice.lineItems.some((li) => li.professionalId === session.user.id)
+    invoice.businessId !== session.user.id
   ) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
