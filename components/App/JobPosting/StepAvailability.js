@@ -5,6 +5,27 @@ import { useState } from "react";
 const DAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 const DAY_LABELS = { sunday: "Sun", monday: "Mon", tuesday: "Tue", wednesday: "Wed", thursday: "Thu", friday: "Fri", saturday: "Sat" };
 
+function nextDayOf(day) {
+  const idx = DAYS.indexOf(day);
+  return DAYS[(idx + 1) % 7];
+}
+
+function isOvernight(startTime, endTime) {
+  return endTime <= startTime;
+}
+
+function shiftHours(startTime, endTime) {
+  const [sh, sm] = startTime.split(":").map(Number);
+  const [eh, em] = endTime.split(":").map(Number);
+  let mins = (eh * 60 + em) - (sh * 60 + sm);
+  if (mins <= 0) mins += 24 * 60;
+  return Math.round(mins / 60 * 10) / 10;
+}
+
+// Two shades of green for alternating overnight bars
+const BAR_COLOR_A = "#0fd4b0"; // teal (primary)
+const BAR_COLOR_B = "#06b6d4"; // cyan-ish green (secondary)
+
 const TIMES = [];
 for (let h = 0; h < 24; h++) {
   for (let m = 0; m < 60; m += 30) {
@@ -19,7 +40,7 @@ for (let h = 0; h < 24; h++) {
 TIMES.push({ value: "23:59", label: "11:59 PM (End of Day)" });
 
 const GRID_HOURS = [];
-for (let h = 6; h <= 23; h++) {
+for (let h = 0; h <= 23; h++) {
   const period = h < 12 ? "AM" : "PM";
   const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
   GRID_HOURS.push({ hour: h, label: `${h12}${period}` });
@@ -93,17 +114,65 @@ export default function StepAvailability({ data, onNext, onBack, onSaveExit, onS
     setSchedule(next);
   };
 
-  const getBarStyle = (startTime, endTime) => {
-    const [sh, sm] = startTime.split(":").map(Number);
-    const [eh, em] = endTime.split(":").map(Number);
-    const startMin = sh * 60 + sm;
-    const endMin = eh * 60 + em;
-    const gridStart = 6 * 60;
-    const gridEnd = 24 * 60;
-    const gridSpan = gridEnd - gridStart;
+  const gridStart = 0; // midnight
+  const gridEnd = 24 * 60;
+  const gridSpan = gridEnd - gridStart;
+
+  const getBarStyle = (startMin, endMin) => {
     const left = Math.max(0, ((startMin - gridStart) / gridSpan) * 100);
     const width = Math.max(0, Math.min(((endMin - gridStart) / gridSpan) * 100 - left, 100 - left));
     return { left: `${left}%`, width: `${width}%` };
+  };
+
+  // Build bars for each day, including carryover from previous day's overnight shift
+  const getBarsForDay = (day) => {
+    const bars = [];
+    const entry = schedule[day];
+    const dayIdx = DAYS.indexOf(day);
+
+    // Check if previous day has an overnight shift that carries into this day
+    const prevDay = DAYS[(dayIdx - 1 + 7) % 7];
+    const prevEntry = schedule[prevDay];
+    if (prevEntry.enabled && isOvernight(prevEntry.startTime, prevEntry.endTime)) {
+      const [eh, em] = prevEntry.endTime.split(":").map(Number);
+      const endMin = eh * 60 + em;
+      if (endMin > 0) {
+        bars.push({
+          style: getBarStyle(0, endMin),
+          color: DAYS.indexOf(prevDay) % 2 === 0 ? BAR_COLOR_A : BAR_COLOR_B,
+          overnight: true,
+          label: null, // no label on carryover
+        });
+      }
+    }
+
+    // This day's own shift
+    if (entry.enabled) {
+      const [sh, sm] = entry.startTime.split(":").map(Number);
+      const [eh, em] = entry.endTime.split(":").map(Number);
+      const startMin = sh * 60 + sm;
+      const color = dayIdx % 2 === 0 ? BAR_COLOR_A : BAR_COLOR_B;
+
+      if (isOvernight(entry.startTime, entry.endTime)) {
+        // Bar from start to midnight
+        bars.push({
+          style: getBarStyle(startMin, 24 * 60),
+          color,
+          overnight: false,
+          label: `${to12hr(entry.startTime)} – ${to12hr(entry.endTime)}`,
+        });
+      } else {
+        const endMin = eh * 60 + em;
+        bars.push({
+          style: getBarStyle(startMin, endMin),
+          color,
+          overnight: false,
+          label: `${to12hr(entry.startTime)} – ${to12hr(entry.endTime)}`,
+        });
+      }
+    }
+
+    return bars;
   };
 
   const [isDefault, setIsDefault] = useState(false);
@@ -119,7 +188,7 @@ export default function StepAvailability({ data, onNext, onBack, onSaveExit, onS
   return (
     <div className="onboarding-step">
       <p className="onboarding-step-desc">
-        Set the hours you need to staff for this position. Select the days and times you want professionals to be available. This can cover all shifts — including 24 hours if needed.
+        Set the hours you need to staff for this position. Select the days and times you want professionals to be available. This can cover all shifts — including overnight and 24-hour shifts. If the end time is earlier than the start time, it will be treated as ending the next day.
       </p>
 
       <div className="form-group">
@@ -143,14 +212,21 @@ export default function StepAvailability({ data, onNext, onBack, onSaveExit, onS
               {DAY_LABELS[day]}
             </label>
             {schedule[day].enabled && (
-              <div className="availability-times">
-                <select className="form-input form-select" value={schedule[day].startTime} onChange={(e) => updateTime(day, "startTime", e.target.value)}>
-                  {TIMES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-                </select>
-                <span className="availability-to">to</span>
-                <select className="form-input form-select" value={schedule[day].endTime} onChange={(e) => updateTime(day, "endTime", e.target.value)}>
-                  {TIMES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-                </select>
+              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <div className="availability-times">
+                  <select className="form-input form-select" value={schedule[day].startTime} onChange={(e) => updateTime(day, "startTime", e.target.value)}>
+                    {TIMES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                  </select>
+                  <span className="availability-to">to</span>
+                  <select className="form-input form-select" value={schedule[day].endTime} onChange={(e) => updateTime(day, "endTime", e.target.value)}>
+                    {TIMES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                  </select>
+                </div>
+                {isOvernight(schedule[day].startTime, schedule[day].endTime) && (
+                  <span style={{ fontSize: "0.72rem", color: "var(--teal-dark)", fontWeight: 500 }}>
+                    Continues to {DAY_LABELS[nextDayOf(day)]} · {shiftHours(schedule[day].startTime, schedule[day].endTime)} hrs
+                  </span>
+                )}
               </div>
             )}
           </div>
@@ -168,26 +244,45 @@ export default function StepAvailability({ data, onNext, onBack, onSaveExit, onS
             <div className="avail-visual-header">
               <div className="avail-visual-day-label" />
               <div className="avail-visual-hours">
-                {GRID_HOURS.filter((_, i) => i % 2 === 0).map((h) => (
-                  <span key={h.hour} className="avail-visual-hour-label" style={{ left: `${((h.hour - 6) / 18) * 100}%` }}>{h.label}</span>
+                {GRID_HOURS.filter((_, i) => i % 3 === 0).map((h) => (
+                  <span key={h.hour} className="avail-visual-hour-label" style={{ left: `${(h.hour / 24) * 100}%` }}>{h.label}</span>
                 ))}
               </div>
             </div>
-            {DAYS.map((day) => (
-              <div key={day} className="avail-visual-row">
-                <div className="avail-visual-day-label">{DAY_LABELS[day]}</div>
-                <div className="avail-visual-track">
-                  {schedule[day].enabled ? (
-                    <>
-                      <div className="avail-visual-bar" style={getBarStyle(schedule[day].startTime, schedule[day].endTime)} />
-                      <span className="avail-visual-time-label">{to12hr(schedule[day].startTime)} – {to12hr(schedule[day].endTime)}</span>
-                    </>
-                  ) : (
-                    <span className="avail-visual-off">Off</span>
-                  )}
+            {DAYS.map((day) => {
+              const bars = getBarsForDay(day);
+              const hasContent = schedule[day].enabled || bars.length > 0;
+              return (
+                <div key={day} className="avail-visual-row">
+                  <div className="avail-visual-day-label">{DAY_LABELS[day]}</div>
+                  <div className="avail-visual-track">
+                    {hasContent ? (
+                      <>
+                        {bars.map((bar, i) => (
+                          <div
+                            key={i}
+                            className="avail-visual-bar"
+                            style={{
+                              ...bar.style,
+                              background: bar.color,
+                              opacity: bar.overnight ? 0.5 : 0.85,
+                            }}
+                          />
+                        ))}
+                        {schedule[day].enabled && (
+                          <span className="avail-visual-time-label">
+                            {to12hr(schedule[day].startTime)} – {to12hr(schedule[day].endTime)}
+                            {isOvernight(schedule[day].startTime, schedule[day].endTime) ? ` → ${DAY_LABELS[nextDayOf(day)]}` : ""}
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <span className="avail-visual-off">Off</span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

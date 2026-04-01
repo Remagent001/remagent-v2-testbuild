@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { convertTime, to12hr, tzLabel } from "@/utilities/TimeZoneHelper";
+import { convertTime, to12hr, tzLabel, isOvernightAfterConvert, nextDayLabel, shiftDurationHrs } from "@/utilities/TimeZoneHelper";
 
 const DAY_ORDER = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 const DAY_LABELS = { monday: "Mon", tuesday: "Tue", wednesday: "Wed", thursday: "Thu", friday: "Fri", saturday: "Sat", sunday: "Sun" };
@@ -237,20 +237,29 @@ export default function JobDetailClient({ jobId }) {
             {/* Schedule */}
             {schedule.length > 0 && (
               <Section title="Schedule">
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 8 }}>
-                  {schedule.map((s) => (
-                    <div key={s.day} style={{
-                      padding: "10px 14px", background: "var(--teal-dim)", borderRadius: 8,
-                      border: "1px solid var(--teal-border)",
-                    }}>
-                      <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--teal)", marginBottom: 2 }}>
-                        {DAY_LABELS[s.day] || s.day}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 8 }}>
+                  {schedule.map((s) => {
+                    const overnight = isOvernightAfterConvert(s.startTime, s.endTime, job.timezone, viewerTz);
+                    const hrs = shiftDurationHrs(s.startTime, s.endTime);
+                    return (
+                      <div key={s.day} style={{
+                        padding: "10px 14px", background: "var(--teal-dim)", borderRadius: 8,
+                        border: "1px solid var(--teal-border)",
+                      }}>
+                        <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--teal)", marginBottom: 2 }}>
+                          {DAY_LABELS[s.day] || s.day}{overnight ? ` → ${nextDayLabel(s.day)}` : ""}
+                        </div>
+                        <div style={{ fontSize: "0.8rem", color: "var(--gray-600)" }}>
+                          {to12hr(convertTime(s.startTime, job.timezone, viewerTz))} - {to12hr(convertTime(s.endTime, job.timezone, viewerTz))} {tzLabel(viewerTz)}
+                        </div>
+                        {overnight && (
+                          <div style={{ fontSize: "0.72rem", color: "var(--gray-400)", marginTop: 2 }}>
+                            {hrs} hrs
+                          </div>
+                        )}
                       </div>
-                      <div style={{ fontSize: "0.8rem", color: "var(--gray-600)" }}>
-                        {to12hr(convertTime(s.startTime, job.timezone, viewerTz))} - {to12hr(convertTime(s.endTime, job.timezone, viewerTz))} {tzLabel(viewerTz)}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </Section>
             )}

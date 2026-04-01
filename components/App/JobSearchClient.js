@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { convertTime, to12hr, tzLabel } from "@/utilities/TimeZoneHelper";
+import { convertTime, to12hr, tzLabel, isOvernightAfterConvert, nextDayLabel, shiftDurationHrs } from "@/utilities/TimeZoneHelper";
 
 const DAY_LABELS = { monday: "Mon", tuesday: "Tue", wednesday: "Wed", thursday: "Thu", friday: "Fri", saturday: "Sat", sunday: "Sun" };
 const DAY_ORDER = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
@@ -315,10 +315,15 @@ function JobCard({ job, router, viewerTz }) {
             <div style={{ display: "flex", gap: 4, marginTop: 8 }}>
               {DAY_ORDER.map((day) => {
                 const entry = schedule.find((s) => s.day === day);
+                const overnight = entry && isOvernightAfterConvert(entry.startTime, entry.endTime, job.timezone, viewerTz);
+                const hrs = entry ? shiftDurationHrs(entry.startTime, entry.endTime) : 0;
+                const tooltip = entry
+                  ? `${DAY_LABELS[day]}: ${to12hr(convertTime(entry.startTime, job.timezone, viewerTz))}${overnight ? ` → ${nextDayLabel(day)}` : ""} ${to12hr(convertTime(entry.endTime, job.timezone, viewerTz))} ${tzLabel(viewerTz)} (${hrs} hrs)`
+                  : `${DAY_LABELS[day]}: Not scheduled`;
                 return (
                   <div
                     key={day}
-                    title={entry ? `${DAY_LABELS[day]}: ${to12hr(convertTime(entry.startTime, job.timezone, viewerTz))} - ${to12hr(convertTime(entry.endTime, job.timezone, viewerTz))} ${tzLabel(viewerTz)}` : `${DAY_LABELS[day]}: Not scheduled`}
+                    title={tooltip}
                     style={{
                       width: 28, height: 22, borderRadius: 4, fontSize: "0.6rem", fontWeight: 600,
                       display: "flex", alignItems: "center", justifyContent: "center",
