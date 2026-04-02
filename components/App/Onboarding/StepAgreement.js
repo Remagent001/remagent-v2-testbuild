@@ -1,9 +1,57 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function StepAgreement({ data, onNext, onBack, onSaveExit, saving }) {
   const [agreed, setAgreed] = useState(data?.profile?.agreementSigned || false);
+  const [signingLoading, setSigningLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // Check if we returned from DocuSign with signed=true
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("signed") === "true") {
+      setAgreed(true);
+    }
+    if (params.get("signing") === "cancelled") {
+      setError("Signing was cancelled. Please try again to complete your profile.");
+    }
+  }, []);
+
+  const handleOpenDocuSign = async () => {
+    setError("");
+    setSigningLoading(true);
+    try {
+      const res = await fetch("/api/docusign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "professional" }),
+      });
+      const result = await res.json();
+
+      if (!res.ok) {
+        setError(result.error || "Failed to start signing process");
+        return;
+      }
+
+      if (result.alreadySigned) {
+        setAgreed(true);
+        return;
+      }
+
+      if (result.signingUrl) {
+        // Redirect to DocuSign — user will come back via callback
+        window.location.href = result.signingUrl;
+        return;
+      }
+
+      setError("Unexpected response from DocuSign");
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setSigningLoading(false);
+    }
+  };
 
   return (
     <div className="onboarding-step">
@@ -29,13 +77,10 @@ export default function StepAgreement({ data, onNext, onBack, onSaveExit, saving
       <div className="form-group" style={{ marginTop: 20 }}>
         <button
           type="button"
-          className="btn-secondary"
+          className={agreed ? "btn-secondary" : "btn-primary"}
           style={{ width: "100%", justifyContent: "center", gap: 10, padding: "14px 24px" }}
-          onClick={() => {
-            // DocuSign integration will be wired here
-            // For now, just toggle the agreement state
-            setAgreed(true);
-          }}
+          onClick={agreed ? undefined : handleOpenDocuSign}
+          disabled={agreed || signingLoading}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -43,7 +88,7 @@ export default function StepAgreement({ data, onNext, onBack, onSaveExit, saving
             <line x1="16" y1="13" x2="8" y2="13" />
             <line x1="16" y1="17" x2="8" y2="17" />
           </svg>
-          {agreed ? "Agreement Signed" : "Open DocuSign to Sign Agreement"}
+          {signingLoading ? "Opening DocuSign..." : agreed ? "Agreement Signed" : "Open DocuSign to Sign Agreement"}
         </button>
         {agreed && (
           <div className="agreement-signed-badge">
@@ -52,6 +97,9 @@ export default function StepAgreement({ data, onNext, onBack, onSaveExit, saving
             </svg>
             Agreement signed successfully
           </div>
+        )}
+        {error && (
+          <div style={{ color: "#ef4444", fontSize: "0.85rem", marginTop: 10 }}>{error}</div>
         )}
       </div>
 

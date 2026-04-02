@@ -45,7 +45,7 @@ export async function GET(request) {
             });
           }
         }
-        return redirect("/dashboard?signed=true");
+        return redirect("/onboarding?step=13&signed=true");
       }
     } catch (err) {
       console.error("DocuSign callback error:", err);
@@ -56,5 +56,5 @@ export async function GET(request) {
   if (type === "msa") {
     return redirect("/company-profile?signing=cancelled");
   }
-  return redirect("/dashboard?signing=cancelled");
+  return redirect("/onboarding?step=13&signing=cancelled");
 }
