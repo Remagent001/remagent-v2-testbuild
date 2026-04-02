@@ -116,8 +116,9 @@ model BusinessProfile {
   agreementSignedAt  DateTime?
   docusignEnvelopeId String?
   adminMarkup        Float   @default(10)
-  autoApprove     Boolean @default(false)
-  archived        Boolean @default(false)
+  autoApprove        Boolean @default(false)
+  allowTimeEditing   Boolean @default(true)
+  archived           Boolean @default(false)
   archivedAt      DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -718,6 +719,7 @@ model TimeEntry {
   breakMinutes       Int       @default(0)
   type               String    @default("work") // "work" or "break"
   description        String?   @db.Text
+  remarks            String?   @db.Text
   rateType           String    @default("regular") // "regular", "after_hours", "holiday"
   status             String    @default("pending") // "pending", "approved", "under_review"
   reviewReason       String?   @db.Text
@@ -739,10 +741,11 @@ model ActiveTimer {
   id              String    @id @default(cuid())
   professionalId  String    @unique
   hireId          String
+  workEntryId     String?
   startTime       DateTime
   breakStart      DateTime?
   totalBreakMs    Int       @default(0)
-  status          String    @default("running") // "running" or "paused"
+  status          String    @default("running") // "running" or "break"
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 

@@ -51,6 +51,17 @@ export default function AdminBusinessesClient() {
     setToggling(null);
   };
 
+  const handleAllowTimeEditingToggle = async (businessProfileId, currentValue) => {
+    setToggling(businessProfileId);
+    await fetch("/api/admin/businesses", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ businessProfileId, allowTimeEditing: !currentValue }),
+    });
+    loadBusinesses();
+    setToggling(null);
+  };
+
   const handleArchiveToggle = async (businessProfileId, currentValue) => {
     const msg = currentValue ? "Unarchive this business?" : "Archive this business? They will be hidden from the active list.";
     if (!confirm(msg)) return;
@@ -233,6 +244,22 @@ export default function AdminBusinessesClient() {
                             style={{ accentColor: "var(--teal)" }}
                           />
                           Auto-Approve
+                        </label>
+                        <label style={{
+                          display: "flex", alignItems: "center", gap: 8,
+                          fontSize: "0.82rem", color: "var(--gray-600)", cursor: "pointer",
+                          padding: "6px 14px", borderRadius: 8,
+                          background: profile.allowTimeEditing !== false ? "#3b82f618" : "var(--gray-50)",
+                          border: `1px solid ${profile.allowTimeEditing !== false ? "#3b82f6" : "var(--gray-200)"}`,
+                        }}>
+                          <input
+                            type="checkbox"
+                            checked={profile.allowTimeEditing !== false}
+                            onChange={() => handleAllowTimeEditingToggle(profile.id, profile.allowTimeEditing !== false)}
+                            disabled={toggling === profile.id}
+                            style={{ accentColor: "#3b82f6" }}
+                          />
+                          Allow Time Editing
                         </label>
                         <button
                           className="btn-secondary"

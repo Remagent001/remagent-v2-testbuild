@@ -80,7 +80,18 @@ export default function StepAvailability({ data, onNext, onBack, onSaveExit, onS
   };
 
   const updateTime = (day, field, value) => {
-    setSchedule({ ...schedule, [day]: { ...schedule[day], [field]: value } });
+    const updated = { ...schedule[day], [field]: value };
+    // Ensure end time is never earlier than start time
+    if (field === "startTime" && value >= updated.endTime) {
+      // Bump end time to 30 min after start (or cap at 23:30)
+      const idx = TIMES.findIndex((t) => t.value === value);
+      updated.endTime = TIMES[Math.min(idx + 1, TIMES.length - 1)].value;
+    } else if (field === "endTime" && value <= updated.startTime) {
+      // Pull start time to 30 min before end (or cap at 00:00)
+      const idx = TIMES.findIndex((t) => t.value === value);
+      updated.startTime = TIMES[Math.max(idx - 1, 0)].value;
+    }
+    setSchedule({ ...schedule, [day]: updated });
   };
 
   const applyToAll = () => {

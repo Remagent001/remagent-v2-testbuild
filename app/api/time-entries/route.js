@@ -16,7 +16,7 @@ export async function GET(request) {
   const to = searchParams.get("to");
   const status = searchParams.get("status");
 
-  const where = { professionalId: session.user.id, type: "work" };
+  const where = { professionalId: session.user.id };
   if (hireId) where.hireId = hireId;
   if (status) where.status = status;
   if (from || to) {
@@ -37,7 +37,7 @@ export async function GET(request) {
           position: { select: { title: true } },
           business: {
             select: {
-              businessProfile: { select: { businessName: true } },
+              businessProfile: { select: { businessName: true, allowTimeEditing: true } },
             },
           },
         },
@@ -60,13 +60,12 @@ export async function POST(request) {
   }
 
   const body = await request.json();
-  const { hireId, date, startTime, endTime, breakMinutes, description } = body;
+  const { hireId, date, startTime, endTime, breakMinutes, description, remarks } = body;
 
   if (!hireId || !date || !startTime || !endTime) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
-  // Verify hire
   const hire = await prisma.hire.findUnique({ where: { id: hireId } });
   if (!hire || hire.professionalId !== session.user.id) {
     return NextResponse.json({ error: "Hire not found" }, { status: 404 });
@@ -75,7 +74,6 @@ export async function POST(request) {
   const entryDate = new Date(date);
   entryDate.setHours(0, 0, 0, 0);
 
-  // Build full DateTime from date + time strings
   const [sh, sm] = startTime.split(":").map(Number);
   const [eh, em] = endTime.split(":").map(Number);
   const startDt = new Date(entryDate);
@@ -87,16 +85,13 @@ export async function POST(request) {
     return NextResponse.json({ error: "End time must be after start time" }, { status: 400 });
   }
 
-  // Check for overlapping entries on the same day/hire
   const overlap = await prisma.timeEntry.findFirst({
     where: {
       hireId,
       professionalId: session.user.id,
       date: entryDate,
       type: "work",
-      OR: [
-        { startTime: { lt: endDt }, endTime: { gt: startDt } },
-      ],
+      OR: [{ startTime: { lt: endDt }, endTime: { gt: startDt } }],
     },
   });
   if (overlap) {
@@ -115,6 +110,7 @@ export async function POST(request) {
       breakMinutes: breakMinutes || 0,
       type: "work",
       description: description || null,
+      remarks: remarks || null,
       rateType,
       status: "pending",
     },
@@ -123,7 +119,7 @@ export async function POST(request) {
   return NextResponse.json({ entry }, { status: 201 });
 }
 
-// PUT — edit a pending entry
+// PUT — edit a pending entry (checks allowTimeEditing for the business)
 export async function PUT(request) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -131,7 +127,7 @@ export async function PUT(request) {
   }
 
   const body = await request.json();
-  const { entryId, description, startTime, endTime, breakMinutes } = body;
+  const { entryId, description, remarks, startTime, endTime, breakMinutes } = body;
 
   if (!entryId) {
     return NextResponse.json({ error: "Missing entryId" }, { status: 400 });
@@ -139,7 +135,15 @@ export async function PUT(request) {
 
   const entry = await prisma.timeEntry.findUnique({
     where: { id: entryId },
-    include: { hire: true },
+    include: {
+      hire: {
+        include: {
+          business: {
+            select: { businessProfile: { select: { allowTimeEditing: true } } },
+          },
+        },
+      },
+    },
   });
   if (!entry || entry.professionalId !== session.user.id) {
     return NextResponse.json({ error: "Entry not found" }, { status: 404 });
@@ -148,8 +152,15 @@ export async function PUT(request) {
     return NextResponse.json({ error: "Can only edit pending or under-review entries" }, { status: 400 });
   }
 
+  // Check if business allows time editing
+  const allowEditing = entry.hire?.business?.businessProfile?.allowTimeEditing;
+  if (allowEditing === false) {
+    return NextResponse.json({ error: "Time card editing is disabled by the employer" }, { status: 403 });
+  }
+
   const updateData = {};
   if (description !== undefined) updateData.description = description;
+  if (remarks !== undefined) updateData.remarks = remarks;
   if (breakMinutes !== undefined) updateData.breakMinutes = breakMinutes;
 
   if (startTime && endTime) {

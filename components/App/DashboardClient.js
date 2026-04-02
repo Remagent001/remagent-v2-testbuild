@@ -3,7 +3,7 @@
 import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import TimerWidget from "@/components/App/TimerWidget";
+
 
 export default function DashboardClient() {
   const { data: session } = useSession();
@@ -374,8 +374,15 @@ export default function DashboardClient() {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
-        {/* Timer Widget — same size as other cards */}
-        <TimerWidget />
+        <Link href="/time-log" className="card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", margin: 0, textDecoration: "none", color: "inherit" }}>
+          <div style={{ marginBottom: 16 }}>
+            <div className="card-title">Time Log</div>
+            <div className="card-subtitle">Track your work hours and manage timesheets.</div>
+          </div>
+          <span className="btn-primary" style={{ width: "auto", whiteSpace: "nowrap", alignSelf: "flex-start" }}>
+            Open Time Log
+          </span>
+        </Link>
         <div className="card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", margin: 0 }}>
           <div style={{ marginBottom: 16 }}>
             <div className="card-title">{cardTitle}</div>
