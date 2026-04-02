@@ -476,7 +476,7 @@ export default function SearchProfessionalsClient() {
       <div style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
         {/* Filters panel */}
         {filtersOpen && (
-          <div className="card" style={{ width: 280, minWidth: 280, padding: 20, position: "sticky", top: 20 }}>
+          <div className="card" style={{ width: 280, minWidth: 280, padding: 20, position: "sticky", top: 20, maxHeight: "calc(100vh - 40px)", overflowY: "auto" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <h3 style={{ fontSize: "0.95rem", fontWeight: 600, color: "var(--gray-700)" }}>Filters</h3>
               {hasFilters && (

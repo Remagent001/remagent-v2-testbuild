@@ -5,7 +5,7 @@ const BU_STEPS = [
   { num: 2, label: "Posting Seen" },
   { num: 3, label: "Questions" },
   { num: 4, label: "Interview" },
-  { num: 5, label: "Offer Made" },
+  { num: 5, label: "Position Accepted" },
   { num: 6, label: "SOW Sent" },
   { num: 7, label: "SOW Signed" },
   { num: 8, label: "Hired" },

@@ -128,16 +128,24 @@ export default function StepContext({ data, onNext, onBack, onSaveExit, onSkip, 
         Select the channels, skills, and applications needed for this role. Tap once for "desired" experience. If you want this job posting to only appear to candidates with the skill identified in their profile, tap twice to consider as "Required to View".
       </p>
 
-      {/* Legend — shown once between intro text and Channels */}
-      <div style={{ display: "flex", gap: 20, marginBottom: 20, fontSize: "0.85rem", color: "var(--gray-500)" }}>
-        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <span style={{ display: "inline-block", width: 14, height: 14, border: "2px solid var(--teal)", borderRadius: 3 }}></span>
-          Desired
-        </span>
-        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <span style={{ display: "inline-block", width: 14, height: 14, background: "var(--teal)", borderRadius: 3 }}></span>
-          Required to View
-        </span>
+      {/* Legend box — floated right */}
+      <div style={{
+        float: "right", width: 200, marginLeft: 16, marginBottom: 16, padding: 14,
+        border: "1px solid var(--gray-200)", borderRadius: 8, background: "var(--gray-50)",
+        fontSize: "0.82rem", color: "var(--gray-600)",
+      }}>
+        <div style={{ fontWeight: 700, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--gray-500)", marginBottom: 10 }}>Legend</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+          <span style={{ display: "inline-block", width: 14, height: 14, border: "2px solid var(--teal)", borderRadius: 3, flexShrink: 0 }} />
+          <span>Desired</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+          <span style={{ display: "inline-block", width: 14, height: 14, background: "var(--teal)", borderRadius: 3, flexShrink: 0 }} />
+          <span>Required</span>
+        </div>
+        <p style={{ fontSize: "0.75rem", color: "var(--gray-400)", lineHeight: 1.4, margin: 0 }}>
+          Tap once for <strong>DESIRED</strong> and twice if the attribute is required for the Candidate to see this Job Posting in their search.
+        </p>
       </div>
 
       {/* Channels */}
