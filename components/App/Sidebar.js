@@ -117,7 +117,7 @@ const bizNav = [
   { section: "Manage", links: [
     { href: "/inbox", label: "Inbox", icon: "inbox", badgeKey: "inbox" },
     { href: "/invites", label: "Invites", icon: "clipboard", badgeKey: "invites" },
-    { href: "/applicants", label: "Applicants", icon: "users" },
+    { href: "/applicants", label: "Applicants", icon: "users", badgeKey: "applicants" },
     { href: "/hires", label: "Hires", icon: "handshake" },
     { href: "/timesheets", label: "Timesheets", icon: "clock", badgeKey: "timesheets" },
     { href: "/invoices", label: "Invoices", icon: "dollar" },
@@ -181,6 +181,16 @@ export default function Sidebar({ isOpen, onClose, role = "professional", user =
           const count = data.counts?.pending || 0;
           if (count > 0) {
             setBadges((prev) => ({ ...prev, timesheets: count }));
+          }
+        })
+        .catch(() => {});
+      // Get new applicant count
+      fetch("/api/applicants?status=new")
+        .then((r) => r.json())
+        .then((data) => {
+          const count = data.counts?.new || 0;
+          if (count > 0) {
+            setBadges((prev) => ({ ...prev, applicants: count }));
           }
         })
         .catch(() => {});

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 const TABS = [
@@ -40,6 +40,7 @@ export default function ApplicantsListClient() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("");
   const [updating, setUpdating] = useState(null);
+  const [expandedId, setExpandedId] = useState(null);
 
   const loadApplications = () => {
     fetch("/api/applicants")
@@ -125,10 +126,6 @@ export default function ApplicantsListClient() {
       {/* Empty state */}
       {applications.length === 0 ? (
         <div className="card" style={{ textAlign: "center", padding: "48px 24px" }}>
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--gray-300)" strokeWidth="1.5" style={{ margin: "0 auto 16px" }}>
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
-            <path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
-          </svg>
           <h3 style={{ color: "var(--gray-600)", marginBottom: 8 }}>No applicants yet</h3>
           <p style={{ color: "var(--gray-400)", fontSize: "0.9rem" }}>
             When professionals apply to your job postings, they'll appear here.
@@ -147,10 +144,11 @@ export default function ApplicantsListClient() {
             const rate = pro?.hourlyRate?.regularRate;
             const sc = STATUS_COLORS[app.status] || STATUS_COLORS.new;
             const summary = stripHtml(profile?.summary);
+            const isExpanded = expandedId === app.id;
 
             return (
-              <div key={app.id} className="card position-card">
-                <div className="position-card-header">
+              <div key={app.id} className="card position-card" style={{ padding: 0, overflow: "hidden" }}>
+                <div className="position-card-header" style={{ padding: "18px 24px" }}>
                   <div style={{ display: "flex", gap: 14, flex: 1 }}>
                     {/* Avatar */}
                     <div style={{
@@ -187,7 +185,7 @@ export default function ApplicantsListClient() {
                         {rate && ` · $${rate}/hr`}
                         {` · ${timeAgo(app.createdAt)}`}
                       </p>
-                      {summary && (
+                      {!isExpanded && summary && (
                         <p style={{
                           fontSize: "0.82rem", color: "var(--gray-400)", marginTop: 6,
                           overflow: "hidden", display: "-webkit-box",
@@ -200,6 +198,13 @@ export default function ApplicantsListClient() {
                   </div>
 
                   <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                    <button
+                      className="btn-secondary"
+                      style={{ width: "auto", fontSize: "0.82rem", padding: "6px 14px" }}
+                      onClick={() => setExpandedId(isExpanded ? null : app.id)}
+                    >
+                      {isExpanded ? "Collapse" : "Message"}
+                    </button>
                     <button
                       className="btn-secondary"
                       style={{ width: "auto", fontSize: "0.82rem", padding: "6px 14px" }}
@@ -252,11 +257,129 @@ export default function ApplicantsListClient() {
                     )}
                   </div>
                 </div>
+
+                {/* Expanded: Message Thread */}
+                {isExpanded && (
+                  <div style={{ borderTop: "1px solid var(--gray-200)", padding: "16px 24px" }}>
+                    <AppMessageThread applicationId={app.id} />
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Message Thread Component ──
+
+function AppMessageThread({ applicationId }) {
+  const [messages, setMessages] = useState([]);
+  const [newMsg, setNewMsg] = useState("");
+  const [sending, setSending] = useState(false);
+  const bottomRef = useRef(null);
+
+  const fetchMessages = () => {
+    fetch(`/api/applicants/messages?applicationId=${applicationId}`)
+      .then((r) => r.json())
+      .then((data) => setMessages(data.messages || []))
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    fetchMessages();
+    const interval = setInterval(fetchMessages, 10000);
+    return () => clearInterval(interval);
+  }, [applicationId]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages.length]);
+
+  const handleSend = async () => {
+    if (!newMsg.trim() || sending) return;
+    setSending(true);
+    try {
+      await fetch("/api/applicants/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ applicationId, content: newMsg }),
+      });
+      setNewMsg("");
+      fetchMessages();
+    } catch {}
+    setSending(false);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  const formatTime = (dt) => {
+    const d = new Date(dt);
+    return d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true });
+  };
+
+  return (
+    <div>
+      <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--gray-600)", marginBottom: 10 }}>Messages</div>
+
+      <div style={{ maxHeight: 300, overflowY: "auto", marginBottom: 12 }}>
+        {messages.length === 0 ? (
+          <p style={{ fontSize: "0.82rem", color: "var(--gray-400)", padding: "12px 0" }}>
+            No messages yet. Start a conversation with this applicant.
+          </p>
+        ) : (
+          messages.map((msg) => {
+            const isMe = msg.sender?.role !== "PROFESSIONAL";
+            return (
+              <div key={msg.id} style={{ display: "flex", flexDirection: "column", alignItems: isMe ? "flex-end" : "flex-start", marginBottom: 8 }}>
+                <div style={{
+                  maxWidth: "75%", padding: "8px 12px", borderRadius: 10,
+                  background: isMe ? "var(--teal-dim)" : "var(--gray-50)",
+                  border: `1px solid ${isMe ? "var(--teal-border)" : "var(--gray-200)"}`,
+                }}>
+                  <div style={{ fontSize: "0.7rem", fontWeight: 600, color: "var(--gray-500)", marginBottom: 2 }}>
+                    {msg.sender?.firstName} {msg.sender?.lastName}
+                  </div>
+                  <div style={{ fontSize: "0.85rem", color: "var(--gray-700)", whiteSpace: "pre-wrap" }}>
+                    {msg.content}
+                  </div>
+                </div>
+                <div style={{ fontSize: "0.65rem", color: "var(--gray-400)", marginTop: 2, padding: "0 4px" }}>
+                  {formatTime(msg.createdAt)}
+                </div>
+              </div>
+            );
+          })
+        )}
+        <div ref={bottomRef} />
+      </div>
+
+      <div style={{ display: "flex", gap: 8 }}>
+        <textarea
+          className="form-input"
+          rows={1}
+          placeholder="Type a message..."
+          value={newMsg}
+          onChange={(e) => setNewMsg(e.target.value)}
+          onKeyDown={handleKeyDown}
+          style={{ flex: 1, resize: "none", fontSize: "0.85rem", padding: "8px 12px" }}
+        />
+        <button
+          className="btn-primary"
+          onClick={handleSend}
+          disabled={sending || !newMsg.trim()}
+          style={{ width: "auto", padding: "8px 16px", fontSize: "0.82rem" }}
+        >
+          Send
+        </button>
+      </div>
     </div>
   );
 }

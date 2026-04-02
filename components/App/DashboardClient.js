@@ -29,6 +29,7 @@ export default function DashboardClient() {
   const [bizProfile, setBizProfile] = useState(null);
   const [positionAlerts, setPositionAlerts] = useState([]);
   const [positionCounts, setPositionCounts] = useState({ total: 0, invites: 0, applicants: 0, hires: 0 });
+  const [newApplicantCount, setNewApplicantCount] = useState(0);
   const [unreadMessages, setUnreadMessages] = useState([]);
   const [bizTimesheetStats, setBizTimesheetStats] = useState({ pendingTimesheets: 0, totalHoursWeek: 0, outstandingInvoices: 0, outstandingAmount: 0, spentThisMonth: 0 });
 
@@ -54,6 +55,12 @@ export default function DashboardClient() {
           });
           setPositionCounts({ total: positions.length, invites, applicants, hires });
         })
+        .catch(() => {});
+
+      // Load new applicant count
+      fetch("/api/applicants?status=new")
+        .then((r) => r.json())
+        .then((data) => setNewApplicantCount(data.counts?.new || 0))
         .catch(() => {});
 
       // Load unread messages across invites
@@ -244,6 +251,11 @@ export default function DashboardClient() {
           <Link href="/applicants" className="stat-card" style={{ textDecoration: "none", color: "inherit" }}>
             <div className="stat-card-label">Applicants</div>
             <div className="stat-card-value">{positionCounts.applicants}</div>
+            {newApplicantCount > 0 && (
+              <div style={{ fontSize: "0.75rem", color: "#ef4444", fontWeight: 600, marginTop: 2 }}>
+                {newApplicantCount} new
+              </div>
+            )}
           </Link>
           <Link href="/hires" className="stat-card" style={{ textDecoration: "none", color: "inherit" }}>
             <div className="stat-card-label">Active Hires</div>

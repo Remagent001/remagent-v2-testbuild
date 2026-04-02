@@ -215,13 +215,20 @@ function InvitationCard({ invitation, expanded, onToggle, onRespond, responding,
   const schedule = (pos?.availability || []).sort((a, b) => DAY_ORDER.indexOf(a.day) - DAY_ORDER.indexOf(b.day));
   const description = stripHtml(pos?.description);
 
+  const sowStatus = invitation.sow?.status;
   const statusColors = {
     pending: { bg: "#fef3c7", text: "#92400e", label: "New" },
     accepted: { bg: "#d1fae5", text: "#065f46", label: "Accepted" },
     declined: { bg: "#fee2e2", text: "#991b1b", label: "Declined" },
     withdrawn: { bg: "#f1f5f9", text: "#64748b", label: "Withdrawn" },
+    sow_received: { bg: "#fef3c7", text: "#92400e", label: "SOW Received" },
+    sow_agreed: { bg: "#d1fae5", text: "#065f46", label: "Hired" },
   };
-  const status = statusColors[invitation.status] || statusColors.pending;
+  // Override status if SOW is pending review
+  let statusKey = invitation.status;
+  if (invitation.status === "accepted" && sowStatus === "sent") statusKey = "sow_received";
+  else if (invitation.status === "accepted" && sowStatus === "agreed") statusKey = "sow_agreed";
+  const status = statusColors[statusKey] || statusColors.pending;
 
   return (
     <div className="card" style={{ padding: 0, overflow: "hidden" }}>

@@ -37,28 +37,42 @@ export async function GET(request) {
     orderBy: { createdAt: "desc" },
   });
 
-  // Look up hires for this professional to determine actual hire status
-  const hires = await prisma.hire.findMany({
-    where: { professionalId: session.user.id },
-    select: { positionId: true, status: true },
-  });
+  // Look up hires and offers/SOW for this professional
+  const [hires, offers] = await Promise.all([
+    prisma.hire.findMany({
+      where: { professionalId: session.user.id },
+      select: { positionId: true, status: true },
+    }),
+    prisma.jobOffer.findMany({
+      where: { userId: session.user.id },
+      select: { positionId: true, status: true, sow: { select: { status: true } } },
+    }),
+  ]);
   const hireMap = {};
   hires.forEach((h) => { hireMap[h.positionId] = h.status; });
+  const offerMap = {};
+  offers.forEach((o) => { offerMap[o.positionId] = o; });
 
   const result = applications.map((app) => {
     const biz = app.position?.user?.businessProfile;
     const hireStatus = hireMap[app.positionId] || null;
-    // Derive effective status: if a hire exists, show that instead
+    const offer = offerMap[app.positionId] || null;
+    const sowStatus = offer?.sow?.status || null;
+
+    // Derive effective status
     let effectiveStatus = app.status;
     if (hireStatus === "active") effectiveStatus = "hired";
     else if (hireStatus === "completed") effectiveStatus = "completed";
     else if (hireStatus === "terminated") effectiveStatus = "terminated";
+    else if (sowStatus === "sent") effectiveStatus = "sow_received";
+    else if (sowStatus === "agreed") effectiveStatus = "hired";
 
     return {
       id: app.id,
       status: effectiveStatus,
       applicationStatus: app.status,
       hireStatus,
+      sowStatus,
       coverMessage: app.coverMessage,
       createdAt: app.createdAt,
       position: {

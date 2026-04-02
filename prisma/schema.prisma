@@ -54,6 +54,7 @@ model User {
   hiresAsBiz          Hire[]             @relation("business")
   positions           Position[]
   inviteMessages      InviteMessage[]  @relation("inviteMessages")
+  applicationMessages ApplicationMessage[] @relation("applicationMessages")
   timeEntries         TimeEntry[]      @relation("proTimeEntries")
   activeTimer         ActiveTimer?     @relation("proActiveTimer")
 
@@ -526,12 +527,27 @@ model JobApplication {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  position    Position      @relation(fields: [positionId], references: [id], onDelete: Cascade)
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  position    Position              @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  user        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   negotiation Negotiation?
+  messages    ApplicationMessage[]
 
   @@unique([positionId, userId])
   @@map("job_applications")
+}
+
+model ApplicationMessage {
+  id             String   @id @default(cuid())
+  applicationId  String
+  senderId       String
+  content        String   @db.Text
+  read           Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  application JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  sender      User           @relation("applicationMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@map("application_messages")
 }
 
 model JobOffer {

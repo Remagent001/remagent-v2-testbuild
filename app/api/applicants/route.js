@@ -58,7 +58,9 @@ export async function GET(request) {
     offer: offers[i] || null,
   }));
 
-  return NextResponse.json({ applications: result });
+  const counts = { total: result.length, new: result.filter((a) => a.status === "new").length };
+
+  return NextResponse.json({ applications: result, counts });
 }
 
 // PUT — update application status (reviewing, accepted, declined)
