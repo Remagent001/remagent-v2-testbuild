@@ -13,6 +13,8 @@ const TABS = [
   { key: "new", label: "Pending", color: "#3b82f6" },
   { key: "reviewing", label: "Reviewing", color: "#f59e0b" },
   { key: "accepted", label: "Accepted", color: "#10b981" },
+  { key: "hired", label: "Hired", color: "#059669" },
+  { key: "completed", label: "Completed", color: "#6366f1" },
   { key: "declined", label: "Declined", color: "#ef4444" },
 ];
 
@@ -20,6 +22,9 @@ const STATUS_COLORS = {
   new: { bg: "#3b82f618", color: "#3b82f6", label: "Pending" },
   reviewing: { bg: "#f59e0b18", color: "#f59e0b", label: "Reviewing" },
   accepted: { bg: "#10b98118", color: "#10b981", label: "Accepted" },
+  hired: { bg: "#05966918", color: "#059669", label: "Hired" },
+  completed: { bg: "#6366f118", color: "#6366f1", label: "Completed" },
+  terminated: { bg: "#ef444418", color: "#ef4444", label: "Terminated" },
   declined: { bg: "#ef444418", color: "#ef4444", label: "Declined" },
 };
 

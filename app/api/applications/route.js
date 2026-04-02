@@ -37,11 +37,28 @@ export async function GET(request) {
     orderBy: { createdAt: "desc" },
   });
 
+  // Look up hires for this professional to determine actual hire status
+  const hires = await prisma.hire.findMany({
+    where: { professionalId: session.user.id },
+    select: { positionId: true, status: true },
+  });
+  const hireMap = {};
+  hires.forEach((h) => { hireMap[h.positionId] = h.status; });
+
   const result = applications.map((app) => {
     const biz = app.position?.user?.businessProfile;
+    const hireStatus = hireMap[app.positionId] || null;
+    // Derive effective status: if a hire exists, show that instead
+    let effectiveStatus = app.status;
+    if (hireStatus === "active") effectiveStatus = "hired";
+    else if (hireStatus === "completed") effectiveStatus = "completed";
+    else if (hireStatus === "terminated") effectiveStatus = "terminated";
+
     return {
       id: app.id,
-      status: app.status,
+      status: effectiveStatus,
+      applicationStatus: app.status,
+      hireStatus,
       coverMessage: app.coverMessage,
       createdAt: app.createdAt,
       position: {
