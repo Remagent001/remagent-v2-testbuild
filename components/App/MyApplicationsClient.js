@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import ProgressBubbles from "./ProgressBubbles";
 import { convertTime, to12hr, tzLabel } from "@/utilities/TimeZoneHelper";
 
 const DAY_ORDER = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
@@ -29,6 +30,11 @@ const STATUS_COLORS = {
   terminated: { bg: "#ef444418", color: "#ef4444", label: "Terminated" },
   declined: { bg: "#ef444418", color: "#ef4444", label: "Declined" },
 };
+
+function stripHtml(html) {
+  if (!html) return "";
+  return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
+}
 
 function timeAgo(dateStr) {
   if (!dateStr) return "";
@@ -111,89 +117,204 @@ export default function MyApplicationsClient() {
         </div>
       )}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {filtered.map((app) => {
           const pos = app.position;
           const status = STATUS_COLORS[app.status] || STATUS_COLORS.new;
+          const biz = pos?.company;
           const schedule = (pos?.availability || []).sort((a, b) => DAY_ORDER.indexOf(a.day) - DAY_ORDER.indexOf(b.day));
-
+          const description = stripHtml(pos?.description);
+          const env = pos?.environment;
           const isExpanded = expandedId === app.id;
 
+          const workLoc = env?.workLocation
+            ? (Array.isArray(env.workLocation) ? env.workLocation : (() => { try { return JSON.parse(env.workLocation); } catch { return []; } })())
+            : [];
+          const workLocLabel = workLoc.includes("home") && workLoc.includes("office") ? "Hybrid" : workLoc.includes("home") ? "Remote" : workLoc.includes("office") ? "Office" : "";
+
           return (
-            <div
-              key={app.id}
-              className="card"
-              style={{ padding: 0, overflow: "hidden", transition: "box-shadow 0.15s" }}
-            >
-              <div style={{ padding: "18px 24px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
-                  <div style={{ flex: 1, cursor: "pointer" }} onClick={() => router.push(`/jobs/${pos.id}`)}>
-                    <h3 style={{ fontSize: "1rem", fontWeight: 600, color: "var(--gray-800)", marginBottom: 4 }}>
-                      {pos?.title || "Untitled Position"}
-                    </h3>
-                    <div style={{ display: "flex", gap: 12, fontSize: "0.82rem", color: "var(--gray-400)", flexWrap: "wrap" }}>
-                      {pos?.company?.name && (
-                        <span style={{ fontWeight: 500, color: "var(--gray-600)" }}>{pos.company.name}</span>
-                      )}
-                      {(pos?.company?.city || pos?.company?.state) && (
-                        <span>{[pos.company.city, pos.company.state].filter(Boolean).join(", ")}</span>
-                      )}
-                      {pos?.regularRate && <span>${pos.regularRate}/hr</span>}
-                      <span>Applied {timeAgo(app.createdAt)}</span>
-                    </div>
+            <div key={app.id} className="card" style={{ padding: 0, overflow: "hidden" }}>
+              {/* Header — always visible, click to expand */}
+              <div
+                style={{ padding: "20px 24px", cursor: "pointer" }}
+                onClick={(e) => {
+                  const opening = !isExpanded;
+                  setExpandedId(isExpanded ? null : app.id);
+                  if (opening) {
+                    const card = e.currentTarget.closest(".card");
+                    setTimeout(() => card?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+                  }
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = "var(--gray-50)"}
+                onMouseLeave={(e) => e.currentTarget.style.background = ""}
+              >
+                <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+                  {/* Company logo/initial */}
+                  <div style={{
+                    width: 48, height: 48, minWidth: 48, borderRadius: 10,
+                    background: "var(--teal-dim)", border: "1px solid var(--teal-border)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: "1.1rem", fontWeight: 700, color: "var(--teal)",
+                    overflow: "hidden",
+                  }}>
+                    {biz?.logo ? (
+                      <img src={`/${biz.logo}`} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                    ) : (
+                      biz?.name?.[0] || "?"
+                    )}
+                  </div>
 
-                    {/* Schedule mini */}
-                    {schedule.length > 0 && (
-                      <div style={{ display: "flex", gap: 4, marginTop: 8 }}>
-                        {DAY_ORDER.map((day) => {
-                          const entry = schedule.find((s) => s.day === day);
-                          return (
-                            <div
-                              key={day}
-                              title={entry ? `${DAY_LABELS[day]}: ${to12hr(convertTime(entry.startTime, pos.timezone, viewerTz))} - ${to12hr(convertTime(entry.endTime, pos.timezone, viewerTz))} ${tzLabel(viewerTz)}` : ""}
-                              style={{
-                                width: 26, height: 20, borderRadius: 4, fontSize: "0.55rem", fontWeight: 600,
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                background: entry ? "var(--teal-dim)" : "var(--gray-100)",
-                                color: entry ? "var(--teal)" : "var(--gray-300)",
-                                border: entry ? "1px solid var(--teal-border)" : "1px solid var(--gray-200)",
-                              }}
-                            >
-                              {DAY_LABELS[day]}
-                            </div>
-                          );
-                        })}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
+                      <div>
+                        <h3 style={{ fontSize: "1rem", fontWeight: 600, color: "var(--gray-800)", marginBottom: 2 }}>
+                          {pos?.title || "Untitled Position"}
+                        </h3>
+                        <p style={{ fontSize: "0.88rem", color: "var(--gray-500)", marginBottom: 4 }}>
+                          {biz?.name || "Company"}
+                          {biz?.city && ` — ${biz.city}${biz.state ? `, ${biz.state}` : ""}`}
+                        </p>
                       </div>
-                    )}
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                        <span style={{
+                          padding: "3px 12px", borderRadius: 12,
+                          fontSize: "0.75rem", fontWeight: 600,
+                          background: status.bg, color: status.color,
+                        }}>
+                          {status.label}
+                        </span>
+                        {pos?.regularRate && (
+                          <span style={{ fontSize: "1rem", fontWeight: 700, color: "var(--teal)" }}>
+                            ${pos.regularRate}<span style={{ fontSize: "0.75rem", fontWeight: 400, color: "var(--gray-400)" }}>/hr</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", gap: 12, fontSize: "0.8rem", color: "var(--gray-400)", marginTop: 4, flexWrap: "wrap" }}>
+                      <span>Applied {timeAgo(app.createdAt)}</span>
+                      {workLocLabel && <span>{workLocLabel}</span>}
+                      {schedule.length > 0 && <span>{schedule.length} day{schedule.length !== 1 ? "s" : ""}/week</span>}
+                    </div>
                   </div>
 
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
-                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                      <button
-                        className="btn-secondary"
-                        style={{ width: "auto", fontSize: "0.78rem", padding: "4px 12px" }}
-                        onClick={(e) => { e.stopPropagation(); setExpandedId(isExpanded ? null : app.id); }}
-                      >
-                        {isExpanded ? "Collapse" : "Message"}
-                      </button>
-                      <span style={{
-                        padding: "4px 12px", borderRadius: 12, fontSize: "0.75rem", fontWeight: 600,
-                        background: status.bg, color: status.color,
-                      }}>
-                        {status.label}
-                      </span>
-                    </div>
-                    {pos?.positionStatus === "closed" && (
-                      <span style={{ fontSize: "0.72rem", color: "var(--gray-400)" }}>Position closed</span>
-                    )}
-                  </div>
+                  {/* Expand arrow */}
+                  <svg
+                    width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gray-400)" strokeWidth="2"
+                    style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", marginTop: 4 }}
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
                 </div>
               </div>
 
-              {/* Expanded: Message Thread */}
+              {/* Expanded details */}
               {isExpanded && (
-                <div style={{ borderTop: "1px solid var(--gray-200)", padding: "16px 24px" }}>
-                  <ProAppMessageThread applicationId={app.id} />
+                <div style={{ borderTop: "1px solid var(--gray-100)", padding: "20px 24px" }}>
+                  {/* Progress tracker */}
+                  <div style={{ marginBottom: 20 }}>
+                    <ProgressBubbles currentStep={app.progressStep || 1} role="professional" variant="application" />
+                  </div>
+
+                  {/* Description */}
+                  {description && (
+                    <div style={{ marginBottom: 16 }}>
+                      <label style={sectionLabel}>About this position</label>
+                      <p style={{ fontSize: "0.88rem", color: "var(--gray-600)", lineHeight: 1.6 }}>
+                        {description.length > 400 ? description.substring(0, 400) + "..." : description}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Schedule */}
+                  {schedule.length > 0 && (
+                    <div style={{ marginBottom: 16 }}>
+                      <label style={sectionLabel}>Schedule</label>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                        {schedule.map((s) => (
+                          <span key={s.day} style={{
+                            padding: "4px 10px", borderRadius: 6,
+                            fontSize: "0.78rem", fontWeight: 500,
+                            background: "var(--teal-dim)", color: "var(--teal)",
+                            border: "1px solid var(--teal-border)",
+                          }}>
+                            {DAY_LABELS[s.day]} {to12hr(convertTime(s.startTime, pos?.timezone, viewerTz))} - {to12hr(convertTime(s.endTime, pos?.timezone, viewerTz))} {tzLabel(viewerTz)}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Skills */}
+                  {pos?.skills?.length > 0 && (
+                    <div style={{ marginBottom: 16 }}>
+                      <label style={sectionLabel}>Required Skills</label>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                        {pos.skills.map((s, i) => (
+                          <span key={i} className="profile-tag" style={{ fontSize: "0.75rem", padding: "3px 10px" }}>
+                            {s.skill.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Channels */}
+                  {pos?.channels?.length > 0 && (
+                    <div style={{ marginBottom: 16 }}>
+                      <label style={sectionLabel}>Channels</label>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                        {pos.channels.map((c, i) => (
+                          <span key={i} style={{ fontSize: "0.75rem", padding: "3px 10px", borderRadius: 10, background: "var(--gray-100)", color: "var(--gray-600)" }}>
+                            {c.channel.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Company info */}
+                  <div style={{ marginBottom: 20 }}>
+                    <label style={sectionLabel}>About the company</label>
+                    <p style={{ fontSize: "0.85rem", color: "var(--gray-500)" }}>
+                      {biz?.name || "Unknown Company"}
+                      {biz?.industry ? ` — ${biz.industry}` : ""}
+                      {biz?.city ? ` | ${biz.city}${biz.state ? `, ${biz.state}` : ""}` : ""}
+                      {biz?.website && (
+                        <>
+                          {" | "}
+                          <a href={biz.website.startsWith("http") ? biz.website : `https://${biz.website}`} target="_blank" rel="noopener noreferrer" style={{ color: "var(--teal)" }}>
+                            Website
+                          </a>
+                        </>
+                      )}
+                    </p>
+                  </div>
+
+                  {/* SOW status banner */}
+                  {app.sowStatus === "sent" && (
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: "#fef3c7", borderRadius: 8, fontSize: "0.85rem", color: "#92400e", marginBottom: 16 }}>
+                      <span>A Statement of Work has been sent to you for review.</span>
+                      <button
+                        className="btn-primary"
+                        style={{ width: "auto", fontSize: "0.82rem", padding: "6px 16px", marginLeft: 12, whiteSpace: "nowrap" }}
+                        onClick={() => {
+                          // Find the offer for this position to get SOW link
+                          router.push(`/jobs/${pos.id}`);
+                        }}
+                      >
+                        Review SOW
+                      </button>
+                    </div>
+                  )}
+                  {app.sowStatus === "agreed" && (
+                    <div style={{ padding: "12px 16px", background: "#d1fae5", borderRadius: 8, fontSize: "0.85rem", color: "#065f46", marginBottom: 16 }}>
+                      You agreed to the Statement of Work. You are hired!
+                    </div>
+                  )}
+
+                  {/* Message thread */}
+                  <AppMessageThread applicationId={app.id} />
                 </div>
               )}
             </div>
@@ -204,111 +325,111 @@ export default function MyApplicationsClient() {
   );
 }
 
+const sectionLabel = {
+  fontSize: "0.78rem", fontWeight: 600, color: "var(--gray-600)",
+  textTransform: "uppercase", letterSpacing: "0.04em",
+  marginBottom: 6, display: "block",
+};
+
 // ── PU Message Thread Component ──
 
-function ProAppMessageThread({ applicationId }) {
+function AppMessageThread({ applicationId }) {
   const [messages, setMessages] = useState([]);
   const [newMsg, setNewMsg] = useState("");
   const [sending, setSending] = useState(false);
-  const bottomRef = useRef(null);
+  const [loaded, setLoaded] = useState(false);
+  const containerRef = useRef(null);
+  const shouldScrollRef = useRef(true);
+
+  const scrollToBottom = () => {
+    if (containerRef.current) containerRef.current.scrollTop = containerRef.current.scrollHeight;
+  };
 
   const fetchMessages = () => {
     fetch(`/api/applicants/messages?applicationId=${applicationId}`)
       .then((r) => r.json())
       .then((data) => setMessages(data.messages || []))
-      .catch(() => {});
+      .finally(() => { if (!loaded) { setLoaded(true); shouldScrollRef.current = true; } });
   };
 
   useEffect(() => {
+    shouldScrollRef.current = true;
     fetchMessages();
     const interval = setInterval(fetchMessages, 10000);
     return () => clearInterval(interval);
   }, [applicationId]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages.length]);
+    if (shouldScrollRef.current) { scrollToBottom(); shouldScrollRef.current = false; }
+  }, [messages]);
 
   const handleSend = async () => {
     if (!newMsg.trim() || sending) return;
     setSending(true);
     try {
-      await fetch("/api/applicants/messages", {
+      const res = await fetch("/api/applicants/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ applicationId, content: newMsg }),
+        body: JSON.stringify({ applicationId, content: newMsg.trim() }),
       });
-      setNewMsg("");
-      fetchMessages();
+      const data = await res.json();
+      if (data.message) {
+        setMessages((prev) => [...prev, data.message]);
+        setNewMsg("");
+        shouldScrollRef.current = true;
+      }
     } catch {}
     setSending(false);
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
-  const formatTime = (dt) => {
-    const d = new Date(dt);
-    return d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true });
-  };
-
   return (
-    <div>
-      <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--gray-600)", marginBottom: 10 }}>Messages</div>
-
-      <div style={{ maxHeight: 300, overflowY: "auto", marginBottom: 12 }}>
-        {messages.length === 0 ? (
-          <p style={{ fontSize: "0.82rem", color: "var(--gray-400)", padding: "12px 0" }}>
+    <div style={{ borderTop: "1px solid var(--gray-100)", paddingTop: 16 }}>
+      <label style={sectionLabel}>Messages</label>
+      <div ref={containerRef} style={{
+        maxHeight: 300, overflowY: "auto", marginBottom: 12,
+        background: "var(--gray-50)", borderRadius: 8, padding: messages.length > 0 ? 12 : 0,
+      }}>
+        {loaded && messages.length === 0 && (
+          <div style={{ padding: "16px 12px", textAlign: "center", color: "var(--gray-400)", fontSize: "0.85rem" }}>
             No messages yet. Send a message to the employer.
-          </p>
-        ) : (
-          messages.map((msg) => {
-            const isMe = msg.sender?.role === "PROFESSIONAL";
-            return (
-              <div key={msg.id} style={{ display: "flex", flexDirection: "column", alignItems: isMe ? "flex-end" : "flex-start", marginBottom: 8 }}>
-                <div style={{
-                  maxWidth: "75%", padding: "8px 12px", borderRadius: 10,
-                  background: isMe ? "var(--teal-dim)" : "var(--gray-50)",
-                  border: `1px solid ${isMe ? "var(--teal-border)" : "var(--gray-200)"}`,
-                }}>
-                  <div style={{ fontSize: "0.7rem", fontWeight: 600, color: "var(--gray-500)", marginBottom: 2 }}>
-                    {msg.sender?.firstName} {msg.sender?.lastName}
-                  </div>
-                  <div style={{ fontSize: "0.85rem", color: "var(--gray-700)", whiteSpace: "pre-wrap" }}>
-                    {msg.content}
-                  </div>
-                </div>
-                <div style={{ fontSize: "0.65rem", color: "var(--gray-400)", marginTop: 2, padding: "0 4px" }}>
-                  {formatTime(msg.createdAt)}
-                </div>
-              </div>
-            );
-          })
+          </div>
         )}
-        <div ref={bottomRef} />
+        {messages.map((msg, i) => {
+          const isMe = msg.sender?.role === "PROFESSIONAL";
+          return (
+            <div key={msg.id} style={{ display: "flex", flexDirection: "column", alignItems: isMe ? "flex-end" : "flex-start", marginBottom: i < messages.length - 1 ? 10 : 0 }}>
+              <div style={{ fontSize: "0.7rem", color: "var(--gray-400)", marginBottom: 3 }}>
+                {isMe ? "You" : `${msg.sender?.firstName || "Business"} ${msg.sender?.lastName?.[0] || ""}.`}
+                {" · "}
+                {timeAgo(msg.createdAt)}
+              </div>
+              <div style={{
+                padding: "8px 14px", borderRadius: 14, maxWidth: "80%",
+                fontSize: "0.88rem", lineHeight: 1.5,
+                background: isMe ? "var(--teal)" : "white",
+                color: isMe ? "white" : "var(--gray-700)",
+                border: isMe ? "none" : "1px solid var(--gray-200)",
+                borderBottomRightRadius: isMe ? 4 : 14,
+                borderBottomLeftRadius: isMe ? 14 : 4,
+              }}>
+                {msg.content}
+              </div>
+            </div>
+          );
+        })}
       </div>
-
       <div style={{ display: "flex", gap: 8 }}>
-        <textarea
+        <input
+          type="text"
           className="form-input"
-          rows={1}
           placeholder="Type a message..."
           value={newMsg}
           onChange={(e) => setNewMsg(e.target.value)}
-          onKeyDown={handleKeyDown}
-          style={{ flex: 1, resize: "none", fontSize: "0.85rem", padding: "8px 12px" }}
+          onKeyDown={(e) => e.key === "Enter" && handleSend()}
+          style={{ flex: 1, margin: 0, fontSize: "0.88rem" }}
         />
-        <button
-          className="btn-primary"
-          onClick={handleSend}
-          disabled={sending || !newMsg.trim()}
-          style={{ width: "auto", padding: "8px 16px", fontSize: "0.82rem" }}
-        >
-          Send
+        <button className="btn-primary" onClick={handleSend} disabled={!newMsg.trim() || sending} style={{ width: "auto", padding: "8px 20px", whiteSpace: "nowrap" }}>
+          {sending ? "..." : "Send"}
         </button>
       </div>
     </div>

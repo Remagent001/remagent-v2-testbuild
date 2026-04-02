@@ -22,8 +22,38 @@ const PU_STEPS = [
   { num: 8, label: "Hired" },
 ];
 
-export default function ProgressBubbles({ currentStep = 1, compact = false, role = "business" }) {
-  const STEPS = role === "professional" ? PU_STEPS : BU_STEPS;
+// Application-specific steps (PU applied, BU reviews)
+const APP_PU_STEPS = [
+  { num: 1, label: "Applied" },
+  { num: 2, label: "Reviewed" },
+  { num: 3, label: "Questions" },
+  { num: 4, label: "Interview" },
+  { num: 5, label: "Accepted" },
+  { num: 6, label: "SOW Received" },
+  { num: 7, label: "SOW Signed" },
+  { num: 8, label: "Hired" },
+];
+
+const APP_BU_STEPS = [
+  { num: 1, label: "App Received" },
+  { num: 2, label: "Reviewing" },
+  { num: 3, label: "Questions" },
+  { num: 4, label: "Interview" },
+  { num: 5, label: "Accepted" },
+  { num: 6, label: "SOW Sent" },
+  { num: 7, label: "SOW Signed" },
+  { num: 8, label: "Hired" },
+];
+
+export default function ProgressBubbles({ currentStep = 1, compact = false, role = "business", variant = "invite" }) {
+  let STEPS;
+  if (variant === "application") {
+    STEPS = role === "professional" ? APP_PU_STEPS : APP_BU_STEPS;
+  } else {
+    STEPS = role === "professional" ? PU_STEPS : BU_STEPS;
+  }
+
+  const totalSteps = STEPS.length;
 
   return (
     <div style={{
@@ -37,6 +67,8 @@ export default function ProgressBubbles({ currentStep = 1, compact = false, role
         const isComplete = step.num <= currentStep;
         const isCurrent = step.num === currentStep;
         const isLast = i === STEPS.length - 1;
+        // Show checkmark on completed steps (including step 8 when currentStep > 8 or currentStep === totalSteps and step is last)
+        const showCheck = isComplete && step.num < currentStep;
 
         return (
           <div key={step.num} style={{ display: "flex", alignItems: "center", flex: isLast ? "0 0 auto" : 1 }}>
@@ -57,7 +89,7 @@ export default function ProgressBubbles({ currentStep = 1, compact = false, role
                 border: isCurrent ? "2px solid var(--teal)" : "2px solid transparent",
                 boxShadow: isCurrent ? "0 0 0 3px var(--teal-dim)" : "none",
               }}>
-                {isComplete && step.num < currentStep ? (
+                {showCheck ? (
                   <svg width={compact ? 8 : 12} height={compact ? 8 : 12} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>

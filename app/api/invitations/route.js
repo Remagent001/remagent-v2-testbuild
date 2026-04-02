@@ -101,6 +101,16 @@ export async function GET() {
     ),
   ]);
 
+  // Check hire status for each invitation to determine if completed
+  const hireStatuses = await Promise.all(
+    invitations.map((inv) =>
+      prisma.hire.findFirst({
+        where: { positionId: inv.positionId, professionalId: inv.userId },
+        select: { status: true },
+      })
+    )
+  );
+
   const result = invitations.map((inv, i) => {
     const unread = unreadCounts[i];
     const lastMsg = lastMessages[i];
@@ -120,7 +130,14 @@ export async function GET() {
       }
     }
 
-    return { ...inv, unreadMessages: unread, messageStatus, lastMessageContent: lastMsg?.content || null, lastMessageAt: lastMsg?.createdAt || null };
+    // Bump progressStep to 9 if hire is completed so step 8 shows checkmark
+    let progressStep = inv.progressStep;
+    const hireStatus = hireStatuses[i]?.status;
+    if (hireStatus === "completed" || hireStatus === "terminated") {
+      progressStep = 9;
+    }
+
+    return { ...inv, progressStep, unreadMessages: unread, messageStatus, lastMessageContent: lastMsg?.content || null, lastMessageAt: lastMsg?.createdAt || null };
   });
 
   // Count by status

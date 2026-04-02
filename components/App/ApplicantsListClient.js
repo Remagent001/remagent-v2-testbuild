@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import ProgressBubbles from "./ProgressBubbles";
 
 const TABS = [
   { key: "", label: "All", color: "var(--gray-600)" },
@@ -147,9 +148,22 @@ export default function ApplicantsListClient() {
             const isExpanded = expandedId === app.id;
 
             return (
-              <div key={app.id} className="card position-card" style={{ padding: 0, overflow: "hidden" }}>
-                <div className="position-card-header" style={{ padding: "18px 24px" }}>
-                  <div style={{ display: "flex", gap: 14, flex: 1 }}>
+              <div key={app.id} className="card" style={{ padding: 0, overflow: "hidden" }}>
+                {/* Header — click to expand */}
+                <div
+                  style={{ padding: "16px 20px", cursor: "pointer" }}
+                  onClick={(e) => {
+                    const opening = !isExpanded;
+                    setExpandedId(isExpanded ? null : app.id);
+                    if (opening) {
+                      const card = e.currentTarget.closest(".card");
+                      setTimeout(() => card?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+                    }
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = "var(--gray-50)"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = ""}
+                >
+                  <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
                     {/* Avatar */}
                     <div style={{
                       width: 48, height: 48, minWidth: 48, borderRadius: "50%",
@@ -179,89 +193,122 @@ export default function ApplicantsListClient() {
                       {profile?.title && (
                         <p style={{ fontSize: "0.85rem", color: "var(--gray-500)", marginTop: 2 }}>{profile.title}</p>
                       )}
-                      <p className="position-card-meta" style={{ marginTop: 4 }}>
-                        Applied to <strong>{app.position?.title || "Untitled Position"}</strong>
-                        {loc && (loc.city || loc.state) && ` · ${[loc.city, loc.state].filter(Boolean).join(", ")}`}
-                        {rate && ` · $${rate}/hr`}
-                        {` · ${timeAgo(app.createdAt)}`}
+                      <p style={{ fontSize: "0.82rem", color: "var(--teal)", fontWeight: 600, marginTop: 4 }}>
+                        {app.position?.title || "Untitled Position"}
                       </p>
-                      {!isExpanded && summary && (
-                        <p style={{
-                          fontSize: "0.82rem", color: "var(--gray-400)", marginTop: 6,
-                          overflow: "hidden", display: "-webkit-box",
-                          WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
-                        }}>
-                          {summary}
-                        </p>
-                      )}
+                      <p className="position-card-meta" style={{ marginTop: 2 }}>
+                        {loc && (loc.city || loc.state) && `${[loc.city, loc.state].filter(Boolean).join(", ")} · `}
+                        {rate && `$${rate}/hr · `}
+                        {`Applied ${timeAgo(app.createdAt)}`}
+                      </p>
                     </div>
-                  </div>
 
-                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                    <button
-                      className="btn-secondary"
-                      style={{ width: "auto", fontSize: "0.82rem", padding: "6px 14px" }}
-                      onClick={() => setExpandedId(isExpanded ? null : app.id)}
-                    >
-                      {isExpanded ? "Collapse" : "Message"}
-                    </button>
-                    <button
-                      className="btn-secondary"
-                      style={{ width: "auto", fontSize: "0.82rem", padding: "6px 14px" }}
-                      onClick={() => router.push(`/search/${pro?.id}?from=applicants`)}
-                    >
-                      View Profile
-                    </button>
-                    {(app.status === "new" || app.status === "reviewing") && (
-                      <>
-                        {app.status === "new" && (
+                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                      <button
+                        className="btn-secondary"
+                        style={{ width: "auto", fontSize: "0.82rem", padding: "6px 14px" }}
+                        onClick={(e) => { e.stopPropagation(); router.push(`/search/${pro?.id}?from=applicants`); }}
+                      >
+                        View Profile
+                      </button>
+                      {(app.status === "new" || app.status === "reviewing") && (
+                        <>
+                          {app.status === "new" && (
+                            <button
+                              className="btn-secondary"
+                              style={{ width: "auto", fontSize: "0.82rem", padding: "6px 14px", color: "#f59e0b", borderColor: "#f59e0b" }}
+                              onClick={(e) => { e.stopPropagation(); handleStatusChange(app.id, "reviewing"); }}
+                              disabled={updating === app.id}
+                            >
+                              Mark Reviewing
+                            </button>
+                          )}
                           <button
-                            className="btn-secondary"
-                            style={{ width: "auto", fontSize: "0.82rem", padding: "6px 14px", color: "#f59e0b", borderColor: "#f59e0b" }}
-                            onClick={() => handleStatusChange(app.id, "reviewing")}
+                            className="btn-primary"
+                            style={{ width: "auto", fontSize: "0.82rem", padding: "6px 14px", background: "#10b981" }}
+                            onClick={(e) => { e.stopPropagation(); handleStatusChange(app.id, "accepted"); }}
                             disabled={updating === app.id}
                           >
-                            Mark Reviewing
+                            Accept
                           </button>
-                        )}
+                          <button
+                            className="btn-secondary"
+                            style={{ width: "auto", fontSize: "0.82rem", padding: "6px 14px", color: "#ef4444", borderColor: "#ef4444" }}
+                            onClick={(e) => { e.stopPropagation(); handleStatusChange(app.id, "declined"); }}
+                            disabled={updating === app.id}
+                          >
+                            Decline
+                          </button>
+                        </>
+                      )}
+                      {app.status === "accepted" && app.offer?.id && (
                         <button
                           className="btn-primary"
-                          style={{ width: "auto", fontSize: "0.82rem", padding: "6px 14px", background: "#10b981" }}
-                          onClick={() => handleStatusChange(app.id, "accepted")}
-                          disabled={updating === app.id}
+                          style={{ width: "auto", fontSize: "0.82rem", padding: "6px 14px" }}
+                          onClick={(e) => { e.stopPropagation(); router.push(`/sow/${app.offer.id}`); }}
                         >
-                          Accept
+                          {app.offer.sow?.status === "sent" ? "View SOW" :
+                           app.offer.sow?.status === "agreed" ? "SOW Agreed" :
+                           app.offer.sow?.status === "declined" ? "SOW Declined" :
+                           app.offer.sow?.status === "draft" ? "Continue SOW" :
+                           "Hire — Prepare SOW"}
                         </button>
-                        <button
-                          className="btn-secondary"
-                          style={{ width: "auto", fontSize: "0.82rem", padding: "6px 14px", color: "#ef4444", borderColor: "#ef4444" }}
-                          onClick={() => handleStatusChange(app.id, "declined")}
-                          disabled={updating === app.id}
-                        >
-                          Decline
-                        </button>
-                      </>
-                    )}
-                    {app.status === "accepted" && app.offer?.id && (
-                      <button
-                        className="btn-primary"
-                        style={{ width: "auto", fontSize: "0.82rem", padding: "6px 14px" }}
-                        onClick={() => router.push(`/sow/${app.offer.id}`)}
+                      )}
+
+                      {/* Expand arrow */}
+                      <svg
+                        width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gray-400)" strokeWidth="2"
+                        style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}
                       >
-                        {app.offer.sow?.status === "sent" ? "View SOW" :
-                         app.offer.sow?.status === "agreed" ? "SOW Agreed" :
-                         app.offer.sow?.status === "declined" ? "SOW Declined" :
-                         app.offer.sow?.status === "draft" ? "Continue SOW" :
-                         "Hire — Prepare SOW"}
-                      </button>
-                    )}
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
 
-                {/* Expanded: Message Thread */}
+                {/* Expanded: progress tracker + summary + messages */}
                 {isExpanded && (
-                  <div style={{ borderTop: "1px solid var(--gray-200)", padding: "16px 24px" }}>
-                    <AppMessageThread applicationId={app.id} />
+                  <div style={{ borderTop: "1px solid var(--gray-100)", padding: "20px 24px" }}>
+                    {/* Progress tracker */}
+                    <div style={{ marginBottom: 20 }}>
+                      <ProgressBubbles currentStep={app.progressStep || 1} role="business" variant="application" />
+                    </div>
+
+                    {/* Applicant summary */}
+                    {summary && (
+                      <div style={{ marginBottom: 16 }}>
+                        <label style={sectionLabel}>Summary</label>
+                        <p style={{ fontSize: "0.88rem", color: "var(--gray-600)", lineHeight: 1.6 }}>
+                          {summary.length > 400 ? summary.substring(0, 400) + "..." : summary}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Cover message */}
+                    {app.coverMessage && (
+                      <div style={{ marginBottom: 16 }}>
+                        <label style={sectionLabel}>Cover Message</label>
+                        <p style={{ fontSize: "0.88rem", color: "var(--gray-600)", lineHeight: 1.6, fontStyle: "italic" }}>
+                          &ldquo;{app.coverMessage}&rdquo;
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Screening answers */}
+                    {app.screeningAnswers?.length > 0 && (
+                      <div style={{ marginBottom: 16 }}>
+                        <label style={sectionLabel}>Screening Questions</label>
+                        {app.screeningAnswers.map((qa, i) => (
+                          <div key={i} style={{ marginBottom: 8 }}>
+                            <p style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--gray-600)" }}>{qa.question}</p>
+                            <p style={{ fontSize: "0.85rem", color: "var(--gray-500)" }}>{qa.answer}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Message thread */}
+                    <BizAppMessageThread applicationId={app.id} />
                   </div>
                 )}
               </div>
@@ -273,111 +320,111 @@ export default function ApplicantsListClient() {
   );
 }
 
-// ── Message Thread Component ──
+const sectionLabel = {
+  fontSize: "0.78rem", fontWeight: 600, color: "var(--gray-600)",
+  textTransform: "uppercase", letterSpacing: "0.04em",
+  marginBottom: 6, display: "block",
+};
 
-function AppMessageThread({ applicationId }) {
+// ── BU Message Thread Component ──
+
+function BizAppMessageThread({ applicationId }) {
   const [messages, setMessages] = useState([]);
   const [newMsg, setNewMsg] = useState("");
   const [sending, setSending] = useState(false);
-  const bottomRef = useRef(null);
+  const [loaded, setLoaded] = useState(false);
+  const containerRef = useRef(null);
+  const shouldScrollRef = useRef(true);
+
+  const scrollToBottom = () => {
+    if (containerRef.current) containerRef.current.scrollTop = containerRef.current.scrollHeight;
+  };
 
   const fetchMessages = () => {
     fetch(`/api/applicants/messages?applicationId=${applicationId}`)
       .then((r) => r.json())
       .then((data) => setMessages(data.messages || []))
-      .catch(() => {});
+      .finally(() => { if (!loaded) { setLoaded(true); shouldScrollRef.current = true; } });
   };
 
   useEffect(() => {
+    shouldScrollRef.current = true;
     fetchMessages();
     const interval = setInterval(fetchMessages, 10000);
     return () => clearInterval(interval);
   }, [applicationId]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages.length]);
+    if (shouldScrollRef.current) { scrollToBottom(); shouldScrollRef.current = false; }
+  }, [messages]);
 
   const handleSend = async () => {
     if (!newMsg.trim() || sending) return;
     setSending(true);
     try {
-      await fetch("/api/applicants/messages", {
+      const res = await fetch("/api/applicants/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ applicationId, content: newMsg }),
+        body: JSON.stringify({ applicationId, content: newMsg.trim() }),
       });
-      setNewMsg("");
-      fetchMessages();
+      const data = await res.json();
+      if (data.message) {
+        setMessages((prev) => [...prev, data.message]);
+        setNewMsg("");
+        shouldScrollRef.current = true;
+      }
     } catch {}
     setSending(false);
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
-  const formatTime = (dt) => {
-    const d = new Date(dt);
-    return d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true });
-  };
-
   return (
-    <div>
-      <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--gray-600)", marginBottom: 10 }}>Messages</div>
-
-      <div style={{ maxHeight: 300, overflowY: "auto", marginBottom: 12 }}>
-        {messages.length === 0 ? (
-          <p style={{ fontSize: "0.82rem", color: "var(--gray-400)", padding: "12px 0" }}>
+    <div style={{ borderTop: "1px solid var(--gray-100)", paddingTop: 16 }}>
+      <label style={sectionLabel}>Messages</label>
+      <div ref={containerRef} style={{
+        maxHeight: 300, overflowY: "auto", marginBottom: 12,
+        background: "var(--gray-50)", borderRadius: 8, padding: messages.length > 0 ? 12 : 0,
+      }}>
+        {loaded && messages.length === 0 && (
+          <div style={{ padding: "16px 12px", textAlign: "center", color: "var(--gray-400)", fontSize: "0.85rem" }}>
             No messages yet. Start a conversation with this applicant.
-          </p>
-        ) : (
-          messages.map((msg) => {
-            const isMe = msg.sender?.role !== "PROFESSIONAL";
-            return (
-              <div key={msg.id} style={{ display: "flex", flexDirection: "column", alignItems: isMe ? "flex-end" : "flex-start", marginBottom: 8 }}>
-                <div style={{
-                  maxWidth: "75%", padding: "8px 12px", borderRadius: 10,
-                  background: isMe ? "var(--teal-dim)" : "var(--gray-50)",
-                  border: `1px solid ${isMe ? "var(--teal-border)" : "var(--gray-200)"}`,
-                }}>
-                  <div style={{ fontSize: "0.7rem", fontWeight: 600, color: "var(--gray-500)", marginBottom: 2 }}>
-                    {msg.sender?.firstName} {msg.sender?.lastName}
-                  </div>
-                  <div style={{ fontSize: "0.85rem", color: "var(--gray-700)", whiteSpace: "pre-wrap" }}>
-                    {msg.content}
-                  </div>
-                </div>
-                <div style={{ fontSize: "0.65rem", color: "var(--gray-400)", marginTop: 2, padding: "0 4px" }}>
-                  {formatTime(msg.createdAt)}
-                </div>
-              </div>
-            );
-          })
+          </div>
         )}
-        <div ref={bottomRef} />
+        {messages.map((msg, i) => {
+          const isMe = msg.sender?.role !== "PROFESSIONAL";
+          return (
+            <div key={msg.id} style={{ display: "flex", flexDirection: "column", alignItems: isMe ? "flex-end" : "flex-start", marginBottom: i < messages.length - 1 ? 10 : 0 }}>
+              <div style={{ fontSize: "0.7rem", color: "var(--gray-400)", marginBottom: 3 }}>
+                {isMe ? "You" : `${msg.sender?.firstName || "Professional"} ${msg.sender?.lastName?.[0] || ""}.`}
+                {" · "}
+                {timeAgo(msg.createdAt)}
+              </div>
+              <div style={{
+                padding: "8px 14px", borderRadius: 14, maxWidth: "80%",
+                fontSize: "0.88rem", lineHeight: 1.5,
+                background: isMe ? "var(--teal)" : "white",
+                color: isMe ? "white" : "var(--gray-700)",
+                border: isMe ? "none" : "1px solid var(--gray-200)",
+                borderBottomRightRadius: isMe ? 4 : 14,
+                borderBottomLeftRadius: isMe ? 14 : 4,
+              }}>
+                {msg.content}
+              </div>
+            </div>
+          );
+        })}
       </div>
-
       <div style={{ display: "flex", gap: 8 }}>
-        <textarea
+        <input
+          type="text"
           className="form-input"
-          rows={1}
           placeholder="Type a message..."
           value={newMsg}
           onChange={(e) => setNewMsg(e.target.value)}
-          onKeyDown={handleKeyDown}
-          style={{ flex: 1, resize: "none", fontSize: "0.85rem", padding: "8px 12px" }}
+          onKeyDown={(e) => e.key === "Enter" && handleSend()}
+          style={{ flex: 1, margin: 0, fontSize: "0.88rem" }}
         />
-        <button
-          className="btn-primary"
-          onClick={handleSend}
-          disabled={sending || !newMsg.trim()}
-          style={{ width: "auto", padding: "8px 16px", fontSize: "0.82rem" }}
-        >
-          Send
+        <button className="btn-primary" onClick={handleSend} disabled={!newMsg.trim() || sending} style={{ width: "auto", padding: "8px 20px", whiteSpace: "nowrap" }}>
+          {sending ? "..." : "Send"}
         </button>
       </div>
     </div>
