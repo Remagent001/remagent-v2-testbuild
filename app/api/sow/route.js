@@ -20,7 +20,16 @@ export async function GET(request) {
   const offer = await prisma.jobOffer.findUnique({
     where: { id: offerId },
     include: {
-      position: { select: { userId: true, title: true } },
+      position: {
+        select: {
+          userId: true, title: true,
+          user: {
+            select: {
+              businessProfile: { select: { convenienceFee: true } },
+            },
+          },
+        },
+      },
       user: {
         select: {
           id: true, firstName: true, lastName: true, phone: true,
@@ -52,6 +61,7 @@ export async function GET(request) {
       professionalName: `${offer.user.firstName || ""} ${offer.user.lastName || ""}`.trim(),
       professionalTitle: offer.user.professionalProfile?.title || "",
     },
+    convenienceFee: offer.position?.user?.businessProfile?.convenienceFee ?? 3,
     role: isPro ? "professional" : "business",
   });
 }

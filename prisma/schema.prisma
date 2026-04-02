@@ -119,6 +119,7 @@ model BusinessProfile {
   adminMarkup        Float   @default(10)
   autoApprove        Boolean @default(false)
   allowTimeEditing   Boolean @default(true)
+  convenienceFee     Float   @default(3)
   archived           Boolean @default(false)
   archivedAt      DateTime?
 

@@ -62,6 +62,15 @@ export default function AdminBusinessesClient() {
     setToggling(null);
   };
 
+  const handleConvenienceFeeChange = async (businessProfileId, value) => {
+    await fetch("/api/admin/businesses", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ businessProfileId, convenienceFee: value }),
+    });
+    loadBusinesses();
+  };
+
   const handleArchiveToggle = async (businessProfileId, currentValue) => {
     const msg = currentValue ? "Unarchive this business?" : "Archive this business? They will be hidden from the active list.";
     if (!confirm(msg)) return;
@@ -261,6 +270,21 @@ export default function AdminBusinessesClient() {
                           />
                           Allow Time Editing
                         </label>
+                        <div style={{
+                          display: "flex", alignItems: "center", gap: 6,
+                          fontSize: "0.82rem", color: "var(--gray-600)",
+                          padding: "4px 10px", borderRadius: 8,
+                          background: "var(--gray-50)", border: "1px solid var(--gray-200)",
+                        }}>
+                          <span style={{ whiteSpace: "nowrap" }}>Fee $/hr</span>
+                          <input
+                            type="number"
+                            min="0" step="0.50"
+                            value={profile.convenienceFee ?? 3}
+                            onChange={(e) => handleConvenienceFeeChange(profile.id, e.target.value)}
+                            style={{ width: 56, padding: "2px 6px", fontSize: "0.82rem", border: "1px solid var(--gray-200)", borderRadius: 4, textAlign: "center" }}
+                          />
+                        </div>
                         <button
                           className="btn-secondary"
                           style={{

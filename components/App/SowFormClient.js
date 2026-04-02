@@ -9,8 +9,8 @@ const DAY_LABELS = { monday: "Mon", tuesday: "Tue", wednesday: "Wed", thursday: 
 
 const HIRING_MODELS = [
   { value: "direct_hire", label: "Direct Hire", desc: "One-time $500 placement fee" },
-  { value: "contract", label: "Contract through Remagent", desc: "1099/Corp-to-Corp — $2-$4/hr convenience fee" },
-  { value: "w2_employee", label: "W-2 Employee", desc: "Remagent hires PU — ~10% markup + $2-$4/hr fee" },
+  { value: "contract", label: "Contract through Remagent", desc: "1099/Corp-to-Corp — convenience fee applied" },
+  { value: "w2_employee", label: "W-2 Employee", desc: "Remagent hires PU — 11% + convenience fee" },
 ];
 
 function formatDate(d) {
@@ -27,6 +27,7 @@ export default function SowFormClient() {
   const [offer, setOffer] = useState(null);
   const [role, setRole] = useState(null);
   const [agreeing, setAgreeing] = useState(false);
+  const [convenienceFee, setConvenienceFee] = useState(3);
 
   const [form, setForm] = useState({
     resourceName: "",
@@ -57,6 +58,7 @@ export default function SowFormClient() {
       .then((data) => {
         setOffer(data.offer);
         setRole(data.role);
+        setConvenienceFee(data.convenienceFee ?? 3);
         if (data.sow) {
           setForm({
             ...data.sow,
@@ -68,7 +70,6 @@ export default function SowFormClient() {
             schedule: data.sow.schedule || {},
           });
         } else {
-          // Auto-fill from offer
           setForm((prev) => ({
             ...prev,
             resourceName: data.offer?.professionalName || "",
@@ -102,6 +103,29 @@ export default function SowFormClient() {
       return { ...prev, schedule: newSchedule };
     });
   };
+
+  // Auto-calculate billing rate based on hiring model
+  const calcBillingRate = () => {
+    const rate = parseFloat(form.hourlyRate) || 0;
+    if (!rate || !form.hiringModel) return "";
+    if (form.hiringModel === "contract") {
+      return (rate + convenienceFee).toFixed(2);
+    }
+    if (form.hiringModel === "w2_employee") {
+      return (rate * 1.11 + convenienceFee).toFixed(2);
+    }
+    return ""; // direct_hire has no billing rate
+  };
+
+  // Recompute billing rate when dependencies change
+  useEffect(() => {
+    if (form.hiringModel && form.hiringModel !== "direct_hire" && form.hourlyRate) {
+      const computed = calcBillingRate();
+      if (computed) updateField("billingRate", computed);
+    }
+  }, [form.hourlyRate, form.hiringModel, convenienceFee]);
+
+  const isDirectHire = form.hiringModel === "direct_hire";
 
   const handleSave = async (status = "draft") => {
     const setFn = status === "sent" ? setSending : setSaving;
@@ -212,6 +236,38 @@ export default function SowFormClient() {
       <div className="card">
         <div className="card-title" style={{ marginBottom: 20 }}>Details</div>
 
+        {/* 11a — Hiring Model at the top */}
+        <div style={{ marginBottom: 20 }}>
+          <label style={labelStyle}>Hiring Model</label>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {HIRING_MODELS.map((model) => (
+              <label
+                key={model.value}
+                style={{
+                  display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 14px",
+                  borderRadius: 8, cursor: readOnly ? "default" : "pointer",
+                  border: form.hiringModel === model.value ? "2px solid var(--teal)" : "2px solid var(--gray-200)",
+                  background: form.hiringModel === model.value ? "var(--teal-dim)" : "white",
+                }}
+              >
+                <input
+                  type="radio"
+                  name="hiringModel"
+                  value={model.value}
+                  checked={form.hiringModel === model.value}
+                  onChange={(e) => updateField("hiringModel", e.target.value)}
+                  disabled={readOnly}
+                  style={{ marginTop: 2 }}
+                />
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: "0.88rem", color: "var(--gray-700)" }}>{model.label}</div>
+                  <div style={{ fontSize: "0.78rem", color: "var(--gray-500)" }}>{model.desc}</div>
+                </div>
+              </label>
+            ))}
+          </div>
+        </div>
+
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
           <div>
             <label style={labelStyle}>Resource Name</label>
@@ -260,52 +316,58 @@ export default function SowFormClient() {
           </div>
         </div>
 
-        {/* Schedule */}
-        <div style={{ marginBottom: 16 }}>
-          <label style={labelStyle}>General Schedule</label>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
-            {DAY_ORDER.map((day) => {
-              const active = !!form.schedule?.[day];
-              return (
-                <button
-                  key={day}
-                  type="button"
-                  onClick={() => !readOnly && toggleDay(day)}
-                  style={{
-                    padding: "6px 14px", borderRadius: 6, fontSize: "0.82rem", fontWeight: 600,
-                    border: active ? "2px solid var(--teal)" : "2px solid var(--gray-200)",
-                    background: active ? "var(--teal-dim)" : "white",
-                    color: active ? "var(--teal)" : "var(--gray-400)",
-                    cursor: readOnly ? "default" : "pointer",
-                  }}
-                >
-                  {DAY_LABELS[day]}
-                </button>
-              );
-            })}
-          </div>
-          {DAY_ORDER.filter((d) => form.schedule?.[d]).map((day) => (
-            <div key={day} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
-              <span style={{ width: 40, fontSize: "0.82rem", fontWeight: 600, color: "var(--gray-600)" }}>{DAY_LABELS[day]}</span>
-              <input type="time" className="form-input" style={{ width: 130, margin: 0, padding: "4px 8px", fontSize: "0.82rem" }} value={form.schedule[day]?.start || "09:00"} onChange={(e) => updateSchedule(day, "start", e.target.value)} readOnly={readOnly} />
-              <span style={{ color: "var(--gray-400)" }}>to</span>
-              <input type="time" className="form-input" style={{ width: 130, margin: 0, padding: "4px 8px", fontSize: "0.82rem" }} value={form.schedule[day]?.end || "17:00"} onChange={(e) => updateSchedule(day, "end", e.target.value)} readOnly={readOnly} />
+        {/* 11c — Hide schedule section for Direct Hire */}
+        {!isDirectHire && (
+          <div style={{ marginBottom: 16 }}>
+            <label style={labelStyle}>General Schedule</label>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
+              {DAY_ORDER.map((day) => {
+                const active = !!form.schedule?.[day];
+                return (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() => !readOnly && toggleDay(day)}
+                    style={{
+                      padding: "6px 14px", borderRadius: 6, fontSize: "0.82rem", fontWeight: 600,
+                      border: active ? "2px solid var(--teal)" : "2px solid var(--gray-200)",
+                      background: active ? "var(--teal-dim)" : "white",
+                      color: active ? "var(--teal)" : "var(--gray-400)",
+                      cursor: readOnly ? "default" : "pointer",
+                    }}
+                  >
+                    {DAY_LABELS[day]}
+                  </button>
+                );
+              })}
             </div>
-          ))}
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
-          <div>
-            <label style={labelStyle}>Reporting Manager</label>
-            <input className="form-input" style={inputStyle} value={form.reportingManager || ""} onChange={(e) => updateField("reportingManager", e.target.value)} readOnly={readOnly} />
+            {DAY_ORDER.filter((d) => form.schedule?.[d]).map((day) => (
+              <div key={day} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
+                <span style={{ width: 40, fontSize: "0.82rem", fontWeight: 600, color: "var(--gray-600)" }}>{DAY_LABELS[day]}</span>
+                <input type="time" className="form-input" style={{ width: 130, margin: 0, padding: "4px 8px", fontSize: "0.82rem" }} value={form.schedule[day]?.start || "09:00"} onChange={(e) => updateSchedule(day, "start", e.target.value)} readOnly={readOnly} />
+                <span style={{ color: "var(--gray-400)" }}>to</span>
+                <input type="time" className="form-input" style={{ width: 130, margin: 0, padding: "4px 8px", fontSize: "0.82rem" }} value={form.schedule[day]?.end || "17:00"} onChange={(e) => updateSchedule(day, "end", e.target.value)} readOnly={readOnly} />
+              </div>
+            ))}
           </div>
-          <div>
-            <label style={labelStyle}>Business Unit / Department</label>
-            <input className="form-input" style={inputStyle} value={form.department || ""} onChange={(e) => updateField("department", e.target.value)} readOnly={readOnly} />
-          </div>
-        </div>
+        )}
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 16 }}>
+        {/* 11c — Hide Reporting Manager / Department for Direct Hire */}
+        {!isDirectHire && (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+            <div>
+              <label style={labelStyle}>Reporting Manager</label>
+              <input className="form-input" style={inputStyle} value={form.reportingManager || ""} onChange={(e) => updateField("reportingManager", e.target.value)} readOnly={readOnly} />
+            </div>
+            <div>
+              <label style={labelStyle}>Business Unit / Department</label>
+              <input className="form-input" style={inputStyle} value={form.department || ""} onChange={(e) => updateField("department", e.target.value)} readOnly={readOnly} />
+            </div>
+          </div>
+        )}
+
+        {/* Rates */}
+        <div style={{ display: "grid", gridTemplateColumns: isDirectHire ? "1fr 1fr" : "1fr 1fr 1fr", gap: 16, marginBottom: 16 }}>
           <div>
             <label style={labelStyle}>Hourly Rate ($)</label>
             <input type="number" className="form-input" style={inputStyle} min="10" step="0.50" value={form.hourlyRate || ""} onChange={(e) => updateField("hourlyRate", e.target.value)} readOnly={readOnly} />
@@ -314,59 +376,47 @@ export default function SowFormClient() {
             <label style={labelStyle}>Estimated Hours</label>
             <input type="number" className="form-input" style={inputStyle} min="1" value={form.estimatedHours || ""} onChange={(e) => updateField("estimatedHours", e.target.value)} readOnly={readOnly} />
           </div>
-          <div>
-            <label style={labelStyle}>Billing Rate ($)</label>
-            <input type="number" className="form-input" style={inputStyle} value={form.billingRate || ""} onChange={(e) => updateField("billingRate", e.target.value)} readOnly={readOnly} />
-          </div>
+          {/* 11b — Billing rate auto-calculated, only for contract/w2 */}
+          {!isDirectHire && (
+            <div>
+              <label style={labelStyle}>
+                Billing Rate ($)
+                <span style={{ fontWeight: 400, fontSize: "0.72rem", color: "var(--gray-400)", marginLeft: 4 }}>
+                  {form.hiringModel === "contract" ? "(rate + fee)" : "(rate × 1.11 + fee)"}
+                </span>
+              </label>
+              <input
+                type="number"
+                className="form-input"
+                style={{ ...inputStyle, background: "var(--gray-50)", color: "var(--gray-600)" }}
+                value={form.billingRate || ""}
+                readOnly
+              />
+            </div>
+          )}
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+        {/* Dates — hide End Date for Direct Hire */}
+        <div style={{ display: "grid", gridTemplateColumns: isDirectHire ? "1fr" : "1fr 1fr", gap: 16, marginBottom: 16 }}>
           <div>
             <label style={labelStyle}>Start Date</label>
             <input type="date" className="form-input" style={inputStyle} value={form.startDate || ""} onChange={(e) => updateField("startDate", e.target.value)} readOnly={readOnly} />
           </div>
-          <div>
-            <label style={labelStyle}>End Date</label>
-            <input type="date" className="form-input" style={inputStyle} value={form.endDate || ""} onChange={(e) => updateField("endDate", e.target.value)} readOnly={readOnly} />
-          </div>
+          {!isDirectHire && (
+            <div>
+              <label style={labelStyle}>End Date</label>
+              <input type="date" className="form-input" style={inputStyle} value={form.endDate || ""} onChange={(e) => updateField("endDate", e.target.value)} readOnly={readOnly} />
+            </div>
+          )}
         </div>
 
-        <div style={{ marginBottom: 16 }}>
-          <label style={labelStyle}>Equipment to be Supplied by Professional</label>
-          <textarea className="form-input" style={{ ...inputStyle, minHeight: 60 }} value={form.equipment || ""} onChange={(e) => updateField("equipment", e.target.value)} readOnly={readOnly} />
-        </div>
-
-        {/* Hiring Model */}
-        <div style={{ marginBottom: 16 }}>
-          <label style={labelStyle}>Hiring Model</label>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {HIRING_MODELS.map((model) => (
-              <label
-                key={model.value}
-                style={{
-                  display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 14px",
-                  borderRadius: 8, cursor: readOnly ? "default" : "pointer",
-                  border: form.hiringModel === model.value ? "2px solid var(--teal)" : "2px solid var(--gray-200)",
-                  background: form.hiringModel === model.value ? "var(--teal-dim)" : "white",
-                }}
-              >
-                <input
-                  type="radio"
-                  name="hiringModel"
-                  value={model.value}
-                  checked={form.hiringModel === model.value}
-                  onChange={(e) => updateField("hiringModel", e.target.value)}
-                  disabled={readOnly}
-                  style={{ marginTop: 2 }}
-                />
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: "0.88rem", color: "var(--gray-700)" }}>{model.label}</div>
-                  <div style={{ fontSize: "0.78rem", color: "var(--gray-500)" }}>{model.desc}</div>
-                </div>
-              </label>
-            ))}
+        {/* 11c — Hide Equipment for Direct Hire */}
+        {!isDirectHire && (
+          <div style={{ marginBottom: 16 }}>
+            <label style={labelStyle}>Equipment to be Supplied by Professional</label>
+            <textarea className="form-input" style={{ ...inputStyle, minHeight: 60 }} value={form.equipment || ""} onChange={(e) => updateField("equipment", e.target.value)} readOnly={readOnly} />
           </div>
-        </div>
+        )}
       </div>
 
       {/* Actions */}
