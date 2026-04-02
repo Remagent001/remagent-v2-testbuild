@@ -92,11 +92,12 @@ export async function GET(request) {
     orderBy: { createdAt: "desc" },
   });
 
-  // Filter: professional must have ALL required skills for the position
-  let filtered = positions.filter((pos) => {
+  // Check skill match for each position (but don't filter them out)
+  let filtered = positions.map((pos) => {
     const requiredSkills = pos.skills.filter((s) => s.requirement === "required");
-    if (requiredSkills.length === 0) return true; // no required skills = open to all
-    return requiredSkills.every((rs) => proSkillIds.includes(rs.skill.id));
+    const hasAllRequired = requiredSkills.length === 0 || requiredSkills.every((rs) => proSkillIds.includes(rs.skill.id));
+    const missingSkills = requiredSkills.filter((rs) => !proSkillIds.includes(rs.skill.id)).map((rs) => rs.skill.name);
+    return { ...pos, _skillMatch: hasAllRequired, _missingSkills: missingSkills };
   });
 
   // Environment filter (in memory since MySQL JSON queries are limited)
@@ -117,6 +118,9 @@ export async function GET(request) {
   if (state) {
     filtered = filtered.filter((pos) => pos.user?.businessProfile?.state === state);
   }
+
+  // Sort: matches first, then non-matches
+  filtered.sort((a, b) => (b._skillMatch ? 1 : 0) - (a._skillMatch ? 1 : 0));
 
   // Format response — hide company info if showCompanyName is false
   const total = filtered.length;
@@ -149,6 +153,8 @@ export async function GET(request) {
       createdAt: pos.createdAt,
       alreadyApplied: pos.applications.length > 0,
       applicationStatus: pos.applications[0]?.status || null,
+      skillMatch: pos._skillMatch,
+      missingSkills: pos._missingSkills || [],
     };
   });
 

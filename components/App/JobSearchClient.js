@@ -268,6 +268,16 @@ function JobCard({ job, router, viewerTz }) {
             </div>
 
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              {job.skillMatch === false && (
+                <span style={{
+                  padding: "3px 10px", borderRadius: 12, fontSize: "0.72rem", fontWeight: 600,
+                  background: "#f59e0b18", color: "#f59e0b",
+                }}
+                  title={job.missingSkills?.length ? `Missing: ${job.missingSkills.join(", ")}` : ""}
+                >
+                  Non Match
+                </span>
+              )}
               {job.alreadyApplied && (
                 <span style={{
                   padding: "3px 10px", borderRadius: 12, fontSize: "0.72rem", fontWeight: 600,
