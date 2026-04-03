@@ -385,6 +385,51 @@ export default function DashboardClient() {
         </Link>
       </div>
 
+      {/* Profile completion — full-width prominent banner when incomplete */}
+      {profileStatus !== "complete" && (
+        <div style={{
+          marginBottom: 16, padding: "24px 28px", borderRadius: 12,
+          background: "linear-gradient(135deg, var(--teal-dim) 0%, #e0f7f1 100%)",
+          border: "2px solid var(--teal)",
+          display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20,
+        }}>
+          <div>
+            <div style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--gray-800)", marginBottom: 4 }}>
+              {cardTitle}
+            </div>
+            <div style={{ fontSize: "0.92rem", color: "var(--gray-600)", lineHeight: 1.5, maxWidth: 500 }}>
+              {cardSubtitle}
+            </div>
+            {profileStatus !== "new" && (
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
+                  {Array.from({ length: TOTAL_STEPS }, (_, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        width: 10, height: 10, borderRadius: "50%",
+                        background: i < completedCount ? "var(--teal)" : "var(--gray-200)",
+                        border: "1px solid var(--teal-border)",
+                      }}
+                    />
+                  ))}
+                </div>
+                <span style={{ fontSize: "0.82rem", color: "var(--gray-500)", marginLeft: 4 }}>
+                  {completedCount} of {TOTAL_STEPS} steps complete
+                </span>
+              </div>
+            )}
+          </div>
+          <Link
+            href={firstIncompleteStep ? `/onboarding?step=${firstIncompleteStep}` : "/onboarding"}
+            className="btn-primary"
+            style={{ width: "auto", whiteSpace: "nowrap", textDecoration: "none", padding: "12px 28px", fontSize: "1rem", flexShrink: 0 }}
+          >
+            {buttonText}
+          </Link>
+        </div>
+      )}
+
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
         <Link href="/time-log" className="card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", margin: 0, textDecoration: "none", color: "inherit" }}>
           <div style={{ marginBottom: 16 }}>
@@ -395,45 +440,40 @@ export default function DashboardClient() {
             Open Time Log
           </span>
         </Link>
-        <div className="card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", margin: 0 }}>
-          <div style={{ marginBottom: 16 }}>
-            <div className="card-title">{cardTitle}</div>
-            <div className="card-subtitle">{cardSubtitle}</div>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            {profileStatus !== "new" && (
-              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                {Array.from({ length: TOTAL_STEPS }, (_, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: "50%",
-                      background: i < completedCount ? "var(--teal)" : "var(--gray-200)",
-                    }}
-                  />
-                ))}
-                <span style={{ fontSize: "0.75rem", color: "var(--gray-500)", marginLeft: 4, whiteSpace: "nowrap" }}>
-                  {completedCount}/{TOTAL_STEPS}
-                </span>
-              </div>
-            )}
-            <Link href={firstIncompleteStep ? `/onboarding?step=${firstIncompleteStep}` : "/onboarding"} className="btn-primary" style={{ width: "auto", whiteSpace: "nowrap", textDecoration: "none" }}>
-              {buttonText}
+        {/* Show profile card in grid only when complete (compact update link) */}
+        {profileStatus === "complete" ? (
+          <div className="card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", margin: 0 }}>
+            <div style={{ marginBottom: 16 }}>
+              <div className="card-title">Your Profile</div>
+              <div className="card-subtitle">Your profile is live. Update it anytime to keep it current.</div>
+            </div>
+            <Link href="/onboarding" className="btn-secondary" style={{ width: "auto", whiteSpace: "nowrap", textDecoration: "none", alignSelf: "flex-start" }}>
+              Update Profile
             </Link>
           </div>
-        </div>
-
-        <div className="card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", margin: 0 }}>
-          <div style={{ marginBottom: 16 }}>
-            <div className="card-title">Browse Jobs</div>
-            <div className="card-subtitle">Find opportunities that match your skills and experience.</div>
+        ) : (
+          <div className="card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", margin: 0 }}>
+            <div style={{ marginBottom: 16 }}>
+              <div className="card-title">Browse Jobs</div>
+              <div className="card-subtitle">Find opportunities that match your skills and experience.</div>
+            </div>
+            <Link href="/jobs" className="btn-secondary" style={{ whiteSpace: "nowrap", textDecoration: "none", alignSelf: "flex-start" }}>
+              View Jobs
+            </Link>
           </div>
-          <Link href="/jobs" className="btn-secondary" style={{ whiteSpace: "nowrap", textDecoration: "none", alignSelf: "flex-start" }}>
-            View Jobs
-          </Link>
-        </div>
+        )}
+
+        {profileStatus === "complete" && (
+          <div className="card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", margin: 0 }}>
+            <div style={{ marginBottom: 16 }}>
+              <div className="card-title">Browse Jobs</div>
+              <div className="card-subtitle">Find opportunities that match your skills and experience.</div>
+            </div>
+            <Link href="/jobs" className="btn-secondary" style={{ whiteSpace: "nowrap", textDecoration: "none", alignSelf: "flex-start" }}>
+              View Jobs
+            </Link>
+          </div>
+        )}
       </div>
 
       <div className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
