@@ -33,6 +33,7 @@ export default function ViewProfessionalClient({ professionalId }) {
   const searchParams = useSearchParams();
   const fromPage = searchParams.get("from");
   const [pro, setPro] = useState(null);
+  const [engagements, setEngagements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showInvite, setShowInvite] = useState(false);
   const [viewerTz, setViewerTz] = useState("Americas/Eastern");
@@ -40,7 +41,10 @@ export default function ViewProfessionalClient({ professionalId }) {
   useEffect(() => {
     fetch(`/api/search/professionals/${professionalId}`)
       .then((r) => r.json())
-      .then((data) => setPro(data.professional || null))
+      .then((data) => {
+        setPro(data.professional || null);
+        setEngagements(data.engagements || []);
+      })
       .finally(() => setLoading(false));
     fetch("/api/business/profile")
       .then((r) => r.json())
@@ -194,6 +198,48 @@ export default function ViewProfessionalClient({ professionalId }) {
           </div>
         )}
       </div>
+
+      {/* Engagements with this business */}
+      {engagements.length > 0 && (
+        <div className="card" style={{ padding: "18px 24px", marginBottom: 20 }}>
+          <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--gray-600)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 12 }}>
+            Your Engagement with {pro.firstName}
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {engagements.map((eng, i) => {
+              const statusLabel =
+                eng.sowStatus === "agreed" ? "Hired" :
+                eng.sowStatus === "sent" ? "SOW Sent" :
+                eng.status === "accepted" ? "Accepted" :
+                eng.status === "pending" ? "Invited" :
+                eng.status === "new" ? "Applied" :
+                eng.status === "reviewing" ? "Reviewing" :
+                eng.status === "declined" ? "Declined" :
+                eng.status === "withdrawn" ? "Withdrawn" :
+                eng.status;
+              const statusColor =
+                eng.sowStatus === "agreed" ? "#059669" :
+                eng.sowStatus === "sent" ? "#92400e" :
+                eng.status === "accepted" ? "#10b981" :
+                eng.status === "pending" || eng.status === "new" ? "#3b82f6" :
+                eng.status === "reviewing" ? "#f59e0b" :
+                eng.status === "declined" || eng.status === "withdrawn" ? "#94a3b8" :
+                "var(--gray-500)";
+              return (
+                <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", background: "var(--gray-50)", borderRadius: 8 }}>
+                  <div>
+                    <span style={{ fontSize: "0.88rem", fontWeight: 600, color: "var(--gray-700)" }}>{eng.positionTitle}</span>
+                    <span style={{ fontSize: "0.78rem", color: "var(--gray-400)", marginLeft: 8 }}>
+                      ({eng.type === "invite" ? "Invited" : "Applied"})
+                    </span>
+                  </div>
+                  <span style={{ fontSize: "0.78rem", fontWeight: 600, color: statusColor }}>{statusLabel}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Sections */}
       <div style={{ display: "grid", gap: 20 }}>

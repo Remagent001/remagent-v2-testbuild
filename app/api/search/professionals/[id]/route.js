@@ -107,5 +107,48 @@ export async function GET(request, { params }) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ professional });
+  // Find invites/applications for this PU on this BU's positions
+  let engagements = [];
+  const viewerPositions = await prisma.position.findMany({
+    where: { userId: session.user.id },
+    select: { id: true, title: true },
+  });
+  if (viewerPositions.length > 0) {
+    const posIds = viewerPositions.map((p) => p.id);
+    const posMap = {};
+    viewerPositions.forEach((p) => { posMap[p.id] = p.title; });
+
+    const [offers, apps] = await Promise.all([
+      prisma.jobOffer.findMany({
+        where: { userId: id, positionId: { in: posIds } },
+        select: { positionId: true, status: true, sow: { select: { status: true } } },
+      }),
+      prisma.jobApplication.findMany({
+        where: { userId: id, positionId: { in: posIds } },
+        select: { positionId: true, status: true },
+      }),
+    ]);
+
+    const seen = new Set();
+    offers.forEach((o) => {
+      seen.add(o.positionId);
+      engagements.push({
+        positionTitle: posMap[o.positionId],
+        type: "invite",
+        status: o.status,
+        sowStatus: o.sow?.status || null,
+      });
+    });
+    apps.forEach((a) => {
+      if (!seen.has(a.positionId)) {
+        engagements.push({
+          positionTitle: posMap[a.positionId],
+          type: "application",
+          status: a.status,
+        });
+      }
+    });
+  }
+
+  return NextResponse.json({ professional, engagements });
 }
