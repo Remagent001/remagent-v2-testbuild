@@ -285,6 +285,27 @@ export default function AdminBusinessesClient() {
                             style={{ width: 56, padding: "2px 6px", fontSize: "0.82rem", border: "1px solid var(--gray-200)", borderRadius: 4, textAlign: "center" }}
                           />
                         </div>
+                        <div style={{
+                          display: "flex", alignItems: "center", gap: 6,
+                          fontSize: "0.82rem", color: "var(--gray-600)",
+                          padding: "4px 10px", borderRadius: 8,
+                          background: "var(--gray-50)", border: "1px solid var(--gray-200)",
+                        }}>
+                          <span style={{ whiteSpace: "nowrap" }}>W-2 %</span>
+                          <input
+                            type="number"
+                            min="0" step="1"
+                            value={profile.w2Markup ?? 11}
+                            onChange={(e) => {
+                              fetch("/api/admin/businesses", {
+                                method: "PUT",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ businessProfileId: profile.id, w2Markup: e.target.value }),
+                              }).then(() => loadBusinesses());
+                            }}
+                            style={{ width: 48, padding: "2px 6px", fontSize: "0.82rem", border: "1px solid var(--gray-200)", borderRadius: 4, textAlign: "center" }}
+                          />
+                        </div>
                         <button
                           className="btn-secondary"
                           style={{

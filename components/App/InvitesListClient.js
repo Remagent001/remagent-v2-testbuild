@@ -293,11 +293,18 @@ export default function InvitesListClient() {
                       )}
                       {inv.status === "accepted" && (
                         <button
-                          className="btn-primary"
-                          style={{ width: "auto", fontSize: "0.82rem", padding: "6px 14px" }}
+                          className={inv.sow?.status === "agreed" ? "btn-secondary" : "btn-primary"}
+                          style={{
+                            width: "auto", fontSize: "0.82rem", padding: "6px 14px",
+                            ...(inv.sow?.status === "agreed" ? { color: "var(--gray-400)", borderColor: "var(--gray-300)" } : {}),
+                          }}
                           onClick={(e) => { e.stopPropagation(); router.push(`/sow/${inv.id}`); }}
                         >
-                          Prepare SOW
+                          {inv.sow?.status === "agreed" ? "SOW Complete" :
+                           inv.sow?.status === "sent" ? "View SOW" :
+                           inv.sow?.status === "declined" ? "SOW Declined" :
+                           inv.sow?.status === "draft" ? "Continue SOW" :
+                           "Prepare SOW"}
                         </button>
                       )}
 

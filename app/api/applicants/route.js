@@ -124,5 +124,23 @@ export async function PUT(request) {
     data: { status },
   });
 
+  // When accepting an applicant, create a JobOffer so the SOW flow can proceed
+  if (status === "accepted") {
+    const existing = await prisma.jobOffer.findUnique({
+      where: { positionId_userId: { positionId: application.positionId, userId: application.userId } },
+    });
+    if (!existing) {
+      await prisma.jobOffer.create({
+        data: {
+          positionId: application.positionId,
+          userId: application.userId,
+          status: "accepted",
+          viewedAt: new Date(),
+          progressStep: 5,
+        },
+      });
+    }
+  }
+
   return NextResponse.json({ success: true });
 }

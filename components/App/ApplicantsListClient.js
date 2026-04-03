@@ -243,15 +243,18 @@ export default function ApplicantsListClient() {
                       )}
                       {app.status === "accepted" && app.offer?.id && (
                         <button
-                          className="btn-primary"
-                          style={{ width: "auto", fontSize: "0.82rem", padding: "6px 14px" }}
+                          className={app.sowStatus === "agreed" ? "btn-secondary" : "btn-primary"}
+                          style={{
+                            width: "auto", fontSize: "0.82rem", padding: "6px 14px",
+                            ...(app.sowStatus === "agreed" ? { color: "var(--gray-400)", borderColor: "var(--gray-300)", cursor: "default" } : {}),
+                          }}
                           onClick={(e) => { e.stopPropagation(); router.push(`/sow/${app.offer.id}`); }}
                         >
-                          {app.offer.sow?.status === "sent" ? "View SOW" :
-                           app.offer.sow?.status === "agreed" ? "SOW Agreed" :
-                           app.offer.sow?.status === "declined" ? "SOW Declined" :
-                           app.offer.sow?.status === "draft" ? "Continue SOW" :
-                           "Hire — Prepare SOW"}
+                          {app.sowStatus === "agreed" ? "SOW Complete" :
+                           app.sowStatus === "sent" ? "View SOW" :
+                           app.sowStatus === "declined" ? "SOW Declined" :
+                           app.sowStatus === "draft" ? "Continue SOW" :
+                           "Prepare SOW"}
                         </button>
                       )}
 

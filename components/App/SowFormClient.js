@@ -10,7 +10,7 @@ const DAY_LABELS = { monday: "Mon", tuesday: "Tue", wednesday: "Wed", thursday: 
 const HIRING_MODELS = [
   { value: "direct_hire", label: "Direct Hire", desc: "One-time $500 placement fee" },
   { value: "contract", label: "Contract through Remagent", desc: "1099/Corp-to-Corp — convenience fee applied" },
-  { value: "w2_employee", label: "W-2 Employee", desc: "Remagent hires PU — 11% + convenience fee" },
+  { value: "w2_employee", label: "W-2 Employee", desc: "Remagent hires PU — W-2 markup + convenience fee" },
 ];
 
 function formatDate(d) {
@@ -28,6 +28,7 @@ export default function SowFormClient() {
   const [role, setRole] = useState(null);
   const [agreeing, setAgreeing] = useState(false);
   const [convenienceFee, setConvenienceFee] = useState(3);
+  const [w2Markup, setW2Markup] = useState(11);
 
   const [form, setForm] = useState({
     resourceName: "",
@@ -59,6 +60,7 @@ export default function SowFormClient() {
         setOffer(data.offer);
         setRole(data.role);
         setConvenienceFee(data.convenienceFee ?? 3);
+        setW2Markup(data.w2Markup ?? 11);
         if (data.sow) {
           setForm({
             ...data.sow,
@@ -104,30 +106,44 @@ export default function SowFormClient() {
     });
   };
 
-  // Auto-calculate billing rate based on hiring model
-  const calcBillingRate = () => {
-    const rate = parseFloat(form.hourlyRate) || 0;
-    if (!rate || !form.hiringModel) return "";
-    if (form.hiringModel === "contract") {
-      return (rate + convenienceFee).toFixed(2);
-    }
-    if (form.hiringModel === "w2_employee") {
-      return (rate * 1.11 + convenienceFee).toFixed(2);
-    }
-    return ""; // direct_hire has no billing rate
-  };
-
-  // Recompute billing rate when dependencies change
+  // Auto-calculate billing rate
   useEffect(() => {
     if (form.hiringModel && form.hiringModel !== "direct_hire" && form.hourlyRate) {
-      const computed = calcBillingRate();
+      const rate = parseFloat(form.hourlyRate) || 0;
+      let computed = "";
+      if (form.hiringModel === "contract") {
+        computed = (rate + convenienceFee).toFixed(2);
+      } else if (form.hiringModel === "w2_employee") {
+        computed = (rate * (1 + w2Markup / 100) + convenienceFee).toFixed(2);
+      }
       if (computed) updateField("billingRate", computed);
     }
-  }, [form.hourlyRate, form.hiringModel, convenienceFee]);
+  }, [form.hourlyRate, form.hiringModel, convenienceFee, w2Markup]);
 
   const isDirectHire = form.hiringModel === "direct_hire";
 
+  // Validation for required fields
+  const validateRequired = () => {
+    const missing = [];
+    if (!form.resourceName?.trim()) missing.push("Resource Name");
+    if (!form.resourceTitle?.trim()) missing.push("Resource Job Title");
+    if (!form.workDescription?.trim()) missing.push("Work to be Performed");
+    if (!form.workLocations?.trim()) missing.push("Work Location(s)");
+    if (!form.hourlyRate) missing.push("Hourly Rate");
+    if (!form.estimatedHours) missing.push("Estimated Weekly Hours");
+    if (!form.startDate) missing.push("Start Date");
+    if (!form.hiringModel) missing.push("Hiring Model");
+    return missing;
+  };
+
   const handleSave = async (status = "draft") => {
+    if (status === "sent") {
+      const missing = validateRequired();
+      if (missing.length > 0) {
+        alert(`Please fill in the following required fields:\n\n${missing.join("\n")}`);
+        return;
+      }
+    }
     const setFn = status === "sent" ? setSending : setSaving;
     setFn(true);
     try {
@@ -189,6 +205,7 @@ export default function SowFormClient() {
 
   const labelStyle = { fontSize: "0.82rem", fontWeight: 600, color: "var(--gray-600)", marginBottom: 4, display: "block" };
   const inputStyle = { width: "100%", margin: 0 };
+  const req = <span style={{ color: "#ef4444" }}>*</span>;
 
   return (
     <div className="positions-page" style={{ maxWidth: 800, margin: "0 auto" }}>
@@ -210,7 +227,7 @@ export default function SowFormClient() {
         <ProgressBubbles currentStep={offer.progressStep || 1} role={isPro ? "professional" : "business"} />
       </div>
 
-      {/* Status banner */}
+      {/* Status banners */}
       {isAgreed && (
         <div style={{ padding: "14px 18px", marginBottom: 16, background: "#d1fae5", borderLeft: "4px solid #10b981", borderRadius: 6, fontSize: "0.88rem", color: "#065f46" }}>
           This Statement of Work has been agreed to. The hire is active.
@@ -236,9 +253,9 @@ export default function SowFormClient() {
       <div className="card">
         <div className="card-title" style={{ marginBottom: 20 }}>Details</div>
 
-        {/* 11a — Hiring Model at the top */}
+        {/* Hiring Model — at top */}
         <div style={{ marginBottom: 20 }}>
-          <label style={labelStyle}>Hiring Model</label>
+          <label style={labelStyle}>Hiring Model {req}</label>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {HIRING_MODELS.map((model) => (
               <label
@@ -251,13 +268,10 @@ export default function SowFormClient() {
                 }}
               >
                 <input
-                  type="radio"
-                  name="hiringModel"
-                  value={model.value}
+                  type="radio" name="hiringModel" value={model.value}
                   checked={form.hiringModel === model.value}
                   onChange={(e) => updateField("hiringModel", e.target.value)}
-                  disabled={readOnly}
-                  style={{ marginTop: 2 }}
+                  disabled={readOnly} style={{ marginTop: 2 }}
                 />
                 <div>
                   <div style={{ fontWeight: 600, fontSize: "0.88rem", color: "var(--gray-700)" }}>{model.label}</div>
@@ -270,11 +284,11 @@ export default function SowFormClient() {
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
           <div>
-            <label style={labelStyle}>Resource Name</label>
+            <label style={labelStyle}>Resource Name {req}</label>
             <input className="form-input" style={inputStyle} value={form.resourceName || ""} onChange={(e) => updateField("resourceName", e.target.value)} readOnly={readOnly} />
           </div>
           <div>
-            <label style={labelStyle}>Resource Job Title</label>
+            <label style={labelStyle}>Resource Job Title {req}</label>
             <input className="form-input" style={inputStyle} value={form.resourceTitle || ""} onChange={(e) => updateField("resourceTitle", e.target.value)} readOnly={readOnly} />
           </div>
         </div>
@@ -301,7 +315,7 @@ export default function SowFormClient() {
         </div>
 
         <div style={{ marginBottom: 16 }}>
-          <label style={labelStyle}>Work to be Performed</label>
+          <label style={labelStyle}>Work to be Performed {req}</label>
           <textarea className="form-input" style={{ ...inputStyle, minHeight: 100 }} value={form.workDescription || ""} onChange={(e) => updateField("workDescription", e.target.value)} readOnly={readOnly} />
         </div>
 
@@ -311,12 +325,12 @@ export default function SowFormClient() {
             <input className="form-input" style={inputStyle} value={form.channels || ""} onChange={(e) => updateField("channels", e.target.value)} readOnly={readOnly} />
           </div>
           <div>
-            <label style={labelStyle}>Work Location(s)</label>
+            <label style={labelStyle}>Work Location(s) {req}</label>
             <input className="form-input" style={inputStyle} value={form.workLocations || ""} onChange={(e) => updateField("workLocations", e.target.value)} readOnly={readOnly} />
           </div>
         </div>
 
-        {/* 11c — Hide schedule section for Direct Hire */}
+        {/* Schedule — hidden for Direct Hire */}
         {!isDirectHire && (
           <div style={{ marginBottom: 16 }}>
             <label style={labelStyle}>General Schedule</label>
@@ -324,10 +338,7 @@ export default function SowFormClient() {
               {DAY_ORDER.map((day) => {
                 const active = !!form.schedule?.[day];
                 return (
-                  <button
-                    key={day}
-                    type="button"
-                    onClick={() => !readOnly && toggleDay(day)}
+                  <button key={day} type="button" onClick={() => !readOnly && toggleDay(day)}
                     style={{
                       padding: "6px 14px", borderRadius: 6, fontSize: "0.82rem", fontWeight: 600,
                       border: active ? "2px solid var(--teal)" : "2px solid var(--gray-200)",
@@ -335,9 +346,7 @@ export default function SowFormClient() {
                       color: active ? "var(--teal)" : "var(--gray-400)",
                       cursor: readOnly ? "default" : "pointer",
                     }}
-                  >
-                    {DAY_LABELS[day]}
-                  </button>
+                  >{DAY_LABELS[day]}</button>
                 );
               })}
             </div>
@@ -352,7 +361,7 @@ export default function SowFormClient() {
           </div>
         )}
 
-        {/* 11c — Hide Reporting Manager / Department for Direct Hire */}
+        {/* Reporting Manager / Department — hidden for Direct Hire */}
         {!isDirectHire && (
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
             <div>
@@ -367,39 +376,33 @@ export default function SowFormClient() {
         )}
 
         {/* Rates */}
-        <div style={{ display: "grid", gridTemplateColumns: isDirectHire ? "1fr 1fr" : "1fr 1fr 1fr", gap: 16, marginBottom: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: isDirectHire || isPro ? "1fr 1fr" : "1fr 1fr 1fr", gap: 16, marginBottom: 16 }}>
           <div>
-            <label style={labelStyle}>Hourly Rate ($)</label>
+            <label style={labelStyle}>Hourly Rate ($) {req}</label>
             <input type="number" className="form-input" style={inputStyle} min="10" step="0.50" value={form.hourlyRate || ""} onChange={(e) => updateField("hourlyRate", e.target.value)} readOnly={readOnly} />
           </div>
           <div>
-            <label style={labelStyle}>Estimated Hours</label>
+            <label style={labelStyle}>Estimated Weekly Hours {req}</label>
             <input type="number" className="form-input" style={inputStyle} min="1" value={form.estimatedHours || ""} onChange={(e) => updateField("estimatedHours", e.target.value)} readOnly={readOnly} />
           </div>
-          {/* 11b — Billing rate auto-calculated, only for contract/w2 */}
-          {!isDirectHire && (
+          {/* Billing rate — hidden for Direct Hire AND hidden from PU */}
+          {!isDirectHire && !isPro && (
             <div>
               <label style={labelStyle}>
                 Billing Rate ($)
                 <span style={{ fontWeight: 400, fontSize: "0.72rem", color: "var(--gray-400)", marginLeft: 4 }}>
-                  {form.hiringModel === "contract" ? "(rate + fee)" : "(rate × 1.11 + fee)"}
+                  {form.hiringModel === "contract" ? "(rate + fee)" : `(rate × ${(1 + w2Markup / 100).toFixed(2)} + fee)`}
                 </span>
               </label>
-              <input
-                type="number"
-                className="form-input"
-                style={{ ...inputStyle, background: "var(--gray-50)", color: "var(--gray-600)" }}
-                value={form.billingRate || ""}
-                readOnly
-              />
+              <input type="number" className="form-input" style={{ ...inputStyle, background: "var(--gray-50)", color: "var(--gray-600)" }} value={form.billingRate || ""} readOnly />
             </div>
           )}
         </div>
 
-        {/* Dates — hide End Date for Direct Hire */}
+        {/* Dates */}
         <div style={{ display: "grid", gridTemplateColumns: isDirectHire ? "1fr" : "1fr 1fr", gap: 16, marginBottom: 16 }}>
           <div>
-            <label style={labelStyle}>Start Date</label>
+            <label style={labelStyle}>Start Date {req}</label>
             <input type="date" className="form-input" style={inputStyle} value={form.startDate || ""} onChange={(e) => updateField("startDate", e.target.value)} readOnly={readOnly} />
           </div>
           {!isDirectHire && (
@@ -410,7 +413,7 @@ export default function SowFormClient() {
           )}
         </div>
 
-        {/* 11c — Hide Equipment for Direct Hire */}
+        {/* Equipment — hidden for Direct Hire */}
         {!isDirectHire && (
           <div style={{ marginBottom: 16 }}>
             <label style={labelStyle}>Equipment to be Supplied by Professional</label>
@@ -422,22 +425,11 @@ export default function SowFormClient() {
       {/* Actions */}
       {!isPro && !isSent && !isAgreed && (
         <div style={{ display: "flex", gap: 12, marginTop: 20, justifyContent: "flex-end" }}>
-          <button
-            className="btn-secondary"
-            style={{ width: "auto", padding: "10px 24px" }}
-            onClick={() => handleSave("draft")}
-            disabled={saving}
-          >
+          <button className="btn-secondary" style={{ width: "auto", padding: "10px 24px" }} onClick={() => handleSave("draft")} disabled={saving}>
             {saving ? "Saving..." : "Save Draft"}
           </button>
-          <button
-            className="btn-primary"
-            style={{ width: "auto", padding: "10px 24px" }}
-            onClick={() => {
-              if (confirm("Send this SOW to the professional for review? They will be notified.")) {
-                handleSave("sent");
-              }
-            }}
+          <button className="btn-primary" style={{ width: "auto", padding: "10px 24px" }}
+            onClick={() => { if (confirm("Send this SOW to the professional for review? They will be notified.")) handleSave("sent"); }}
             disabled={sending}
           >
             {sending ? "Sending..." : "Send to Professional"}
@@ -447,20 +439,10 @@ export default function SowFormClient() {
 
       {isPro && isSent && (
         <div style={{ display: "flex", gap: 12, marginTop: 20, justifyContent: "flex-end" }}>
-          <button
-            className="btn-secondary"
-            style={{ width: "auto", padding: "10px 24px", color: "#ef4444", borderColor: "#ef4444" }}
-            onClick={() => handleAgree("decline")}
-            disabled={agreeing}
-          >
+          <button className="btn-secondary" style={{ width: "auto", padding: "10px 24px", color: "#ef4444", borderColor: "#ef4444" }} onClick={() => handleAgree("decline")} disabled={agreeing}>
             Decline
           </button>
-          <button
-            className="btn-primary"
-            style={{ width: "auto", padding: "10px 24px", background: "#10b981" }}
-            onClick={() => handleAgree("agree")}
-            disabled={agreeing}
-          >
+          <button className="btn-primary" style={{ width: "auto", padding: "10px 24px", background: "#10b981" }} onClick={() => handleAgree("agree")} disabled={agreeing}>
             {agreeing ? "Processing..." : "I Agree to this SOW"}
           </button>
         </div>

@@ -25,7 +25,7 @@ export async function GET(request) {
           userId: true, title: true,
           user: {
             select: {
-              businessProfile: { select: { convenienceFee: true } },
+              businessProfile: { select: { convenienceFee: true, w2Markup: true } },
             },
           },
         },
@@ -62,6 +62,7 @@ export async function GET(request) {
       professionalTitle: offer.user.professionalProfile?.title || "",
     },
     convenienceFee: offer.position?.user?.businessProfile?.convenienceFee ?? 3,
+    w2Markup: offer.position?.user?.businessProfile?.w2Markup ?? 11,
     role: isPro ? "professional" : "business",
   });
 }

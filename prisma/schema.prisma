@@ -120,6 +120,7 @@ model BusinessProfile {
   autoApprove        Boolean @default(false)
   allowTimeEditing   Boolean @default(true)
   convenienceFee     Float   @default(3)
+  w2Markup           Float   @default(11)
   archived           Boolean @default(false)
   archivedAt      DateTime?
 

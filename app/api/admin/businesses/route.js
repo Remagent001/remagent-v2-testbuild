@@ -53,7 +53,7 @@ export async function PUT(request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { businessProfileId, autoApprove, allowTimeEditing, convenienceFee, archived } = await request.json();
+  const { businessProfileId, autoApprove, allowTimeEditing, convenienceFee, w2Markup, archived } = await request.json();
 
   if (!businessProfileId) {
     return NextResponse.json({ error: "Missing businessProfileId" }, { status: 400 });
@@ -63,6 +63,7 @@ export async function PUT(request) {
   if (autoApprove !== undefined) updateData.autoApprove = autoApprove;
   if (allowTimeEditing !== undefined) updateData.allowTimeEditing = allowTimeEditing;
   if (convenienceFee !== undefined) updateData.convenienceFee = parseFloat(convenienceFee);
+  if (w2Markup !== undefined) updateData.w2Markup = parseFloat(w2Markup);
   if (archived !== undefined) {
     updateData.archived = archived;
     updateData.archivedAt = archived ? new Date() : null;
