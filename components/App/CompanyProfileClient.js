@@ -321,18 +321,13 @@ export default function CompanyProfileClient() {
           </div>
         </div>
 
-        {/* Save */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 24 }}>
-          <button className="btn-primary" style={{ width: "auto" }} onClick={handleSave} disabled={saving}>
-            {saving ? "Saving..." : "Save Profile"}
-          </button>
-          {saved && <span style={{ color: "var(--teal)", fontSize: "0.85rem", fontWeight: 500 }}>Saved!</span>}
-        </div>
-      </div>
-
-      {/* Master Services Agreement */}
-      <div className="card" style={{ maxWidth: 720, marginTop: 24 }}>
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
+        {/* Master Services Agreement — above Save */}
+        <div style={{
+          display: "flex", alignItems: "flex-start", gap: 16, marginTop: 24,
+          padding: 20, borderRadius: 10,
+          background: msaSigned ? "var(--teal-dim)" : "#fef3c7",
+          border: msaSigned ? "1px solid var(--teal-border)" : "2px solid #f59e0b",
+        }}>
           <div style={{
             width: 48, height: 48, minWidth: 48, borderRadius: 10,
             background: msaSigned ? "var(--teal-dim)" : "var(--gray-100)",
@@ -413,6 +408,14 @@ export default function CompanyProfileClient() {
               </>
             )}
           </div>
+        </div>
+
+        {/* Save */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 24 }}>
+          <button className="btn-primary" style={{ width: "auto" }} onClick={handleSave} disabled={saving}>
+            {saving ? "Saving..." : "Save Profile"}
+          </button>
+          {saved && <span style={{ color: "var(--teal)", fontSize: "0.85rem", fontWeight: 500 }}>Saved!</span>}
         </div>
       </div>
     </div>
