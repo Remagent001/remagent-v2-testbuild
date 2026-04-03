@@ -7,13 +7,13 @@ export default function StepAgreement({ data, onNext, onBack, onSaveExit, saving
   const [signingLoading, setSigningLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Check if we returned from DocuSign with signed=true
+  // Check if we returned from DocuSign
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("signed") === "true") {
       setAgreed(true);
-    }
-    if (params.get("signing") === "cancelled") {
+      setError(""); // Clear any stale error
+    } else if (params.get("signing") === "cancelled") {
       setError("Signing was cancelled. Please try again to complete your profile.");
     }
   }, []);

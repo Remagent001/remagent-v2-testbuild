@@ -14,45 +14,63 @@ export async function GET(request) {
   const type = searchParams.get("type"); // "msa" or "professional"
   const event = searchParams.get("event"); // "signing_complete", "cancel", "decline", etc.
 
-  if (event === "signing_complete") {
-    try {
-      if (type === "msa") {
-        const profile = await prisma.businessProfile.findUnique({
-          where: { userId: session.user.id },
-        });
+  // Always check the actual envelope status from DocuSign, regardless of event param
+  try {
+    if (type === "msa") {
+      const profile = await prisma.businessProfile.findUnique({
+        where: { userId: session.user.id },
+      });
 
-        if (profile?.docusignEnvelopeId) {
-          const status = await getEnvelopeStatus(profile.docusignEnvelopeId);
-          if (status === "completed") {
-            await prisma.businessProfile.update({
-              where: { userId: session.user.id },
-              data: { agreementSigned: true, agreementSignedAt: new Date() },
-            });
-          }
+      if (profile?.docusignEnvelopeId) {
+        const status = await getEnvelopeStatus(profile.docusignEnvelopeId);
+        if (status === "completed") {
+          await prisma.businessProfile.update({
+            where: { userId: session.user.id },
+            data: { agreementSigned: true, agreementSignedAt: new Date() },
+          });
+          return redirect("/company-profile?signed=true");
         }
+      }
+
+      // Not completed — check if explicitly cancelled/declined
+      if (event === "cancel" || event === "decline") {
+        return redirect("/company-profile?signing=cancelled");
+      }
+      // Might still be processing — treat as signed if profile already marked
+      if (profile?.agreementSigned) {
         return redirect("/company-profile?signed=true");
-      } else if (type === "professional") {
-        const profile = await prisma.professionalProfile.findUnique({
-          where: { userId: session.user.id },
-        });
+      }
+      return redirect("/company-profile?signing=cancelled");
 
-        if (profile?.docusignEnvelopeId) {
-          const status = await getEnvelopeStatus(profile.docusignEnvelopeId);
-          if (status === "completed") {
-            await prisma.professionalProfile.update({
-              where: { userId: session.user.id },
-              data: { agreementSigned: true, agreementSignedAt: new Date() },
-            });
-          }
+    } else if (type === "professional") {
+      const profile = await prisma.professionalProfile.findUnique({
+        where: { userId: session.user.id },
+      });
+
+      if (profile?.docusignEnvelopeId) {
+        const status = await getEnvelopeStatus(profile.docusignEnvelopeId);
+        if (status === "completed") {
+          await prisma.professionalProfile.update({
+            where: { userId: session.user.id },
+            data: { agreementSigned: true, agreementSignedAt: new Date() },
+          });
+          return redirect("/onboarding?step=13&signed=true");
         }
+      }
+
+      if (event === "cancel" || event === "decline") {
+        return redirect("/onboarding?step=13&signing=cancelled");
+      }
+      if (profile?.agreementSigned) {
         return redirect("/onboarding?step=13&signed=true");
       }
-    } catch (err) {
-      console.error("DocuSign callback error:", err);
+      return redirect("/onboarding?step=13&signing=cancelled");
     }
+  } catch (err) {
+    console.error("DocuSign callback error:", err);
   }
 
-  // For cancel, decline, or other events
+  // Fallback
   if (type === "msa") {
     return redirect("/company-profile?signing=cancelled");
   }
