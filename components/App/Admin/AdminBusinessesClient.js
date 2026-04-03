@@ -28,6 +28,9 @@ export default function AdminBusinessesClient() {
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState(null);
   const [showArchived, setShowArchived] = useState(false);
+  const [expandedBiz, setExpandedBiz] = useState(null);
+  const [approvers, setApprovers] = useState({});
+  const [newApprover, setNewApprover] = useState({ name: "", email: "", phone: "" });
   const [lastActiveDays, setLastActiveDays] = useState("");
   const [sortBy, setSortBy] = useState("newest");
 
@@ -333,6 +336,75 @@ export default function AdminBusinessesClient() {
                     )}
                     {profile.fullAddress && (
                       <span>Address: {profile.fullAddress}</span>
+                    )}
+                  </div>
+                )}
+
+                {/* Timecard Approvers - expandable */}
+                {hasProfile && (
+                  <div style={{ marginTop: 12 }}>
+                    <button
+                      style={{ background: "none", border: "none", cursor: "pointer", fontSize: "0.82rem", color: "var(--teal)", fontWeight: 600, padding: 0 }}
+                      onClick={() => {
+                        const isOpen = expandedBiz === profile.id;
+                        setExpandedBiz(isOpen ? null : profile.id);
+                        if (!isOpen && !approvers[profile.id]) {
+                          fetch(`/api/timecard-approvers?businessProfileId=${profile.id}`)
+                            .then((r) => r.json())
+                            .then((data) => setApprovers((prev) => ({ ...prev, [profile.id]: data.approvers || [] })));
+                        }
+                      }}
+                    >
+                      {expandedBiz === profile.id ? "Hide" : "Manage"} Timecard Approvers
+                    </button>
+
+                    {expandedBiz === profile.id && (
+                      <div style={{ marginTop: 8, padding: 12, background: "var(--gray-50)", borderRadius: 8 }}>
+                        {(approvers[profile.id] || []).length > 0 ? (
+                          <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 10 }}>
+                            {(approvers[profile.id] || []).map((a) => (
+                              <div key={a.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "0.82rem" }}>
+                                <span><strong>{a.name}</strong> — {a.email}{a.phone ? ` — ${a.phone}` : ""}</span>
+                                <button
+                                  onClick={async () => {
+                                    await fetch(`/api/timecard-approvers?id=${a.id}`, { method: "DELETE" });
+                                    setApprovers((prev) => ({ ...prev, [profile.id]: prev[profile.id].filter((x) => x.id !== a.id) }));
+                                  }}
+                                  style={{ background: "none", border: "none", color: "var(--gray-400)", cursor: "pointer", fontSize: "0.75rem" }}
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p style={{ fontSize: "0.82rem", color: "var(--gray-400)", marginBottom: 10 }}>No approvers added yet.</p>
+                        )}
+                        <div style={{ display: "flex", gap: 6, alignItems: "flex-end", flexWrap: "wrap" }}>
+                          <input className="form-input" placeholder="Name" style={{ width: 130, margin: 0, fontSize: "0.82rem", padding: "4px 8px" }} value={expandedBiz === profile.id ? newApprover.name : ""} onChange={(e) => setNewApprover({ ...newApprover, name: e.target.value })} />
+                          <input className="form-input" placeholder="Email" style={{ width: 170, margin: 0, fontSize: "0.82rem", padding: "4px 8px" }} value={expandedBiz === profile.id ? newApprover.email : ""} onChange={(e) => setNewApprover({ ...newApprover, email: e.target.value })} />
+                          <input className="form-input" placeholder="Phone" style={{ width: 120, margin: 0, fontSize: "0.82rem", padding: "4px 8px" }} value={expandedBiz === profile.id ? newApprover.phone : ""} onChange={(e) => setNewApprover({ ...newApprover, phone: e.target.value })} />
+                          <button
+                            className="btn-primary"
+                            style={{ width: "auto", padding: "4px 12px", fontSize: "0.82rem" }}
+                            disabled={!newApprover.name.trim() || !newApprover.email.trim()}
+                            onClick={async () => {
+                              const res = await fetch("/api/timecard-approvers", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ ...newApprover, businessProfileId: profile.id }),
+                              });
+                              const data = await res.json();
+                              if (data.approver) {
+                                setApprovers((prev) => ({ ...prev, [profile.id]: [...(prev[profile.id] || []), data.approver] }));
+                                setNewApprover({ name: "", email: "", phone: "" });
+                              }
+                            }}
+                          >
+                            Add
+                          </button>
+                        </div>
+                      </div>
                     )}
                   </div>
                 )}

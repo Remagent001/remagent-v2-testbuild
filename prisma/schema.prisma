@@ -124,9 +124,23 @@ model BusinessProfile {
   archived           Boolean @default(false)
   archivedAt      DateTime?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  approvers TimecardApprover[]
 
   @@map("business_profiles")
+}
+
+model TimecardApprover {
+  id                String  @id @default(cuid())
+  businessProfileId String
+  name              String
+  email             String
+  phone             String?
+  createdAt         DateTime @default(now())
+
+  businessProfile BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+
+  @@map("timecard_approvers")
 }
 
 // ──────────────────────────────────────

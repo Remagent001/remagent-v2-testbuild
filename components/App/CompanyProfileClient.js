@@ -43,6 +43,11 @@ export default function CompanyProfileClient() {
   const [city, setCity] = useState("");
   const [zip, setZip] = useState("");
 
+  // Timecard approvers
+  const [approvers, setApprovers] = useState([]);
+  const [newApprover, setNewApprover] = useState({ name: "", email: "", phone: "" });
+  const [addingApprover, setAddingApprover] = useState(false);
+
   // MSA
   const [msaSigned, setMsaSigned] = useState(false);
   const [msaSignedAt, setMsaSignedAt] = useState(null);
@@ -101,6 +106,11 @@ export default function CompanyProfileClient() {
         }
       })
       .finally(() => setLoading(false));
+    // Fetch approvers
+    fetch("/api/timecard-approvers")
+      .then((r) => r.json())
+      .then((data) => setApprovers(data.approvers || []))
+      .catch(() => {});
   }, []);
 
   const handleLogo = async (file) => {
@@ -407,6 +417,78 @@ export default function CompanyProfileClient() {
                 )}
               </>
             )}
+          </div>
+        </div>
+
+        {/* Timecard Approvers */}
+        <div style={{ marginTop: 24 }}>
+          <label style={{ fontSize: "0.92rem", fontWeight: 700, color: "var(--gray-700)", marginBottom: 12, display: "block" }}>
+            Timecard Approvers
+          </label>
+          <p style={{ fontSize: "0.82rem", color: "var(--gray-400)", marginBottom: 12 }}>
+            Add contacts who are authorized to approve timesheets for your company.
+          </p>
+
+          {approvers.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
+              {approvers.map((a) => (
+                <div key={a.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", background: "var(--gray-50)", borderRadius: 8, fontSize: "0.85rem" }}>
+                  <div>
+                    <span style={{ fontWeight: 600, color: "var(--gray-700)" }}>{a.name}</span>
+                    <span style={{ color: "var(--gray-400)", marginLeft: 8 }}>{a.email}</span>
+                    {a.phone && <span style={{ color: "var(--gray-400)", marginLeft: 8 }}>{a.phone}</span>}
+                  </div>
+                  <button
+                    onClick={async () => {
+                      if (!confirm(`Remove ${a.name} as an approver?`)) return;
+                      await fetch(`/api/timecard-approvers?id=${a.id}`, { method: "DELETE" });
+                      setApprovers((prev) => prev.filter((x) => x.id !== a.id));
+                    }}
+                    style={{ background: "none", border: "none", color: "var(--gray-400)", cursor: "pointer", fontSize: "0.78rem" }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap" }}>
+            <div>
+              <label style={{ fontSize: "0.75rem", color: "var(--gray-500)", display: "block", marginBottom: 2 }}>Name</label>
+              <input className="form-input" style={{ width: 160, margin: 0, fontSize: "0.85rem", padding: "6px 10px" }} placeholder="Full name" value={newApprover.name} onChange={(e) => setNewApprover({ ...newApprover, name: e.target.value })} />
+            </div>
+            <div>
+              <label style={{ fontSize: "0.75rem", color: "var(--gray-500)", display: "block", marginBottom: 2 }}>Email</label>
+              <input className="form-input" type="email" style={{ width: 200, margin: 0, fontSize: "0.85rem", padding: "6px 10px" }} placeholder="email@company.com" value={newApprover.email} onChange={(e) => setNewApprover({ ...newApprover, email: e.target.value })} />
+            </div>
+            <div>
+              <label style={{ fontSize: "0.75rem", color: "var(--gray-500)", display: "block", marginBottom: 2 }}>Phone</label>
+              <input className="form-input" style={{ width: 140, margin: 0, fontSize: "0.85rem", padding: "6px 10px" }} placeholder="Optional" value={newApprover.phone} onChange={(e) => setNewApprover({ ...newApprover, phone: e.target.value })} />
+            </div>
+            <button
+              className="btn-primary"
+              style={{ width: "auto", padding: "6px 16px", fontSize: "0.82rem" }}
+              disabled={addingApprover || !newApprover.name.trim() || !newApprover.email.trim()}
+              onClick={async () => {
+                setAddingApprover(true);
+                try {
+                  const res = await fetch("/api/timecard-approvers", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(newApprover),
+                  });
+                  const data = await res.json();
+                  if (data.approver) {
+                    setApprovers((prev) => [...prev, data.approver]);
+                    setNewApprover({ name: "", email: "", phone: "" });
+                  }
+                } catch {}
+                setAddingApprover(false);
+              }}
+            >
+              {addingApprover ? "Adding..." : "Add"}
+            </button>
           </div>
         </div>
 
