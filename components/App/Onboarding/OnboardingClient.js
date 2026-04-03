@@ -115,12 +115,16 @@ export default function OnboardingClient() {
         router.push("/dashboard");
       } else {
         setCurrentStep(currentStep + 1);
+        window.scrollTo(0, 0);
       }
     }
   };
 
   const handleBack = () => {
-    if (currentStep > 1) setCurrentStep(currentStep - 1);
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+      window.scrollTo(0, 0);
+    }
   };
 
   const handleSaveExit = async (stepData) => {
