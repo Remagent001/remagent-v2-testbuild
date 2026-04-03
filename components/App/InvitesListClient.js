@@ -284,7 +284,7 @@ export default function InvitesListClient() {
                       {inv.status === "pending" && (
                         <button
                           className="btn-secondary"
-                          style={{ width: "auto", fontSize: "0.82rem", padding: "6px 14px", color: "#ef4444", borderColor: "#ef4444" }}
+                          style={{ width: "auto", fontSize: "0.82rem", padding: "6px 14px", color: "#94a3b8", borderColor: "#94a3b8" }}
                           onClick={(e) => { e.stopPropagation(); handleWithdraw(inv.id); }}
                           disabled={withdrawing === inv.id}
                         >
