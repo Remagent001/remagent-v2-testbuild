@@ -609,6 +609,7 @@ model StatementOfWork {
   billingRate       Float?
   poNumber          String?
   status            String    @default("draft") // draft, sent, agreed, declined
+  declineReason     String?   @db.Text
   agreedAt          DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt

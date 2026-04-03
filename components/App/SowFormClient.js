@@ -27,6 +27,8 @@ export default function SowFormClient() {
   const [offer, setOffer] = useState(null);
   const [role, setRole] = useState(null);
   const [agreeing, setAgreeing] = useState(false);
+  const [showDeclineModal, setShowDeclineModal] = useState(false);
+  const [declineReason, setDeclineReason] = useState("");
   const [convenienceFee, setConvenienceFee] = useState(3);
   const [w2Markup, setW2Markup] = useState(11);
 
@@ -159,15 +161,16 @@ export default function SowFormClient() {
     setFn(false);
   };
 
-  const handleAgree = async (action) => {
+  const handleAgree = async (action, reason) => {
     if (action === "agree" && !confirm("By agreeing, you confirm you accept the terms of this Statement of Work. Continue?")) return;
-    if (action === "decline" && !confirm("Are you sure you want to decline this Statement of Work?")) return;
     setAgreeing(true);
     try {
+      const body = { offerId, action };
+      if (action === "decline" && reason) body.declineReason = reason;
       const res = await fetch("/api/sow", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ offerId, action }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (data.success) {
@@ -175,6 +178,12 @@ export default function SowFormClient() {
       }
     } catch {}
     setAgreeing(false);
+  };
+
+  const handleResend = async () => {
+    if (confirm("Resend this updated SOW to the professional for review?")) {
+      handleSave("sent");
+    }
   };
 
   if (loading) {
@@ -201,7 +210,7 @@ export default function SowFormClient() {
   const isSent = form.status === "sent";
   const isAgreed = form.status === "agreed";
   const isDeclined = form.status === "declined";
-  const readOnly = isPro || isSent || isAgreed;
+  const readOnly = isPro || isSent || isAgreed || (isDeclined && isPro);
 
   const labelStyle = { fontSize: "0.82rem", fontWeight: 600, color: "var(--gray-600)", marginBottom: 4, display: "block" };
   const inputStyle = { width: "100%", margin: 0 };
@@ -235,7 +244,20 @@ export default function SowFormClient() {
       )}
       {isDeclined && (
         <div style={{ padding: "14px 18px", marginBottom: 16, background: "#fee2e2", borderLeft: "4px solid #ef4444", borderRadius: 6, fontSize: "0.88rem", color: "#991b1b" }}>
-          This Statement of Work was declined by the professional.
+          <div style={{ fontWeight: 600, marginBottom: form.declineReason ? 8 : 0 }}>
+            {isPro ? "You declined this Statement of Work." : "This Statement of Work was declined by the professional."}
+          </div>
+          {form.declineReason && (
+            <div style={{ background: "#fff5f5", padding: "10px 14px", borderRadius: 6, marginTop: 6 }}>
+              <div style={{ fontSize: "0.75rem", fontWeight: 600, color: "#991b1b", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.04em" }}>Reason for Decline</div>
+              <p style={{ margin: 0, fontSize: "0.88rem", color: "#7f1d1d", whiteSpace: "pre-wrap" }}>{form.declineReason}</p>
+            </div>
+          )}
+          {!isPro && (
+            <p style={{ margin: "8px 0 0", fontSize: "0.82rem", color: "#991b1b" }}>
+              You can edit the SOW below and resend it to the professional.
+            </p>
+          )}
         </div>
       )}
       {isSent && isPro && (
@@ -439,12 +461,75 @@ export default function SowFormClient() {
 
       {isPro && isSent && (
         <div style={{ display: "flex", gap: 12, marginTop: 20, justifyContent: "flex-end" }}>
-          <button className="btn-secondary" style={{ width: "auto", padding: "10px 24px", color: "#ef4444", borderColor: "#ef4444" }} onClick={() => handleAgree("decline")} disabled={agreeing}>
+          <button className="btn-secondary" style={{ width: "auto", padding: "10px 24px", color: "#ef4444", borderColor: "#ef4444" }} onClick={() => setShowDeclineModal(true)} disabled={agreeing}>
             Decline
           </button>
           <button className="btn-primary" style={{ width: "auto", padding: "10px 24px", background: "#10b981" }} onClick={() => handleAgree("agree")} disabled={agreeing}>
             {agreeing ? "Processing..." : "I Agree to this SOW"}
           </button>
+        </div>
+      )}
+
+      {/* BU can resend after decline */}
+      {!isPro && isDeclined && (
+        <div style={{ display: "flex", gap: 12, marginTop: 20, justifyContent: "flex-end" }}>
+          <button className="btn-secondary" style={{ width: "auto", padding: "10px 24px" }} onClick={() => handleSave("draft")} disabled={saving}>
+            {saving ? "Saving..." : "Save Draft"}
+          </button>
+          <button className="btn-primary" style={{ width: "auto", padding: "10px 24px" }} onClick={handleResend} disabled={sending}>
+            {sending ? "Sending..." : "Resend SOW"}
+          </button>
+        </div>
+      )}
+
+      {/* Decline Modal */}
+      {showDeclineModal && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+          background: "rgba(0,0,0,0.4)", display: "flex",
+          alignItems: "center", justifyContent: "center", zIndex: 1000,
+        }}>
+          <div style={{
+            background: "#fff", borderRadius: 12, padding: 28, width: 440,
+            maxWidth: "90vw", boxShadow: "0 10px 40px rgba(0,0,0,0.15)",
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h3 style={{ margin: 0, fontSize: "1.1rem", color: "var(--gray-800)" }}>Decline Statement of Work</h3>
+              <button onClick={() => setShowDeclineModal(false)} style={{ background: "none", border: "none", fontSize: "1.3rem", color: "var(--gray-400)", cursor: "pointer" }}>&times;</button>
+            </div>
+            <p style={{ fontSize: "0.88rem", color: "var(--gray-500)", marginBottom: 16, lineHeight: 1.5 }}>
+              Please let the business know why you are declining and if there are any adjustments that could be made (e.g. rate, schedule, terms).
+            </p>
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--gray-600)", marginBottom: 6, display: "block" }}>
+                Reason for Declining / Suggested Adjustments
+              </label>
+              <textarea
+                className="form-input"
+                rows={4}
+                placeholder="E.g. The hourly rate should be $X, or I need a different start date..."
+                value={declineReason}
+                onChange={(e) => setDeclineReason(e.target.value)}
+                style={{ width: "100%", resize: "vertical", margin: 0 }}
+              />
+            </div>
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <button className="btn-secondary" style={{ width: "auto", padding: "8px 20px" }} onClick={() => setShowDeclineModal(false)}>
+                Cancel
+              </button>
+              <button
+                className="btn-primary"
+                style={{ width: "auto", padding: "8px 20px", background: "#ef4444" }}
+                onClick={() => {
+                  setShowDeclineModal(false);
+                  handleAgree("decline", declineReason);
+                }}
+                disabled={agreeing}
+              >
+                {agreeing ? "Declining..." : "Submit & Decline"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -112,8 +112,12 @@ export async function POST(request) {
     update: data,
   });
 
-  // If sending to PU, update status and progress
+  // If sending/resending to PU, clear decline reason, update progress
   if (sowData.status === "sent") {
+    await prisma.statementOfWork.update({
+      where: { offerId },
+      data: { declineReason: null },
+    });
     await prisma.jobOffer.update({
       where: { id: offerId },
       data: { progressStep: Math.max(offer.progressStep || 1, 6) },
@@ -139,7 +143,7 @@ export async function PUT(request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { offerId, action } = await request.json();
+  const { offerId, action, declineReason } = await request.json();
 
   if (!offerId || !["agree", "decline"].includes(action)) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
@@ -219,7 +223,7 @@ export async function PUT(request) {
   } else {
     await prisma.statementOfWork.update({
       where: { offerId },
-      data: { status: "declined" },
+      data: { status: "declined", declineReason: declineReason || null },
     });
 
     // SMS notify BU
